@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Optional, Tuple, Union
 
 
-class TrendFollowingStrategy(IStrategy):
+class TrendFollowingStrategyV2(IStrategy):
     minimal_roi = {"0": 100}
 
     buy_leverage = IntParameter(1, 3, default=3, space='buy')
@@ -23,27 +23,30 @@ class TrendFollowingStrategy(IStrategy):
     timeframe = '1d'
     
     lookback_period = 30
-    highest_period = lookback_period
-    lowest_period = lookback_period
+    breakout_long = 50
+    breakout_short = 25
     
-    startup_candle_count = min(highest_period, lowest_period)
+    startup_candle_count = min(breakout_long, breakout_short)
     
 
     def populate_indicators(self, dataframe: pd.DataFrame, metadata: dict) -> pd.DataFrame:
-        dataframe['highest'] = dataframe['close'].rolling(window=self.highest_period).max()
-        dataframe['lowest'] = dataframe['close'].rolling(window=self.lowest_period).min()
+        dataframe['highest_long'] = dataframe['close'].rolling(window=self.breakout_long).max()
+        dataframe['lowest_long'] = dataframe['close'].rolling(window=self.breakout_long).min()
+        dataframe['highest_short'] = dataframe['close'].rolling(window=self.breakout_short).max()
+        dataframe['lowest_short'] = dataframe['close'].rolling(window=self.breakout_short).min()
+
         return dataframe
 
     def populate_entry_trend(self, dataframe: pd.DataFrame, metadata: dict) -> pd.DataFrame:
         dataframe.loc[
             (
-                (dataframe['close'] > dataframe['highest'].shift(1))
+                (dataframe['close'] > dataframe['highest_long'].shift(1))
             ),
             'enter_long'] = 1
         
         dataframe.loc[
             (
-                (dataframe['close'] < dataframe['lowest'].shift(1))
+                (dataframe['close'] < dataframe['lowest_long'].shift(1))
             ),
             'enter_short'] = 1
 
@@ -52,20 +55,20 @@ class TrendFollowingStrategy(IStrategy):
     def populate_exit_trend(self, dataframe: pd.DataFrame, metadata: dict) -> pd.DataFrame:
         dataframe.loc[
             (
-                (dataframe['close'] < dataframe['lowest'].shift(1))
+                (dataframe['close'] < dataframe['lowest_short'].shift(1))
             ),
             'exit_long'] = 1
         
         dataframe.loc[
             (
-                (dataframe['close'] > dataframe['highest'].shift(1))
+                (dataframe['close'] > dataframe['highest_short'].shift(1))
             ),
             'exit_short'] = 1
 
         return dataframe
     
     @property
-    def protections(self):
+    def protections(self): # type: ignore
         return [
             {
                 "method": "CooldownPeriod",
