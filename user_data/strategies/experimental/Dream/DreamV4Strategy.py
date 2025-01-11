@@ -25,7 +25,7 @@ class DreamV4Strategy(IStrategy):
 
     timeframe = '3m'
     
-    base_stoploss_pct = 0.05
+    base_stoploss_pct = 0.08
     stoploss = -base_stoploss_pct * trade_leverage
     trailing_stop = False
     use_custom_stoploss = True
@@ -41,12 +41,12 @@ class DreamV4Strategy(IStrategy):
     ema_length = period
     ema_mid_length = 6 * period
     ema_long_length = 24 * period
-    ema_trend = 5
+    ema_trend = 6
     ema_mid_trend = ema_trend
     ema_long_trend = ema_trend * 3
-    ema_up_ratio = 1.01
+    ema_up_ratio = 1.005
     
-    breakout_period = 5
+    breakout_period = 4
     
     adx_length = period
     adx_threshold = 25
@@ -76,16 +76,27 @@ class DreamV4Strategy(IStrategy):
     def custom_exit(self, pair: str, trade: Trade, current_time: datetime,
                    current_rate: float, current_profit: float, **kwargs) -> bool:
         leverage = trade.leverage
-        entry_stake = self.calc_entry_proposed_stake()
+        entry_stake = self.calc_entry_stake_without_leverage()
         entry_stake_with_leverage = entry_stake * leverage
         stake_amount = trade.amount * trade.open_rate
         
-        # 长时间stake amount上不来，说明加仓少，趋势不明朗，尽早退出
-        # (0.005 * leverage) < current_profit and current_profit < (0.01 * leverage) and
-        if stake_amount < self.stake_ratio * 3 * entry_stake_with_leverage and (current_time - timedelta(hours=2)) > trade.open_date_utc:
-            exit_reason = 'Long time low profit'
-            logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
-            return exit_reason
+        # 长时间stake amount上不来，例如不到相当于4次加仓的市值，说明加仓少，趋势不明朗，尽早退出
+        low_stake_threshold = 4 * entry_stake_with_leverage
+        is_low_stake = stake_amount < low_stake_threshold
+        logger.info(f'Checking {trade.pair} low stake result:{is_low_stake}, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
+        if is_low_stake:
+            if (current_time - timedelta(minutes=45)) > trade.open_date_utc and 0.002 * leverage < current_profit < 0.02 * leverage:
+                exit_reason = 'Long time low profit'
+                logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+                return exit_reason
+            if (current_time - timedelta(minutes=60)) > trade.open_date_utc and -0.01 * leverage < current_profit < 0.002 * leverage:
+                exit_reason = 'Long time low profit-2'
+                logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+                return exit_reason
+            if (current_time - timedelta(minutes=90)) > trade.open_date_utc and current_profit < 0.01 * leverage:
+                exit_reason = 'Long time low stake'
+                logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+                return exit_reason
         
         open_profit_abs = current_profit / leverage * stake_amount
         realized_profit_abs = trade.realized_profit if trade.realized_profit else 0
@@ -102,16 +113,16 @@ class DreamV4Strategy(IStrategy):
         
         logger.info(f'{trade.pair} total profit:{total_profit_abs:.4f}(open:{open_profit_abs:.4f}, close:{realized_profit_abs:.4f}), current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
         
-        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.2]
+        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.3]
         # draw_back_ratio_array = [1-(0.1*leverage), 1-(0.12*leverage), 1-(0.18*leverage)]
-        draw_back_ratio_array = [0.65, 0.5, 0.2]
+        draw_back_ratio_array = [0.65, 0.3, 0.2]
         
-        for market_value_threshold, draw_back_ratio in zip(market_value_threshold_array, draw_back_ratio_array):
+        for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
             reach_drawback = max_profit_abs > market_value_threshold and total_profit_abs < max_profit_abs * draw_back_ratio
-            logger.info(f'Checking {trade.pair} drawback result:{reach_drawback} on threshold:{market_value_threshold:.4f} and total_profit_abs:{total_profit_abs:.4f} with {max_profit_abs*draw_back_ratio:.4f}(max_profit_abs:{max_profit_abs:.4f}*ratio:{draw_back_ratio:.2f})')
+            logger.info(f'Checking {trade.pair} drawback result:{reach_drawback} on threshold:{market_value_threshold:.4f} and total_profit_abs:{total_profit_abs:.4f} with {max_profit_abs*draw_back_ratio:.4f}(max_profit_abs:{max_profit_abs:.4f}*ratio:{draw_back_ratio:.2%}) at {current_time}')
             if reach_drawback:
-                exit_reason = 'Profit drawback'
-                logger.info(f'{exit_reason} for {pair}: total profit {total_profit_abs:.4f} < max_profit_abs {max_profit_abs:.4f} * {draw_back_ratio:.2%}, current_rate:{current_rate:.4f} at {current_time}')
+                exit_reason = f'Profit drawback-{index+1}'
+                logger.info(f'{exit_reason} for {pair}: total profit {total_profit_abs:.4f} < (max_profit_abs {max_profit_abs:.4f} * {draw_back_ratio:.2%}), current_rate:{current_rate:.4f} at {current_time}')
                 return exit_reason
         
         profit_drawdown_threshold = entry_stake_with_leverage * self.exit_loss_ratio
@@ -144,6 +155,7 @@ class DreamV4Strategy(IStrategy):
                           current_rate: float, current_profit: float, min_stake: float, max_stake: float, 
                           current_entry_rate: float, current_exit_rate: float,
                           current_entry_profit: float, current_exit_profit: float, **kwargs) -> Optional[float]:
+        # Note: 这个函数需要返回的是不带杠杆的金额，具体代码参考freqtradebot.execute_entry()
         if not self.position_adjustment_enable:
             return None
 
@@ -162,6 +174,7 @@ class DreamV4Strategy(IStrategy):
         if latest_order is None:
             return None
 
+        # TODO: 根据加仓订单的密集程度动态调整加仓比例
         # filled_or_open_orders = self.select_filled_or_open_orders()
         # orders_json = [order.to_json(self.entry_side, minified) for order in filled_or_open_orders]
         
@@ -174,23 +187,27 @@ class DreamV4Strategy(IStrategy):
             last_addition_price = latest_order.average
             trade.set_custom_data(self.LAST_ADDITION_PRICE, last_addition_price)
         
-        entry_signal = False
+        addition_signal = False
         
         match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_order.order_filled_utc
         if current_profit > 0.001 * leverage and match_order_interval:
             addition_price_ratio = 0.98
             if is_short and last_candle['enter_short'] == 1 and current_rate < last_addition_price / addition_price_ratio:
-                entry_signal = True
+                addition_signal = True
             elif not is_short and (last_candle['enter_long'] == 1 and current_rate > last_addition_price * addition_price_ratio):
-                entry_signal = True
+                addition_signal = True
                 
         min_stake /= trade.leverage
         max_stake /= trade.leverage
         
-        entry_proposed_stake = self.calc_entry_proposed_stake()
-        if entry_signal:
-            addition_stake = entry_proposed_stake
-            logger.info(f'Initialize {trade.pair} addition stake to {addition_stake:.5f} at {current_time}')
+        entry_stake = self.calc_entry_stake_without_leverage()
+        if addition_signal:
+            base_profit_step = 0.1
+            max_profit_step = 0.3
+            profit_factor = max(min(current_profit, max_profit_step), base_profit_step)
+            addition_multiplier = int(round(profit_factor / base_profit_step))
+            addition_stake = entry_stake * addition_multiplier
+            logger.info(f'Initialize {trade.pair} addition stake #{addition_multiplier} to {addition_stake:.5f} at {current_time}')
             
             position_addition = True
             if addition_stake < min_stake:
@@ -205,8 +222,10 @@ class DreamV4Strategy(IStrategy):
                 trade.set_custom_data(self.LAST_ADDITION_PRICE, current_rate)
                 trade.set_custom_data(self.REVERSION_PRICE, current_rate)
                 
-                logger.info(f'Position addition for {trade.pair} with stake amount {addition_stake:.5f} triggered at entry signal, current_profit:{current_profit:.2f}, current_rate:{current_rate:.5f} at {current_time}')
-                return (addition_stake, 'entry-addition')
+                logger.info(f'Position addition for {trade.pair} with stake amount {addition_stake:.5f}(multiplier:#{addition_multiplier}) triggered at entry signal, current_profit:{current_profit:.2f}, current_rate:{current_rate:.5f} at {current_time}')
+                return (addition_stake, f'entry-addition-{addition_multiplier}')
+
+        # return None
 
         # 均值回归处理
         last_reversion_price = trade.get_custom_data(self.REVERSION_PRICE)
@@ -221,38 +240,42 @@ class DreamV4Strategy(IStrategy):
         current_market_value = trade.amount * current_rate
         
         # 达到单个品种的标准市值（即总资金/max_open_trades）才考虑均值回归处理，未达到之前等待趋势加仓或者趋势没起来打到止损
-        if current_market_value < entry_proposed_stake * leverage:
+        if current_market_value < entry_stake * leverage:
             return None
         
-        last_market_value = trade.amount * last_reversion_price
-        market_value_change = last_market_value - current_market_value
-        logger.info(f'Initialize reversion stake for {trade.pair} with stake amount:{market_value_change:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, price_change:{price_change:.2%})')
+        if current_profit < 0.1:
+            return None
         
-        if abs(market_value_change) > min_stake:
+        # last_market_value = trade.amount * last_reversion_price
+        # market_value_change = last_market_value - current_market_value
+        # reversion_stake = market_value_change / leverage
+        
+        reversion_stake = entry_stake
+        logger.info(f'Initialize reversion stake for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, price_change:{price_change:.2%})')
+        
+        if abs(reversion_stake) > min_stake:
             # and abs(adjustment_value) < max_stake:
-            logger.info(f'Mean reversion adjustment for {trade.pair} with stake amount:{market_value_change:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, price_change:{price_change:.2%})')
+            logger.info(f'Mean reversion adjustment for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, price_change:{price_change:.2%}) at {current_time}')
             trade.set_custom_data(self.REVERSION_PRICE, current_rate)
-            if market_value_change > 0:
-                return (market_value_change, 'reversion-addition')
+            if reversion_stake > 0:
+                return (reversion_stake, 'reversion-addition')
             else:
-                return (market_value_change, 'reversion-decrease')
+                return (reversion_stake, 'reversion-decrease')
         else:
-            logger.info(f'Skip mean reversion adjustment for {trade.pair} while stake amount:{market_value_change:.4f} is not in the valid range({min_stake:.4f}, {max_stake:.4f}) at {current_time}')
+            logger.info(f'Skip mean reversion adjustment for {trade.pair} while stake amount:{reversion_stake:.4f} is not in the valid range({min_stake:.4f}, {max_stake:.4f}) at {current_time}')
             return None
         
-    def calc_entry_proposed_stake(self) -> float:
+    def calc_entry_stake_without_leverage(self) -> float:
         return self.wallets.get_total(self.stake_currency) * self.stake_ratio / self.max_open_trades
         
-    def calc_stake_amount(self, pair: str, current_time: datetime, current_rate: float, proposed_stake: float, min_stake: float, max_stake: float, leverage: float):
-        stake_amount = min(max(min_stake, proposed_stake * self.stake_ratio), max_stake)
-        logger.info(f'Stake amount for {pair}={stake_amount:.5f} with leverage:{leverage}(total={stake_amount*leverage:.5f}), rate:{current_rate:.5f} at {current_time}')
-        return stake_amount
-
     def custom_stake_amount(self, pair: str, current_time: datetime, current_rate: float,
                           proposed_stake: float, min_stake: Optional[float], max_stake: float,
                           leverage: float, entry_tag: Optional[str], side: str,
                           **kwargs) -> float:
-        return self.calc_stake_amount(pair, current_time, current_rate, proposed_stake, min_stake, max_stake, leverage)
+        # Note: 这个函数需要返回的是不带杠杆的金额，具体代码参考freqtradebot.execute_entry()
+        stake_amount = min(max(min_stake, proposed_stake * self.stake_ratio), max_stake)
+        logger.info(f'Stake amount for {pair}={stake_amount:.5f} with leverage:{leverage}(after leverage={stake_amount*leverage:.5f}), proposed:{proposed_stake:.5f}, min_stake:{min_stake:.5f}, max_stake:{max_stake:.5f}, rate:{current_rate:.5f} at {current_time}')
+        return stake_amount
 
     def heikinashi(self, dataframe: DataFrame) -> DataFrame:
         # ha = qtpylib.heikinashi(dataframe)
