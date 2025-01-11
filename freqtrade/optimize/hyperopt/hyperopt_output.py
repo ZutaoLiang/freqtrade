@@ -1,6 +1,6 @@
 import sys
 from os import get_terminal_size
-from typing import Any, List, Optional
+from typing import Any
 
 from rich.align import Align
 from rich.console import Console
@@ -14,7 +14,7 @@ from freqtrade.util import fmt_coin
 
 class HyperoptOutput:
     def __init__(self, streaming=False) -> None:
-        self._results: List[Any] = []
+        self._results: list[Any] = []
         self._streaming = streaming
         self.__init_table()
 
@@ -37,7 +37,7 @@ class HyperoptOutput:
         self.table.add_column("Objective", justify="right")
         self.table.add_column("Max Drawdown (Acct)", justify="right")
 
-    def print(self, console: Optional[Console] = None, *, print_colorized=True):
+    def print(self, console: Console | None = None, *, print_colorized=True):
         if not console:
             console = Console(
                 color_system="auto" if print_colorized else None,
@@ -57,7 +57,7 @@ class HyperoptOutput:
         stake_currency = config["stake_currency"]
         self._results.extend(results)
 
-        max_rows: Optional[int] = None
+        max_rows: int | None = None
 
         if self._streaming:
             try:

@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         os: [ "ubuntu-20.04", "ubuntu-22.04", "ubuntu-24.04" ]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
     - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/pip
-        key: test-${{ matrix.os }}-${{ matrix.python-version }}-pip
+        key: pip-${{ matrix.python-version }}-ubuntu
 
     - name: TA binary *nix
       if: steps.cache.outputs.cache-hit != 'true'
@@ -68,11 +68,17 @@ jobs:
         python build_helpers/freqtrade_client_version_align.py
 
     - name: Tests
+      if: (!(runner.os == 'Linux' && matrix.python-version == '3.12' && matrix.os == 'ubuntu-22.04'))
+      run: |
+        pytest --random-order
+
+    - name: Tests with Coveralls
+      if: (runner.os == 'Linux' && matrix.python-version == '3.12' && matrix.os == 'ubuntu-22.04')
       run: |
         pytest --random-order --cov=freqtrade --cov=freqtrade_client --cov-config=.coveragerc
 
     - name: Coveralls
-      if: (runner.os == 'Linux' && matrix.python-version == '3.10' && matrix.os == 'ubuntu-22.04')
+      if: (runner.os == 'Linux' && matrix.python-version == '3.12' && matrix.os == 'ubuntu-22.04')
       env:
         # Coveralls token. Not used as secret due to github not providing secrets to forked repositories
         COVERALLS_REPO_TOKEN: 6D1m0xupS3FgutfuGao8keFf9Hc0FpIXu
@@ -138,11 +144,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ "macos-12", "macos-13", "macos-14" ]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
-        exclude:
-          - os: "macos-14"
-            python-version: "3.9"
+        os: [ "macos-13", "macos-14", "macos-15" ]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
     - uses: actions/checkout@v4
@@ -164,7 +167,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/Library/Caches/pip
-        key: ${{ matrix.os }}-${{ matrix.python-version }}-pip
+        key: pip-${{ matrix.os }}-${{ matrix.python-version }}
 
     - name: TA binary *nix
       if: steps.cache.outputs.cache-hit != 'true'
@@ -193,7 +196,7 @@ jobs:
         rm /usr/local/bin/python3.11-config || true
         rm /usr/local/bin/python3.12-config || true
 
-        brew install hdf5 c-blosc libomp
+        brew install libomp
 
     - name: Installation (python)
       run: |
@@ -263,7 +266,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest ]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
     - uses: actions/checkout@v4
@@ -273,14 +276,23 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Pip cache (Windows)
-      uses: actions/cache@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
       with:
-        path: ~\AppData\Local\pip\Cache
-        key: ${{ matrix.os }}-${{ matrix.python-version }}-pip
+        enable-cache: true
+        cache-dependency-glob: "requirements**.txt"
+        cache-suffix: "${{ matrix.python-version }}"
+        prune-cache: false
 
     - name: Installation
       run: |
+        uv venv
+        .venv\Scripts\activate
+        # persist the venv path for future steps
+        "$(pwd)/.venv/Scripts" >> $env:GITHUB_PATH
+
+        function uvpipFunction { uv pip $args }
+        Set-Alias -name pip -value uvpipFunction
         ./build_helpers/install_windows.ps1
 
     - name: Tests
@@ -417,7 +429,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/pip
-        key: test-${{ matrix.os }}-${{ matrix.python-version }}-pip
+        key: pip-3.12-ubuntu
 
     - name: TA binary *nix
       if: steps.cache.outputs.cache-hit != 'true'
@@ -514,13 +526,40 @@ jobs:
           ft_client/dist
         retention-days: 10
 
-  deploy-pypi:
-    name: "Deploy to PyPI"
+  deploy-test-pypi:
+    name: "Publish Python 🐍 distribution 📦 to TestPyPI"
     needs: [ build ]
     runs-on: ubuntu-22.04
     if: (github.event_name == 'release')
     environment:
-      name: release
+      name: testpypi
+      url: https://test.pypi.org/p/freqtrade
+    permissions:
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download artifact  📦
+      uses: actions/download-artifact@v4
+      with:
+        pattern: freqtrade*-build
+        path: dist
+        merge-multiple: true
+
+    - name: Publish to PyPI (Test)
+      uses: pypa/gh-action-pypi-publish@v1.12.3
+      with:
+        repository-url: https://test.pypi.org/legacy/
+
+
+  deploy-pypi:
+    name: "Publish Python 🐍 distribution 📦 to PyPI"
+    needs: [ build ]
+    runs-on: ubuntu-22.04
+    if: (github.event_name == 'release')
+    environment:
+      name: pypi
       url: https://pypi.org/p/freqtrade
     permissions:
       id-token: write
@@ -535,14 +574,8 @@ jobs:
         path: dist
         merge-multiple: true
 
-
-    - name: Publish to PyPI (Test)
-      uses: pypa/gh-action-pypi-publish@v1.9.0
-      with:
-        repository-url: https://test.pypi.org/legacy/
-
     - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@v1.9.0
+      uses: pypa/gh-action-pypi-publish@v1.12.3
 
 
   deploy-docker:

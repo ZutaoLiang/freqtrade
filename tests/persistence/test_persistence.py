@@ -8,6 +8,7 @@ from sqlalchemy import select
 from freqtrade.constants import CUSTOM_TAG_MAX_LENGTH, DATETIME_PRINT_FORMAT
 from freqtrade.enums import TradingMode
 from freqtrade.exceptions import DependencyException
+from freqtrade.exchange.exchange_utils import TICK_SIZE
 from freqtrade.persistence import LocalTrade, Order, Trade, init_db
 from freqtrade.util import dt_now
 from tests.conftest import (
@@ -2144,6 +2145,7 @@ def test_Trade_object_idem():
         "bt_trades_open",
         "bt_trades_open_pp",
         "bt_open_open_trade_count",
+        "bt_open_open_trade_count_candle",
         "bt_total_profit",
         "from_json",
     )
@@ -2683,6 +2685,36 @@ def test_select_filled_orders(fee):
 
 
 @pytest.mark.usefixtures("init_persistence")
+def test_select_filled_orders_usdt(fee):
+    create_mock_trades_usdt(fee)
+
+    trades = Trade.get_trades().all()
+
+    # Closed buy order, no sell order
+    orders = trades[0].select_filled_orders("buy")
+    assert isinstance(orders, list)
+    assert len(orders) == 1
+    assert orders[0].amount == 2.0
+    assert orders[0].filled == 2.0
+    assert orders[0].side == "buy"
+    assert orders[0].price == 10.0
+    assert orders[0].stake_amount == 20
+    assert orders[0].stake_amount_filled == 20
+
+    orders = trades[3].select_filled_orders("buy")
+    assert isinstance(orders, list)
+    assert len(orders) == 0
+    orders = trades[3].select_filled_or_open_orders()
+    assert isinstance(orders, list)
+    assert len(orders) == 1
+    assert orders[0].price == 2.0
+    assert orders[0].amount == 10
+    assert orders[0].filled == 0
+    assert orders[0].stake_amount == 20
+    assert orders[0].stake_amount_filled == 0
+
+
+@pytest.mark.usefixtures("init_persistence")
 def test_order_to_ccxt(limit_buy_order_open, limit_sell_order_usdt_open):
     order = Order.parse_from_ccxt_object(limit_buy_order_open, "mocked", "buy")
     order.ft_trade_id = 1
@@ -2802,6 +2834,8 @@ def test_recalc_trade_from_orders_dca(data) -> None:
         is_short=False,
         leverage=1.0,
         trading_mode=TradingMode.SPOT,
+        price_precision=0.001,
+        precision_mode_price=TICK_SIZE,
     )
     Trade.session.add(trade)
 

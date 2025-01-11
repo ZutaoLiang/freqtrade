@@ -4,14 +4,13 @@ import time
 from copy import deepcopy
 from functools import partial
 from threading import Thread
-from typing import Dict, Set
 
 import ccxt
 
 from freqtrade.constants import Config, PairWithTimeframe
 from freqtrade.enums.candletype import CandleType
 from freqtrade.exchange.exchange import timeframe_to_seconds
-from freqtrade.exchange.types import OHLCVResponse
+from freqtrade.exchange.exchange_types import OHLCVResponse
 from freqtrade.util import dt_ts, format_ms_time
 
 
@@ -22,12 +21,12 @@ class ExchangeWS:
     def __init__(self, config: Config, ccxt_object: ccxt.Exchange) -> None:
         self.config = config
         self.ccxt_object = ccxt_object
-        self._background_tasks: Set[asyncio.Task] = set()
+        self._background_tasks: set[asyncio.Task] = set()
 
-        self._klines_watching: Set[PairWithTimeframe] = set()
-        self._klines_scheduled: Set[PairWithTimeframe] = set()
-        self.klines_last_refresh: Dict[PairWithTimeframe, float] = {}
-        self.klines_last_request: Dict[PairWithTimeframe, float] = {}
+        self._klines_watching: set[PairWithTimeframe] = set()
+        self._klines_scheduled: set[PairWithTimeframe] = set()
+        self.klines_last_refresh: dict[PairWithTimeframe, float] = {}
+        self.klines_last_request: dict[PairWithTimeframe, float] = {}
         self._thread = Thread(name="ccxt_ws", target=self._start_forever)
         self._thread.start()
         self.__cleanup_called = False

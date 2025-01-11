@@ -3,7 +3,7 @@ import logging
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.exceptions import HTTPException
@@ -21,6 +21,7 @@ from freqtrade.data.btanalysis import (
 from freqtrade.enums import BacktestState
 from freqtrade.exceptions import ConfigurationError, DependencyException, OperationalException
 from freqtrade.exchange.common import remove_exchange_credentials
+from freqtrade.ft_types import get_BacktestResultType_default
 from freqtrade.misc import deep_merge_dicts, is_file_in_dir
 from freqtrade.rpc.api_server.api_schemas import (
     BacktestHistoryEntry,
@@ -32,7 +33,6 @@ from freqtrade.rpc.api_server.api_schemas import (
 from freqtrade.rpc.api_server.deps import get_config
 from freqtrade.rpc.api_server.webserver_bgwork import ApiBG
 from freqtrade.rpc.rpc import RPCException
-from freqtrade.types import get_BacktestResultType_default
 
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ router = APIRouter()
 
 def __run_backtest_bg(btconfig: Config):
     from freqtrade.data.metrics import combined_dataframes_with_rel_mean
-    from freqtrade.optimize.optimize_reports import generate_backtest_stats, store_backtest_stats
+    from freqtrade.optimize.optimize_reports import generate_backtest_stats, store_backtest_results
     from freqtrade.resolvers import StrategyResolver
 
     asyncio.set_event_loop(asyncio.new_event_loop())
@@ -77,7 +77,6 @@ def __run_backtest_bg(btconfig: Config):
 
         lastconfig["timerange"] = btconfig["timerange"]
         lastconfig["timeframe"] = strat.timeframe
-        lastconfig["protections"] = btconfig.get("protections", [])
         lastconfig["enable_protections"] = btconfig.get("enable_protections")
         lastconfig["dry_run_wallet"] = btconfig.get("dry_run_wallet")
 
@@ -102,8 +101,8 @@ def __run_backtest_bg(btconfig: Config):
 
         if btconfig.get("export", "none") == "trades":
             combined_res = combined_dataframes_with_rel_mean(ApiBG.bt["data"], min_date, max_date)
-            fn = store_backtest_stats(
-                btconfig["exportfilename"],
+            fn = store_backtest_results(
+                btconfig,
                 ApiBG.bt["bt"].results,
                 datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
                 market_change_data=combined_res,
@@ -261,7 +260,7 @@ def api_backtest_abort():
 
 
 @router.get(
-    "/backtest/history", response_model=List[BacktestHistoryEntry], tags=["webserver", "backtest"]
+    "/backtest/history", response_model=list[BacktestHistoryEntry], tags=["webserver", "backtest"]
 )
 def api_backtest_history(config=Depends(get_config)):
     # Get backtest result history, read from metadata files
@@ -276,7 +275,7 @@ def api_backtest_history_result(filename: str, strategy: str, config=Depends(get
     bt_results_base: Path = config["user_data_dir"] / "backtest_results"
     fn = (bt_results_base / filename).with_suffix(".json")
 
-    results: Dict[str, Any] = {
+    results: dict[str, Any] = {
         "metadata": {},
         "strategy": {},
         "strategy_comparison": [],
@@ -296,7 +295,7 @@ def api_backtest_history_result(filename: str, strategy: str, config=Depends(get
 
 @router.delete(
     "/backtest/history/{file}",
-    response_model=List[BacktestHistoryEntry],
+    response_model=list[BacktestHistoryEntry],
     tags=["webserver", "backtest"],
 )
 def api_delete_backtest_history_entry(file: str, config=Depends(get_config)):
@@ -313,7 +312,7 @@ def api_delete_backtest_history_entry(file: str, config=Depends(get_config)):
 
 @router.patch(
     "/backtest/history/{file}",
-    response_model=List[BacktestHistoryEntry],
+    response_model=list[BacktestHistoryEntry],
     tags=["webserver", "backtest"],
 )
 def api_update_backtest_history_entry(

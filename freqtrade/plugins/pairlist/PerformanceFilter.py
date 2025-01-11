@@ -3,11 +3,10 @@ Performance pair list filter
 """
 
 import logging
-from typing import Dict, List
 
 import pandas as pd
 
-from freqtrade.exchange.types import Tickers
+from freqtrade.exchange.exchange_types import Tickers
 from freqtrade.persistence import Trade
 from freqtrade.plugins.pairlist.IPairList import IPairList, PairlistParameter, SupportsBacktesting
 
@@ -44,7 +43,7 @@ class PerformanceFilter(IPairList):
         return "Filter pairs by performance."
 
     @staticmethod
-    def available_parameters() -> Dict[str, PairlistParameter]:
+    def available_parameters() -> dict[str, PairlistParameter]:
         return {
             "minutes": {
                 "type": "number",
@@ -60,7 +59,7 @@ class PerformanceFilter(IPairList):
             },
         }
 
-    def filter_pairlist(self, pairlist: List[str], tickers: Tickers) -> List[str]:
+    def filter_pairlist(self, pairlist: list[str], tickers: Tickers) -> list[str]:
         """
         Filters and sorts pairlist and returns the allowlist again.
         Called on each bot iteration - please use internal caching if necessary

@@ -3,10 +3,9 @@ Spread pair list filter
 """
 
 import logging
-from typing import Dict, Optional
 
 from freqtrade.exceptions import OperationalException
-from freqtrade.exchange.types import Ticker
+from freqtrade.exchange.exchange_types import Ticker
 from freqtrade.plugins.pairlist.IPairList import IPairList, PairlistParameter, SupportsBacktesting
 
 
@@ -51,7 +50,7 @@ class SpreadFilter(IPairList):
         return "Filter by bid/ask difference."
 
     @staticmethod
-    def available_parameters() -> Dict[str, PairlistParameter]:
+    def available_parameters() -> dict[str, PairlistParameter]:
         return {
             "max_spread_ratio": {
                 "type": "number",
@@ -61,7 +60,7 @@ class SpreadFilter(IPairList):
             },
         }
 
-    def _validate_pair(self, pair: str, ticker: Optional[Ticker]) -> bool:
+    def _validate_pair(self, pair: str, ticker: Ticker | None) -> bool:
         """
         Validate spread for the ticker
         :param pair: Pair that's currently validated

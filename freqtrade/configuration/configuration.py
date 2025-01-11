@@ -5,9 +5,10 @@ This module contains the configuration class
 import ast
 import logging
 import warnings
+from collections.abc import Callable
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 from freqtrade import constants
 from freqtrade.configuration.deprecated_settings import process_temporary_deprecated_settings
@@ -15,7 +16,14 @@ from freqtrade.configuration.directory_operations import create_datadir, create_
 from freqtrade.configuration.environment_vars import enironment_vars_to_dict
 from freqtrade.configuration.load_config import load_file, load_from_files
 from freqtrade.constants import Config
-from freqtrade.enums import NON_UTIL_MODES, TRADE_MODES, CandleType, RunMode, TradingMode
+from freqtrade.enums import (
+    NON_UTIL_MODES,
+    TRADE_MODES,
+    CandleType,
+    MarginMode,
+    RunMode,
+    TradingMode,
+)
 from freqtrade.exceptions import OperationalException
 from freqtrade.loggers import setup_logging
 from freqtrade.misc import deep_merge_dicts, parse_db_uri_for_logging
@@ -30,9 +38,9 @@ class Configuration:
     Reuse this class for the bot, backtesting, hyperopt and every script that required configuration
     """
 
-    def __init__(self, args: Dict[str, Any], runmode: Optional[RunMode] = None) -> None:
+    def __init__(self, args: dict[str, Any], runmode: RunMode | None = None) -> None:
         self.args = args
-        self.config: Optional[Config] = None
+        self.config: Config | None = None
         self.runmode = runmode
 
     def get_config(self) -> Config:
@@ -46,7 +54,7 @@ class Configuration:
         return self.config
 
     @staticmethod
-    def from_files(files: List[str]) -> Dict[str, Any]:
+    def from_files(files: list[str]) -> dict[str, Any]:
         """
         Iterate through the config files passed in, loading all of them
         and merging their contents.
@@ -61,7 +69,7 @@ class Configuration:
         c = Configuration({"config": files}, RunMode.OTHER)
         return c.get_config()
 
-    def load_config(self) -> Dict[str, Any]:
+    def load_config(self) -> dict[str, Any]:
         """
         Extract information for sys.argv and load the bot configuration
         :return: Configuration dictionary
@@ -234,11 +242,7 @@ class Configuration:
             logstring="Parameter --enable-protections detected, enabling Protections. ...",
         )
 
-        if "use_max_market_positions" in self.args and not self.args["use_max_market_positions"]:
-            config.update({"use_max_market_positions": False})
-            logger.info("Parameter --disable-max-market-positions detected ...")
-            logger.info("max_open_trades set to unlimited ...")
-        elif "max_open_trades" in self.args and self.args["max_open_trades"]:
+        if "max_open_trades" in self.args and self.args["max_open_trades"]:
             config.update({"max_open_trades": self.args["max_open_trades"]})
             logger.info(
                 "Parameter --max-open-trades detected, overriding max_open_trades to: %s ...",
@@ -389,6 +393,7 @@ class Configuration:
             config.get("trading_mode", "spot") or "spot"
         )
         config["trading_mode"] = TradingMode(config.get("trading_mode", "spot") or "spot")
+        config["margin_mode"] = MarginMode(config.get("margin_mode", "") or "")
         self._args_to_config(
             config, argname="candle_types", logstring="Detected --candle-types: {}"
         )
@@ -399,6 +404,8 @@ class Configuration:
             ("enter_reason_list", "Analysis enter tag list: {}"),
             ("exit_reason_list", "Analysis exit tag list: {}"),
             ("indicator_list", "Analysis indicator list: {}"),
+            ("entry_only", "Only analyze entry signals: {}"),
+            ("exit_only", "Only analyze exit signals: {}"),
             ("timerange", "Filter trades by timerange: {}"),
             ("analysis_rejected", "Analyse rejected signals: {}"),
             ("analysis_to_csv", "Store analysis tables to CSV: {}"),
@@ -411,7 +418,7 @@ class Configuration:
         ]
         self._args_to_config_loop(config, configurations)
 
-    def _args_to_config_loop(self, config, configurations: List[Tuple[str, str]]) -> None:
+    def _args_to_config_loop(self, config, configurations: list[tuple[str, str]]) -> None:
         for argname, logstring in configurations:
             self._args_to_config(config, argname=argname, logstring=logstring)
 
@@ -445,8 +452,8 @@ class Configuration:
         config: Config,
         argname: str,
         logstring: str,
-        logfun: Optional[Callable] = None,
-        deprecated_msg: Optional[str] = None,
+        logfun: Callable | None = None,
+        deprecated_msg: str | None = None,
     ) -> None:
         """
         :param config: Configuration dictionary
@@ -468,7 +475,7 @@ class Configuration:
             else:
                 logger.info(logstring.format(config[argname]))
             if deprecated_msg:
-                warnings.warn(f"DEPRECATED: {deprecated_msg}", DeprecationWarning)
+                warnings.warn(f"DEPRECATED: {deprecated_msg}", DeprecationWarning, stacklevel=1)
 
     def _resolve_pairs_list(self, config: Config) -> None:
         """

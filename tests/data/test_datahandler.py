@@ -360,6 +360,11 @@ def test_hdf5datahandler_trades_load(testdatadir):
     # assert len([t for t in trades2 if t[0] > timerange.stopts * 1000]) == 0
 
 
+def test_hdf5datahandler_deprecated(testdatadir, caplog):
+    get_datahandler(testdatadir, "hdf5")
+    log_has_re(r"DEPRECATED: The hdf5 dataformat is deprecated.*", caplog)
+
+
 @pytest.mark.parametrize(
     "pair,timeframe,candle_type,candle_append,startdt,enddt",
     [
@@ -416,7 +421,17 @@ def test_hdf5datahandler_ohlcv_load_and_resave(
 )
 @pytest.mark.parametrize("datahandler", ["hdf5", "feather", "parquet"])
 def test_generic_datahandler_ohlcv_load_and_resave(
-    datahandler, testdatadir, tmp_path, pair, timeframe, candle_type, candle_append, startdt, enddt
+    datahandler,
+    mocker,
+    testdatadir,
+    tmp_path,
+    pair,
+    timeframe,
+    candle_type,
+    candle_append,
+    startdt,
+    enddt,
+    caplog,
 ):
     tmpdir2 = tmp_path
     if candle_type not in ("", "spot"):
@@ -458,8 +473,25 @@ def test_generic_datahandler_ohlcv_load_and_resave(
     assert ohlcv[ohlcv["date"] > enddt].empty
 
     # Try loading inexisting file
-    ohlcv = dh.ohlcv_load("UNITTEST/NONEXIST", timeframe, candle_type=candle_type)
+    ohlcv = dh1.ohlcv_load("UNITTEST/NONEXIST", timeframe, candle_type=candle_type)
     assert ohlcv.empty
+
+    # Try loading a file that exists but errors
+    mocker.patch(
+        "freqtrade.data.history.datahandlers.featherdatahandler.read_feather",
+        side_effect=Exception("Test"),
+    )
+    mocker.patch(
+        "freqtrade.data.history.datahandlers.parquetdatahandler.read_parquet",
+        side_effect=Exception("Test"),
+    )
+    mocker.patch(
+        "freqtrade.data.history.datahandlers.hdf5datahandler.pd.read_hdf",
+        side_effect=Exception("Test"),
+    )
+    ohlcv_e = dh1.ohlcv_load("UNITTEST/NEW", timeframe, candle_type=candle_type)
+    assert ohlcv_e.empty
+    assert log_has_re("Error loading data from", caplog)
 
 
 def test_hdf5datahandler_ohlcv_purge(mocker, testdatadir):

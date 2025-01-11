@@ -1,13 +1,13 @@
 import logging
 from pathlib import Path
-from typing import Dict, Optional
 
 from pandas import DataFrame
 
 from freqtrade.constants import LAST_BT_RESULT_FN
+from freqtrade.enums.runmode import RunMode
+from freqtrade.ft_types import BacktestResultType
 from freqtrade.misc import file_dump_joblib, file_dump_json
 from freqtrade.optimize.backtest_caching import get_backtest_metadata_filename
-from freqtrade.types import BacktestResultType
 
 
 logger = logging.getLogger(__name__)
@@ -30,21 +30,27 @@ def _generate_filename(recordfilename: Path, appendix: str, suffix: str) -> Path
     return filename
 
 
-def store_backtest_stats(
-    recordfilename: Path,
+def store_backtest_results(
+    config: dict,
     stats: BacktestResultType,
     dtappendix: str,
     *,
-    market_change_data: Optional[DataFrame] = None,
+    market_change_data: DataFrame | None = None,
+    analysis_results: dict[str, dict[str, DataFrame]] | None = None,
 ) -> Path:
     """
-    Stores backtest results
-    :param recordfilename: Path object, which can either be a filename or a directory.
-        Filenames will be appended with a timestamp right before the suffix
-        while for directories, <directory>/backtest-result-<datetime>.json will be used as filename
+    Stores backtest results and analysis data
+    :param config: Configuration dictionary
     :param stats: Dataframe containing the backtesting statistics
     :param dtappendix: Datetime to use for the filename
+    :param market_change_data: Dataframe containing market change data
+    :param analysis_results: Dictionary containing analysis results
     """
+
+    # Path object, which can either be a filename or a directory.
+    # Filenames will be appended with a timestamp right before the suffix
+    # while for directories, <directory>/backtest-result-<datetime>.json will be used as filename
+    recordfilename: Path = config["exportfilename"]
     filename = _generate_filename(recordfilename, dtappendix, ".json")
 
     # Store metadata separately.
@@ -66,11 +72,26 @@ def store_backtest_stats(
             filename_mc, compression_level=9, compression="lz4"
         )
 
+    if (
+        config.get("export", "none") == "signals"
+        and analysis_results is not None
+        and config.get("runmode", RunMode.OTHER) == RunMode.BACKTEST
+    ):
+        _store_backtest_analysis_data(
+            recordfilename, analysis_results["signals"], dtappendix, "signals"
+        )
+        _store_backtest_analysis_data(
+            recordfilename, analysis_results["rejected"], dtappendix, "rejected"
+        )
+        _store_backtest_analysis_data(
+            recordfilename, analysis_results["exited"], dtappendix, "exited"
+        )
+
     return filename
 
 
 def _store_backtest_analysis_data(
-    recordfilename: Path, data: Dict[str, Dict], dtappendix: str, name: str
+    recordfilename: Path, data: dict[str, dict], dtappendix: str, name: str
 ) -> Path:
     """
     Stores backtest trade candles for analysis
@@ -87,10 +108,3 @@ def _store_backtest_analysis_data(
     file_dump_joblib(filename, data)
 
     return filename
-
-
-def store_backtest_analysis_results(
-    recordfilename: Path, candles: Dict[str, Dict], trades: Dict[str, Dict], dtappendix: str
-) -> None:
-    _store_backtest_analysis_data(recordfilename, candles, dtappendix, "signals")
-    _store_backtest_analysis_data(recordfilename, trades, dtappendix, "rejected")
