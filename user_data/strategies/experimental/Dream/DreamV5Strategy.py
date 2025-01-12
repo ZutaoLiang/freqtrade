@@ -131,7 +131,9 @@ class DreamV5Strategy(IStrategy):
                 return exit_reason
         
         profit_drawdown_threshold = entry_stake_with_leverage * self.exit_loss_ratio
-        if total_profit_abs < profit_drawdown_threshold:
+        reach_max_loss = total_profit_abs < profit_drawdown_threshold
+        logger.info(f'Checking {trade.pair} max loss result:{reach_max_loss}, total_profit_abs:{total_profit_abs:.4f}, threshold:{profit_drawdown_threshold:.4f}=(entry_stake_with_leverage:{entry_stake_with_leverage:.4f}*exit_loss_ratio:{self.exit_loss_ratio:.2%}), current_profit:{current_profit:.2%} at {current_time}')
+        if reach_max_loss:
             exit_reason = 'Max loss'
             logger.info(f'{exit_reason} for {pair}:{total_profit_abs:.4f} < {profit_drawdown_threshold:.4f}, current_rate:{current_rate:.6f} at {current_time}')
             return exit_reason
