@@ -33,8 +33,8 @@ class DreamV5Strategy(IStrategy):
     can_short = True
  
     position_adjustment_enable = True
-    stake_ratio = 0.25
-    order_interval_seconds = 150
+    stake_ratio = 0.1
+    order_interval_seconds = 60
     
     period = 10
     
@@ -67,6 +67,7 @@ class DreamV5Strategy(IStrategy):
     LAST_ADDITION_PRICE = 'last_addition_price'
     REVERSION_PRICE = 'reversion_price'
     MAX_PROFIT_ABS = 'max_profit_abs'
+    HIGH_PROFIT = 'high_profit'
 
     def leverage(self, pair: str, current_time: datetime, current_rate: float,
                 proposed_leverage: float, max_leverage: float, entry_tag: Optional[str],
@@ -115,11 +116,15 @@ class DreamV5Strategy(IStrategy):
         
         market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.3]
         # draw_back_ratio_array = [1-(0.1*leverage), 1-(0.12*leverage), 1-(0.18*leverage)]
-        draw_back_ratio_array = [0.65, 0.3, 0.2]
+        draw_back_ratio_array = [0.65, 0.4, 0.2]
         
         for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
-            reach_drawback = max_profit_abs > market_value_threshold and total_profit_abs < max_profit_abs * draw_back_ratio
-            logger.info(f'Checking {trade.pair} drawback result:{reach_drawback} on threshold:{market_value_threshold:.4f} and total_profit_abs:{total_profit_abs:.4f} with {max_profit_abs*draw_back_ratio:.4f}(max_profit_abs:{max_profit_abs:.4f}*ratio:{draw_back_ratio:.2%}) at {current_time}')
+            reach_profit = max_profit_abs > market_value_threshold
+            if index == 0:
+                trade.set_custom_data(self.HIGH_PROFIT, reach_profit)
+                
+            reach_drawback = reach_profit and total_profit_abs < max_profit_abs * draw_back_ratio
+            logger.info(f'Checking {trade.pair} drawback result:{reach_drawback} on threshold #{index+1}:{market_value_threshold:.4f} and total_profit_abs:{total_profit_abs:.4f} with {max_profit_abs*draw_back_ratio:.4f}(max_profit_abs:{max_profit_abs:.4f}*ratio:{draw_back_ratio:.2%}) at {current_time}')
             if reach_drawback:
                 exit_reason = f'Profit drawback-{index+1}'
                 logger.info(f'{exit_reason} for {pair}: total profit {total_profit_abs:.4f} < (max_profit_abs {max_profit_abs:.4f} * {draw_back_ratio:.2%}), current_rate:{current_rate:.4f} at {current_time}')
@@ -203,8 +208,7 @@ class DreamV5Strategy(IStrategy):
         entry_stake = self.calc_entry_stake_without_leverage()
         if addition_signal:
             base_profit_step = 0.1
-            max_profit_step = 0.3
-            profit_factor = max(min(current_profit, max_profit_step), base_profit_step)
+            profit_factor = max(min(current_profit, base_profit_step * 5), base_profit_step)
             addition_multiplier = int(round(profit_factor / base_profit_step))
             addition_stake = entry_stake * addition_multiplier
             logger.info(f'Initialize {trade.pair} addition stake #{addition_multiplier} to {addition_stake:.5f} at {current_time}')
@@ -243,7 +247,11 @@ class DreamV5Strategy(IStrategy):
         if current_market_value < entry_stake * leverage:
             return None
         
-        if current_profit < 0.1:
+        reach_high_profit = trade.get_custom_data(self.HIGH_PROFIT, default=None)
+        if reach_high_profit is None:
+            reach_high_profit = False
+            
+        if current_profit < 0.1 and not reach_high_profit:
             return None
         
         # last_market_value = trade.amount * last_reversion_price
