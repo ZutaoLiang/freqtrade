@@ -171,9 +171,9 @@ class DreamV6Strategy(IStrategy):
         if not self.position_adjustment_enable:
             return None
 
-        filled_entries = trade.select_filled_orders()
-        count_of_entries = len(filled_entries)
-        if count_of_entries == 0:
+        filled_orders = trade.select_filled_orders()
+        count_of_orders = len(filled_orders)
+        if count_of_orders == 0:
             return None
         
         dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
@@ -181,8 +181,13 @@ class DreamV6Strategy(IStrategy):
         
         is_short = trade.is_short
         leverage = trade.leverage
+        
+        latest_order = None
+        for order in reversed(filled_orders):
+            if order.ft_order_side == trade.entry_side:
+                latest_order = order
+                break
             
-        latest_order = trade.select_order(order_side=trade.entry_side, is_open=False, only_filled=True)
         if latest_order is None:
             return None
 
