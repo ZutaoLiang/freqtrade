@@ -22,9 +22,9 @@ class DreamV6Strategy(IStrategy):
     trade_leverage = 5
     
     enable_roi = False
-    
+    ignore_roi_if_entry_signal = True
     if enable_roi:
-        minimal_roi = {"30": 0.03 * trade_leverage, "60": 0.04 * trade_leverage, "120": 0.05 * trade_leverage}
+        minimal_roi = {"30": 0.02 * trade_leverage, "60": 0.03 * trade_leverage, "120": 0.04 * trade_leverage}
     else:
         minimal_roi = {"0": 100}
 
@@ -119,9 +119,9 @@ class DreamV6Strategy(IStrategy):
         
         logger.info(f'{trade.pair} total profit:{total_profit_abs:.4f}(open:{open_profit_abs:.4f}, close:{realized_profit_abs:.4f}), current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
         
-        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.3]
+        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.2]
         # draw_back_ratio_array = [1-(0.1*leverage), 1-(0.12*leverage), 1-(0.18*leverage)]
-        draw_back_ratio_array = [0.65, 0.4, 0.2]
+        draw_back_ratio_array = [0.65, 0.3, 0.1]
         
         for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
             reach_profit = max_profit_abs > market_value_threshold
@@ -315,9 +315,9 @@ class DreamV6Strategy(IStrategy):
         dataframe['ema_mid'] = pta.ema(close=dataframe['ha_close'], length=self.ema_mid_length, talib=False)
         dataframe['ema_long'] = pta.ema(close=dataframe['ha_close'], length=self.ema_long_length, talib=False)
         dataframe['recent_high'] = dataframe['ha_close'].rolling(window=self.breakout_period).max()
+        dataframe['recent_low'] = dataframe['ha_close'].rolling(window=self.breakout_period).min()
         # dataframe['adx'] = pta.adx(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.adx_length)[f'ADX_{self.adx_length}']
         # dataframe['rsi'] = pta.rsi(dataframe['ha_close'], length=self.rsi_length, talib=False)
-        # dataframe['recent_low'] = dataframe['ha_close'].rolling(window=self.breakout_period).min()
         # dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_length)
          
         return dataframe
@@ -355,8 +355,26 @@ class DreamV6Strategy(IStrategy):
                         # (dataframe['rsi'] > self.rsi_long_threshold) & 
                         # (dataframe['adx'] > self.adx_threshold)
                     ),
-                    ['enter_long', 'enter_tag']] = (1, 'entry')
-        
+                    ['enter_long', 'enter_tag']] = (1, 'entry-long')
+        else:
+            ema_down_mask = self.ema_down_n_days_mask(dataframe, 'ema', self.ema_trend)
+            ema_mid_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
+            ema_long_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_long', self.ema_long_trend)
+            
+            dataframe.loc[
+                    (
+                        (dataframe['ha_close'] * self.ema_up_ratio < dataframe['ema_long']) &
+                        (ema_down_mask) &
+                        (ema_mid_down_mask) &
+                        (ema_long_down_mask) &
+                        (dataframe['ema'] < dataframe['ema_mid']) &
+                        (dataframe['ema_mid'] < dataframe['ema_long']) &
+                        (dataframe['ha_close'] < dataframe['recent_low'].shift(1))
+                        # (dataframe['rsi'] < self.rsi_short_threshold) & 
+                        # (dataframe['adx'] > self.adx_threshold)
+                    ),
+                    ['enter_short', 'enter_tag']] = (1, 'entry-short')
+            
         return dataframe
         
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
