@@ -16,7 +16,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DreamV5Strategy(IStrategy):
+class DreamV6Strategy(IStrategy):
     
     # common
     trade_leverage = 5
