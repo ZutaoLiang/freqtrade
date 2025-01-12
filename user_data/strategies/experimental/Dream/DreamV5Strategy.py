@@ -19,9 +19,14 @@ logger = logging.getLogger(__name__)
 class DreamV5Strategy(IStrategy):
     
     # common
-    minimal_roi = {"0": 100}
-    
     trade_leverage = 5
+    
+    enable_roi = True
+    
+    if enable_roi:
+        minimal_roi = {"30": 0.03 * trade_leverage, "60": 0.04 * trade_leverage, "120": 0.05 * trade_leverage}
+    else:
+        minimal_roi = {"0": 100}
 
     timeframe = '3m'
     
@@ -86,15 +91,15 @@ class DreamV5Strategy(IStrategy):
         is_low_stake = stake_amount < low_stake_threshold
         logger.info(f'Checking {trade.pair} low stake result:{is_low_stake}, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
         if is_low_stake:
-            if (current_time - timedelta(minutes=60)) > trade.open_date_utc and 0.002 * leverage < current_profit < 0.02 * leverage:
+            if (current_time - timedelta(minutes=120)) > trade.open_date_utc and 0.002 * leverage < current_profit < 0.02 * leverage:
                 exit_reason = 'Long time low profit'
                 logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
                 return exit_reason
-            if (current_time - timedelta(minutes=120)) > trade.open_date_utc and -0.01 * leverage < current_profit < 0.002 * leverage:
+            if (current_time - timedelta(minutes=180)) > trade.open_date_utc and -0.01 * leverage < current_profit < 0.002 * leverage:
                 exit_reason = 'Long time low profit-2'
                 logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
                 return exit_reason
-            if (current_time - timedelta(minutes=180)) > trade.open_date_utc and current_profit < 0.01 * leverage:
+            if (current_time - timedelta(minutes=240)) > trade.open_date_utc and current_profit < 0.01 * leverage:
                 exit_reason = 'Long time low stake'
                 logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
                 return exit_reason
