@@ -21,7 +21,7 @@ class DreamV6Strategy(IStrategy):
     # common
     trade_leverage = 5
     
-    enable_roi = True
+    enable_roi = False
     
     if enable_roi:
         minimal_roi = {"30": 0.03 * trade_leverage, "60": 0.04 * trade_leverage, "120": 0.05 * trade_leverage}
@@ -67,10 +67,10 @@ class DreamV6Strategy(IStrategy):
     
     # atr_length = int(1.5 * period)
     
+    enable_mean_reversion = False # default to False
     mean_reversion_change_pct = 0.005
     
     LAST_ADDITION_PRICE = 'last_addition_price'
-    REVERSION_PRICE = 'reversion_price'
     MAX_PROFIT_ABS = 'max_profit_abs'
     HIGH_PROFIT = 'high_profit'
 
@@ -182,13 +182,13 @@ class DreamV6Strategy(IStrategy):
         is_short = trade.is_short
         leverage = trade.leverage
         
-        latest_order = None
+        latest_entry_order = None
         for order in reversed(filled_orders):
             if order.ft_order_side == trade.entry_side:
-                latest_order = order
+                latest_entry_order = order
                 break
             
-        if latest_order is None:
+        if latest_entry_order is None:
             return None
 
         # TODO: 根据加仓订单的密集程度动态调整加仓比例
@@ -201,12 +201,12 @@ class DreamV6Strategy(IStrategy):
         # 处理是否需要浮盈加仓
         last_addition_price = trade.get_custom_data(self.LAST_ADDITION_PRICE)
         if last_addition_price is None:
-            last_addition_price = latest_order.average
+            last_addition_price = latest_entry_order.average
             trade.set_custom_data(self.LAST_ADDITION_PRICE, last_addition_price)
         
         addition_signal = False
         
-        match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_order.order_filled_utc
+        match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
         if current_profit > 0.001 * leverage and match_order_interval:
             addition_price_ratio = 0.98
             if is_short and last_candle['enter_short'] == 1 and current_rate < last_addition_price / addition_price_ratio:
@@ -236,18 +236,15 @@ class DreamV6Strategy(IStrategy):
             
             if position_addition:
                 trade.set_custom_data(self.LAST_ADDITION_PRICE, current_rate)
-                trade.set_custom_data(self.REVERSION_PRICE, current_rate)
                 
                 logger.info(f'Position addition for {trade.pair} with stake amount {addition_stake:.5f}(multiplier:#{addition_multiplier}) triggered at entry signal, current_profit:{current_profit:.2f}, current_rate:{current_rate:.5f} at {current_time}')
                 return (addition_stake, f'entry-addition-{addition_multiplier}')
 
-        # return None
+        if not self.enable_mean_reversion:
+            return None
 
         # 均值回归处理
-        last_reversion_price = trade.get_custom_data(self.REVERSION_PRICE)
-        if last_reversion_price is None:
-            last_reversion_price = latest_order.average
-            trade.set_custom_data(self.REVERSION_PRICE, last_reversion_price)
+        last_reversion_price = latest_entry_order.average
         
         price_change = (last_reversion_price - current_rate) / last_reversion_price
         if abs(price_change) < self.mean_reversion_change_pct:
@@ -270,13 +267,18 @@ class DreamV6Strategy(IStrategy):
         # market_value_change = last_market_value - current_market_value
         # reversion_stake = market_value_change / leverage
         
-        reversion_stake = entry_stake
-        logger.info(f'Initialize reversion stake for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, price_change:{price_change:.2%})')
+        reversion_direction = 1
+        if trade.is_short:
+            reversion_direction = -1 if price_change > 0 else 1
+        else:
+            reversion_direction = 1 if price_change > 0 else -1
+        
+        reversion_stake = entry_stake * reversion_direction
+        logger.info(f'Initialize reversion stake for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, current_rate:{current_rate:.4f}, price_change:{price_change:.2%})')
         
         if abs(reversion_stake) > min_stake:
             # and abs(adjustment_value) < max_stake:
-            logger.info(f'Mean reversion adjustment for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, price_change:{price_change:.2%}) at {current_time}')
-            trade.set_custom_data(self.REVERSION_PRICE, current_rate)
+            logger.info(f'Mean reversion adjustment for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, current_rate:{current_rate:.4f}, price_change:{price_change:.2%}) at {current_time}')
             if reversion_stake > 0:
                 return (reversion_stake, 'reversion-addition')
             else:
