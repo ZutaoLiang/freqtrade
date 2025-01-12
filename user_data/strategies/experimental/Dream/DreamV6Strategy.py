@@ -24,7 +24,7 @@ class DreamV6Strategy(IStrategy):
     enable_roi = False
     ignore_roi_if_entry_signal = True
     if enable_roi:
-        minimal_roi = {"30": 0.02 * trade_leverage, "60": 0.03 * trade_leverage, "120": 0.04 * trade_leverage}
+        minimal_roi = {"60": 0.04 * trade_leverage, "120": 0.06 * trade_leverage}
     else:
         minimal_roi = {"0": 100}
 
@@ -38,7 +38,7 @@ class DreamV6Strategy(IStrategy):
     can_short = True
  
     position_adjustment_enable = True
-    stake_ratio = 0.1
+    stake_ratio = 0.075
     order_interval_seconds = 60
     
     period = 10
@@ -91,15 +91,15 @@ class DreamV6Strategy(IStrategy):
         is_low_stake = stake_amount < low_stake_threshold
         logger.info(f'Checking {trade.pair} low stake result:{is_low_stake}, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
         if is_low_stake:
-            if (current_time - timedelta(minutes=120)) > trade.open_date_utc and 0.002 * leverage < current_profit < 0.02 * leverage:
+            if (current_time - timedelta(minutes=240)) > trade.open_date_utc and 0.002 * leverage < current_profit < 0.02 * leverage:
                 exit_reason = 'Long time low profit'
                 logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
                 return exit_reason
-            if (current_time - timedelta(minutes=180)) > trade.open_date_utc and -0.01 * leverage < current_profit < 0.002 * leverage:
+            if (current_time - timedelta(minutes=300)) > trade.open_date_utc and -0.01 * leverage < current_profit < 0.002 * leverage:
                 exit_reason = 'Long time low profit-2'
                 logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
                 return exit_reason
-            if (current_time - timedelta(minutes=240)) > trade.open_date_utc and current_profit < 0.01 * leverage:
+            if (current_time - timedelta(minutes=480)) > trade.open_date_utc and current_profit < 0.01 * leverage:
                 exit_reason = 'Long time low stake'
                 logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
                 return exit_reason
@@ -119,9 +119,9 @@ class DreamV6Strategy(IStrategy):
         
         logger.info(f'{trade.pair} total profit:{total_profit_abs:.4f}(open:{open_profit_abs:.4f}, close:{realized_profit_abs:.4f}), current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
         
-        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.2]
+        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.4]
         # draw_back_ratio_array = [1-(0.1*leverage), 1-(0.12*leverage), 1-(0.18*leverage)]
-        draw_back_ratio_array = [0.65, 0.3, 0.1]
+        draw_back_ratio_array = [0.65, 0.4]
         
         for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
             reach_profit = max_profit_abs > market_value_threshold
@@ -219,7 +219,7 @@ class DreamV6Strategy(IStrategy):
         
         entry_stake = self.calc_entry_stake_without_leverage()
         if addition_signal:
-            base_profit_step = 0.1
+            base_profit_step = 0.15
             profit_factor = max(min(current_profit, base_profit_step * 5), base_profit_step)
             addition_multiplier = int(round(profit_factor / base_profit_step))
             addition_stake = entry_stake * addition_multiplier
@@ -273,7 +273,7 @@ class DreamV6Strategy(IStrategy):
         else:
             reversion_direction = 1 if price_change > 0 else -1
         
-        reversion_stake = entry_stake * reversion_direction
+        reversion_stake = entry_stake * reversion_direction / leverage
         logger.info(f'Initialize reversion stake for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, current_rate:{current_rate:.4f}, price_change:{price_change:.2%})')
         
         if abs(reversion_stake) > min_stake:
@@ -381,4 +381,13 @@ class DreamV6Strategy(IStrategy):
         dataframe['exit_long'] = 0
         dataframe['exit_short'] = 0
         
+        if self.is_long:
+            ema_long_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_long', self.ema_trend)
+            dataframe.loc[
+                    (
+                        (dataframe['ha_close'] < dataframe['ema']) &
+                        (ema_long_down_mask)
+                    ),
+                    ['exit_long', 'exit_tag']] = (1, 'exit-long')
+            
         return dataframe
