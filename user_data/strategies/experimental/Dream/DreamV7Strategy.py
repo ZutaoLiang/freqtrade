@@ -38,7 +38,7 @@ class DreamV7Strategy(IStrategy):
     can_short = True
  
     position_adjustment_enable = True
-    stake_ratio = 0.075
+    stake_ratio = 0.2
     order_interval_seconds = 160
     
     period = 10
@@ -61,7 +61,7 @@ class DreamV7Strategy(IStrategy):
     
     startup_candle_count = ema_long_length
     
-    exit_loss_ratio = -0.25
+    exit_loss_ratio = -0.2
 
     is_long = True
     
@@ -91,7 +91,7 @@ class DreamV7Strategy(IStrategy):
         is_low_stake = stake_amount < low_stake_threshold
         logger.info(f'Checking {trade.pair} low stake result:{is_low_stake}, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
         if is_low_stake:
-            if (current_time - timedelta(minutes=240)) > trade.open_date_utc and 0.002 * leverage < current_profit < 0.02 * leverage:
+            if (current_time - timedelta(minutes=180)) > trade.open_date_utc and 0.002 * leverage < current_profit < 0.02 * leverage:
                 exit_reason = 'Long time low profit'
                 logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
                 return exit_reason
@@ -119,9 +119,9 @@ class DreamV7Strategy(IStrategy):
         
         logger.info(f'{trade.pair} total profit:{total_profit_abs:.4f}(open:{open_profit_abs:.4f}, close:{realized_profit_abs:.4f}), current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
         
-        market_value_threshold_array = [entry_stake_with_leverage]
+        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5]
         # draw_back_ratio_array = [1-(0.1*leverage), 1-(0.12*leverage), 1-(0.18*leverage)]
-        draw_back_ratio_array = [0.6]
+        draw_back_ratio_array = [0.6, 0.5]
         
         for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
             reach_profit = max_profit_abs > market_value_threshold
@@ -207,7 +207,7 @@ class DreamV7Strategy(IStrategy):
         addition_signal = False
         
         match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
-        if current_profit > 0.004 * leverage and match_order_interval:
+        if current_profit > 0.005 * leverage and match_order_interval:
             # addition_price_ratio = 0.98
             if is_short and last_candle['enter_short'] == 1:
                 # and current_rate < last_addition_price / addition_price_ratio
@@ -221,8 +221,8 @@ class DreamV7Strategy(IStrategy):
         
         entry_stake = self.calc_entry_stake_without_leverage()
         if addition_signal:
-            base_profit_step = 0.1
-            profit_factor = max(min(current_profit, base_profit_step * 4), base_profit_step)
+            base_profit_step = 0.2
+            profit_factor = max(min(current_profit, base_profit_step * 3), base_profit_step)
             addition_multiplier = int(round(profit_factor / base_profit_step))
             addition_stake = entry_stake * addition_multiplier
             logger.info(f'Initialize {trade.pair} addition stake #{addition_multiplier} to {addition_stake:.5f} at {current_time}')
