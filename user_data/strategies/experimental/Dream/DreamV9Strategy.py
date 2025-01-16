@@ -38,8 +38,9 @@ class DreamV9Strategy(IStrategy):
     can_short = True
  
     position_adjustment_enable = True
-    stake_ratio = 0.2
-    order_interval_seconds = 160
+    stake_ratio = 0.25
+    order_interval_seconds = 50
+    addition_price_pct = 0.015
     
     period = 10
     
@@ -86,23 +87,23 @@ class DreamV9Strategy(IStrategy):
         entry_stake_with_leverage = entry_stake * leverage
         stake_amount = trade.amount * trade.open_rate
         
-        # 长时间stake amount上不来，例如不到相当于4次加仓的市值，说明加仓少，趋势不明朗，尽早退出
-        low_stake_threshold = 4 * entry_stake_with_leverage
-        is_low_stake = stake_amount < low_stake_threshold
-        logger.info(f'Checking {trade.pair} low stake result:{is_low_stake}, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
-        if is_low_stake:
-            if (current_time - timedelta(minutes=180)) > trade.open_date_utc and 0.002 * leverage < current_profit < 0.02 * leverage:
-                exit_reason = 'Long time low profit'
-                logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
-                return exit_reason
-            if (current_time - timedelta(minutes=300)) > trade.open_date_utc and -0.01 * leverage < current_profit < 0.002 * leverage:
-                exit_reason = 'Long time low profit-2'
-                logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
-                return exit_reason
-            if (current_time - timedelta(minutes=480)) > trade.open_date_utc and current_profit < 0.01 * leverage:
-                exit_reason = 'Long time low stake'
-                logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
-                return exit_reason
+        # # 长时间stake amount上不来，例如不到相当于4次加仓的市值，说明加仓少，趋势不明朗，尽早退出
+        # low_stake_threshold = 4 * entry_stake_with_leverage
+        # is_low_stake = stake_amount < low_stake_threshold
+        # logger.info(f'Checking {trade.pair} low stake result:{is_low_stake}, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
+        # if is_low_stake:
+        #     if (current_time - timedelta(minutes=180)) > trade.open_date_utc and 0.002 * leverage < current_profit < 0.02 * leverage:
+        #         exit_reason = 'Long time low profit'
+        #         logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+        #         return exit_reason
+        #     if (current_time - timedelta(minutes=300)) > trade.open_date_utc and -0.01 * leverage < current_profit < 0.002 * leverage:
+        #         exit_reason = 'Long time low profit-2'
+        #         logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+        #         return exit_reason
+        #     if (current_time - timedelta(minutes=480)) > trade.open_date_utc and current_profit < 0.01 * leverage:
+        #         exit_reason = 'Long time low stake'
+        #         logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+        #         return exit_reason
         
         open_profit_abs = current_profit / leverage * stake_amount
         realized_profit_abs = trade.realized_profit if trade.realized_profit else 0
@@ -141,6 +142,14 @@ class DreamV9Strategy(IStrategy):
         if reach_max_loss:
             exit_reason = 'Max loss'
             logger.info(f'{exit_reason} for {pair}:{total_profit_abs:.4f} < {profit_drawdown_threshold:.4f}, current_rate:{current_rate:.6f} at {current_time}')
+            return exit_reason
+        
+        # 出现反转信号并且利润比较低时退出
+        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
+        last_candle = dataframe.iloc[-1].squeeze()
+        if last_candle['reverse_signal'] == 1 and current_profit < 0.01 * leverage:
+            exit_reason = f'reverse|{current_profit:.1f}'
+            logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
             return exit_reason
         
         return False
@@ -205,9 +214,10 @@ class DreamV9Strategy(IStrategy):
             trade.set_custom_data(self.LAST_ADDITION_PRICE, last_addition_price)
         
         addition_signal = False
-        
-        match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
-        if current_profit > 0.005 * leverage and match_order_interval:
+        # match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
+        price_change_pct = (current_rate - last_addition_price) / last_addition_price
+        if price_change_pct > self.addition_price_pct:
+            # and match_order_interval
             # addition_price_ratio = 0.98
             if is_short and last_candle['enter_short'] == 1:
                 # and current_rate < last_addition_price / addition_price_ratio
@@ -383,13 +393,15 @@ class DreamV9Strategy(IStrategy):
         dataframe['exit_long'] = 0
         dataframe['exit_short'] = 0
         
-        # if self.is_long:
-        #     ema_long_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_long', self.ema_long_trend)
-        #     dataframe.loc[
-        #             (
-        #                 (dataframe['ha_close'] < dataframe['ema']) &
-        #                 (ema_long_down_mask)
-        #             ),
-        #             ['exit_long', 'exit_tag']] = (1, 'exit-long')
+        if self.is_long:
+            ema_mid_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_mid', self.ema_mid_length)
+            dataframe.loc[
+                    (
+                        (
+                            (dataframe['ha_close'] < dataframe['ema_mid']) | (dataframe['ha_close'] < dataframe['ema_long'])
+                        )
+                        & (ema_mid_down_mask)
+                        & (dataframe['ha_close'] < self.ema_up_ratio * dataframe['ema_long'])
+                    ), 'reverse_signal'] = 1
             
         return dataframe
