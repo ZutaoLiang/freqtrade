@@ -202,17 +202,17 @@ class MeanReversionV1Strategy(IStrategy):
             return None
         
         current_market_value = trade.amount * current_rate
-        last_market_value = trade.amount * last_reversion_price
-        market_value_change = abs(last_market_value - current_market_value)
+        target_market_value = self.wallets.get_starting_balance() * self.stake_ratio * leverage / self.max_open_trades
+        market_value_change = current_market_value - target_market_value
         
         reversion_direction = 1
         if is_short:
-            reversion_direction = -1 if price_change > 0 else 1
+            reversion_direction = 1 if market_value_change > 0 else -1
         else:
-            reversion_direction = 1 if price_change > 0 else -1
+            reversion_direction = -1 if market_value_change > 0 else 1
         
-        reversion_stake = 250 * 0.05 * reversion_direction / leverage
-        logger.info(f'Initialize reversion stake for {trade.pair} with stake amount:{reversion_stake:.4f}(after leverage:{reversion_stake*leverage:.4f}, amount:{trade.amount}, market_value_change:{market_value_change:.4f}, last_price:{last_reversion_price:.4f}, current_rate:{current_rate:.4f}, price_change:{price_change:.2%}) at {current_time}')
+        reversion_stake = abs(market_value_change) * reversion_direction / leverage
+        logger.info(f'Initialize reversion stake for {trade.pair} with stake amount:{reversion_stake:.4f}(after leverage:{reversion_stake*leverage:.4f}, amount:{trade.amount}, market_value_change:{market_value_change:.4f}({current_market_value:.4f} - {target_market_value:.4f}), last_price:{last_reversion_price:.4f}, current_rate:{current_rate:.4f}, price_change:{price_change:.2%}) at {current_time}')
         
         if abs(reversion_stake) >= min_stake:
             # and abs(reversion_stake) <= max_stake:
