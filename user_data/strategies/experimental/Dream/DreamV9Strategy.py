@@ -120,7 +120,16 @@ class DreamV9Strategy(IStrategy):
         
         logger.info(f'{trade.pair} total profit:{total_profit_abs:.4f}(open:{open_profit_abs:.4f}, close:{realized_profit_abs:.4f}), current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
         
-        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5]
+        # 出现反转信号并且利润比较低时退出
+        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
+        last_candle = dataframe.iloc[-1].squeeze()
+        reverse_signal = last_candle['reverse_signal'] == 1
+        if reverse_signal and current_profit < 0.01 * leverage:
+            exit_reason = f'reverse|{current_profit:.1f}'
+            logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+            return exit_reason
+        
+        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * (0.5 if not reverse_signal else 0.1)]
         # draw_back_ratio_array = [1-(0.1*leverage), 1-(0.12*leverage), 1-(0.18*leverage)]
         draw_back_ratio_array = [0.6, 0.5]
         
@@ -130,7 +139,7 @@ class DreamV9Strategy(IStrategy):
                 trade.set_custom_data(self.HIGH_PROFIT, reach_profit)
                 
             reach_drawback = reach_profit and total_profit_abs < max_profit_abs * draw_back_ratio
-            logger.info(f'Checking {trade.pair} drawback result:{reach_drawback} on threshold #{index+1}:{market_value_threshold:.4f} and total_profit_abs:{total_profit_abs:.4f} with {max_profit_abs*draw_back_ratio:.4f}(max_profit_abs:{max_profit_abs:.4f}*ratio:{draw_back_ratio:.2%}) at {current_time}')
+            logger.info(f'Checking {trade.pair} drawback result:{reach_drawback}(reverse:{reverse_signal}) on threshold #{index+1}:{market_value_threshold:.4f} and total_profit_abs:{total_profit_abs:.4f} with {max_profit_abs*draw_back_ratio:.4f}(max_profit_abs:{max_profit_abs:.4f}*ratio:{draw_back_ratio:.2%}) at {current_time}')
             if reach_drawback:
                 exit_reason = f'Profit drawback-{index+1}'
                 logger.info(f'{exit_reason} for {pair}: total profit {total_profit_abs:.4f} < (max_profit_abs {max_profit_abs:.4f} * {draw_back_ratio:.2%}), current_rate:{current_rate:.4f} at {current_time}')
@@ -142,14 +151,6 @@ class DreamV9Strategy(IStrategy):
         if reach_max_loss:
             exit_reason = 'Max loss'
             logger.info(f'{exit_reason} for {pair}:{total_profit_abs:.4f} < {profit_drawdown_threshold:.4f}, current_rate:{current_rate:.6f} at {current_time}')
-            return exit_reason
-        
-        # 出现反转信号并且利润比较低时退出
-        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
-        last_candle = dataframe.iloc[-1].squeeze()
-        if last_candle['reverse_signal'] == 1 and current_profit < 0.01 * leverage:
-            exit_reason = f'reverse|{current_profit:.1f}'
-            logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
             return exit_reason
         
         return False
