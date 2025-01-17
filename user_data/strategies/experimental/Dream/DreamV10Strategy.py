@@ -134,7 +134,7 @@ class DreamV10Strategy(IStrategy):
         
         if reverse_signal:
             market_value_threshold_array.append(entry_stake_with_leverage * 0.1)
-            draw_back_ratio_array.append(0.4)
+            draw_back_ratio_array.append(0.5)
         
         for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
             reach_profit = max_profit_abs > market_value_threshold
