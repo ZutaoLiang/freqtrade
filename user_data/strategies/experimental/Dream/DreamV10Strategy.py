@@ -219,7 +219,7 @@ class DreamV10Strategy(IStrategy):
         
         addition_signal = False
         # match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
-        price_change_pct = (current_rate - last_addition_price) / last_addition_price
+        price_change_pct = abs(current_rate - last_addition_price) / last_addition_price
         if price_change_pct > self.addition_price_pct:
             # and match_order_interval
             # addition_price_ratio = 0.98
