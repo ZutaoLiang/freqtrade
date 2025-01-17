@@ -50,7 +50,7 @@ class DreamV10Strategy(IStrategy):
     ema_trend = 6
     ema_mid_trend = ema_trend
     ema_long_trend = ema_trend * 3
-    ema_up_ratio = 1.005
+    ema_up_ratio = 1.012
     
     breakout_period = 4
     
@@ -60,9 +60,9 @@ class DreamV10Strategy(IStrategy):
     rsi_long_threshold = 55
     rsi_short_threshold = 30
     
-    startup_candle_count = ema_long_length
+    startup_candle_count = ema_long_length * 2
     
-    exit_loss_ratio = -0.2
+    exit_loss_ratio = -0.25
 
     is_long = True
     
@@ -129,9 +129,12 @@ class DreamV10Strategy(IStrategy):
             logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
             return exit_reason
         
-        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * (0.5 if not reverse_signal else 0.1)]
-        # draw_back_ratio_array = [1-(0.1*leverage), 1-(0.12*leverage), 1-(0.18*leverage)]
-        draw_back_ratio_array = [0.6, 0.5]
+        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5]
+        draw_back_ratio_array = [0.6, 0.4]
+        
+        if reverse_signal:
+            market_value_threshold_array.append(entry_stake_with_leverage * 0.1)
+            draw_back_ratio_array.append(0.4)
         
         for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
             reach_profit = max_profit_abs > market_value_threshold
@@ -394,8 +397,10 @@ class DreamV10Strategy(IStrategy):
         dataframe['exit_long'] = 0
         dataframe['exit_short'] = 0
         
+        dataframe['reverse_signal'] = 0
+        
         if self.is_long:
-            ema_mid_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_mid', self.ema_mid_length)
+            ema_mid_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
             dataframe.loc[
                     (
                         (
@@ -403,6 +408,16 @@ class DreamV10Strategy(IStrategy):
                         )
                         & (ema_mid_down_mask)
                         & (dataframe['ha_close'] < self.ema_up_ratio * dataframe['ema_long'])
+                    ), 'reverse_signal'] = 1
+        else:
+            ema_mid_up_mask = self.ema_up_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
+            dataframe.loc[
+                    (
+                        (
+                            (dataframe['ha_close'] > dataframe['ema_mid']) | (dataframe['ha_close'] > dataframe['ema_long'])
+                        )
+                        & (ema_mid_up_mask)
+                        & (dataframe['ha_close'] > self.ema_up_ratio * dataframe['ema_long'])
                     ), 'reverse_signal'] = 1
             
         return dataframe
