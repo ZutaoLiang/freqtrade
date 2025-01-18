@@ -60,7 +60,7 @@ class DreamV11Strategy(IStrategy):
     rsi_long_threshold = 55
     rsi_short_threshold = 30
     
-    startup_candle_count = ema_long_length * 2
+    startup_candle_count = int(ema_long_length)
     
     exit_loss_ratio = -0.25
 
