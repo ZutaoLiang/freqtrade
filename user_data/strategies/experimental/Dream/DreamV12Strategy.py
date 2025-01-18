@@ -64,9 +64,14 @@ class DreamV12Strategy(IStrategy):
     
     exit_loss_ratio = -0.25
 
-    is_long = True
+    is_long = False
     
     # atr_length = int(1.5 * period)
+    
+    enable_pair_large_change = True
+    pair_large_change_comparison = 1.5
+    pair_large_price_change_min = 0.1
+    min_profit_to_check_pair_large_change = 0.02
     
     enable_mean_reversion = False # default to False
     mean_reversion_change_pct = 0.005
@@ -79,6 +84,67 @@ class DreamV12Strategy(IStrategy):
                 proposed_leverage: float, max_leverage: float, entry_tag: Optional[str],
                 side: str, **kwargs) -> float:
         return self.trade_leverage
+    
+    def check_large_price_change_pairs(self, pair: str, trade: Trade, current_time: datetime,
+                   current_rate: float, current_profit: float) -> str:
+        if not self.enable_pair_large_change:
+            return None
+        
+        trade_open_date = trade.open_date_utc
+        if (current_time - timedelta(minutes=30)) < trade_open_date:
+            return None
+        
+        filled_orders = trade.select_filled_orders()
+        count_of_orders = len(filled_orders)
+        if count_of_orders == 0:
+            return None
+        
+        current_pair_open_date_price = filled_orders[0].average
+        current_pair_price_change = (current_rate - current_pair_open_date_price) / current_pair_open_date_price
+        if trade.is_short:
+            current_pair_price_change *= -1
+            
+        price_change_baseline = self.pair_large_change_comparison * current_pair_price_change
+        
+        open_trades = Trade.get_open_trades()
+        open_pairs = [t.pair for t in open_trades]
+        whitelist = self.dp.current_whitelist()
+        for other_pair in whitelist:
+            if other_pair == pair or other_pair in open_pairs:
+                continue
+            
+            try:
+                df, _ = self.dp.get_analyzed_dataframe(other_pair, self.timeframe)
+                last_candle = df.iloc[-1].squeeze()
+                entry_signal = (last_candle['enter_short'] == 1) if trade.is_short else (last_candle['enter_long'] == 1)
+                if not entry_signal:
+                    continue
+                
+                data = self.dp.historic_ohlcv(other_pair, self.timeframe)
+                data['date'] = pd.to_datetime(data['date'])
+                data_in_period = data[(data['date'] >= trade_open_date) & (data['date'] <= current_time)]
+                if data_in_period.empty:
+                    continue
+
+                open_date_price = data_in_period.iloc[0]['close']
+                other_pair_price = data_in_period.iloc[-1]['close']
+                price_change = (other_pair_price - open_date_price) / open_date_price
+                if trade.is_short:
+                    price_change *= -1
+
+                if price_change > self.pair_large_price_change_min and price_change > price_change_baseline:
+                    exit_reason = f'Pair large change-{other_pair}'
+                    logger.info(
+                        f'{exit_reason}(open_date_price:{open_date_price:.6f}, price:{other_pair_price:.6f}, open_date:{trade_open_date}) price change:{price_change:.2%}. '
+                        f'Exit {pair}, price change comparison: {price_change_baseline:.2%}(price change: {current_pair_price_change:.2%}), current_rate:{current_rate:.6f}, '
+                        f'open_date_rate:{current_pair_open_date_price:.6f}, current_profit:{current_profit:.2%}, stake_amount:{trade.stake_amount:.4f} at {current_time}'
+                    )
+                    return exit_reason
+            except Exception as e:
+                logger.warning(f'Error processing other pair:{other_pair}: {e}')
+                continue
+            
+        return None
          
     def custom_exit(self, pair: str, trade: Trade, current_time: datetime,
                    current_rate: float, current_profit: float, **kwargs) -> bool:
@@ -155,6 +221,13 @@ class DreamV12Strategy(IStrategy):
             exit_reason = 'Max loss'
             logger.info(f'{exit_reason} for {pair}:{total_profit_abs:.4f} < {profit_drawdown_threshold:.4f}, current_rate:{current_rate:.6f} at {current_time}')
             return exit_reason
+        
+        entry_signal = (last_candle['enter_short'] == 1) if trade.is_short else (last_candle['enter_long'] == 1)
+        if current_profit < self.min_profit_to_check_pair_large_change * trade.leverage and not entry_signal:
+            # 当前利润低，检查whitelist中是否有更大利润空间的标的
+            exit_reason = self.check_large_price_change_pairs(pair, trade, current_time, current_rate, current_profit)
+            if exit_reason is not None:
+                return exit_reason
         
         return False
 
