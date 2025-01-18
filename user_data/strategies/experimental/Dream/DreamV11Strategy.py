@@ -45,8 +45,8 @@ class DreamV11Strategy(IStrategy):
     period = 10
     
     ema_length = period
-    ema_mid_length = 6 * period
-    ema_long_length = 24 * period
+    ema_mid_length = 9 * period
+    ema_long_length = 36 * period
     ema_trend = 6
     ema_mid_trend = ema_trend
     ema_long_trend = ema_trend * 3
@@ -124,17 +124,17 @@ class DreamV11Strategy(IStrategy):
         dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
         last_candle = dataframe.iloc[-1].squeeze()
         reverse_signal = last_candle['reverse_signal'] == 1
-        if reverse_signal and current_profit < 0.01 * leverage:
+        if reverse_signal and current_profit < 0.02 * leverage:
             exit_reason = f'reverse|{current_profit:.1f}'
             logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
             return exit_reason
         
-        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5]
-        draw_back_ratio_array = [0.6, 0.4]
+        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.4]
+        draw_back_ratio_array = [0.6, 0.3]
         
         if reverse_signal:
             market_value_threshold_array.append(entry_stake_with_leverage * 0.1)
-            draw_back_ratio_array.append(0.5)
+            draw_back_ratio_array.append(0.3)
         
         for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
             reach_profit = max_profit_abs > market_value_threshold
@@ -212,15 +212,22 @@ class DreamV11Strategy(IStrategy):
         # logger.info(f'{trade.pair} latest order:{order_json}')
         
         # 处理是否需要浮盈加仓
-        last_addition_price = trade.get_custom_data(self.LAST_ADDITION_PRICE)
-        if last_addition_price is None:
+        if self.enable_mean_reversion:
+            last_addition_price = trade.get_custom_data(self.LAST_ADDITION_PRICE)
+            if last_addition_price is None:
+                last_addition_price = latest_entry_order.average
+                trade.set_custom_data(self.LAST_ADDITION_PRICE, last_addition_price)
+        else:
             last_addition_price = latest_entry_order.average
-            trade.set_custom_data(self.LAST_ADDITION_PRICE, last_addition_price)
         
         addition_signal = False
         # match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
-        price_change_pct = abs(current_rate - last_addition_price) / last_addition_price
-        if price_change_pct > self.addition_price_pct:
+        if is_short:
+            price_change_pct = (last_addition_price - current_rate) / last_addition_price
+        else:
+            price_change_pct = (current_rate - last_addition_price) / last_addition_price
+            
+        if price_change_pct > self.addition_price_pct and current_profit > 0:
             # and match_order_interval
             # addition_price_ratio = 0.98
             if is_short and last_candle['enter_short'] == 1:
@@ -251,7 +258,8 @@ class DreamV11Strategy(IStrategy):
                     addition_stake = min_stake
             
             if position_addition:
-                trade.set_custom_data(self.LAST_ADDITION_PRICE, current_rate)
+                if self.enable_mean_reversion:
+                    trade.set_custom_data(self.LAST_ADDITION_PRICE, current_rate)
                 
                 logger.info(f'Position addition for {trade.pair} with stake amount {addition_stake:.5f}(multiplier:#{addition_multiplier}) triggered at entry signal, current_profit:{current_profit:.2f}, current_rate:{current_rate:.5f} at {current_time}')
                 return (addition_stake, f'entry-addition-{addition_multiplier}')
@@ -421,3 +429,4 @@ class DreamV11Strategy(IStrategy):
                     ), 'reverse_signal'] = 1
             
         return dataframe
+
