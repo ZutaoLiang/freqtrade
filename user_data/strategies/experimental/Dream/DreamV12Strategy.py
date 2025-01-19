@@ -385,7 +385,7 @@ class DreamV12Strategy(IStrategy):
             return None
         
     def calc_entry_stake_without_leverage(self) -> float:
-        return self.wallets.get_total(self.stake_currency) * self.stake_ratio / self.max_open_trades
+        return self.wallets.get_total_stake_amount() * self.stake_ratio / self.max_open_trades
         
     def custom_stake_amount(self, pair: str, current_time: datetime, current_rate: float,
                           proposed_stake: float, min_stake: Optional[float], max_stake: float,
