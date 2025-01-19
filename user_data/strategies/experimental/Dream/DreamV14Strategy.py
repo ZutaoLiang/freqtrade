@@ -249,6 +249,57 @@ class DreamV14Strategy(IStrategy):
         #     return 0.05 * leverage
             
         return None
+    
+    def adjust_mean_reversion_position(self, filled_orders, entry_stake, trade: Trade, current_time: datetime,
+                          current_rate: float, current_profit: float, min_stake: float, max_stake: float, 
+                          current_entry_rate: float, current_exit_rate: float,
+                          current_entry_profit: float, current_exit_profit: float, **kwargs):
+        if not self.enable_mean_reversion:
+            return None
+
+        # 均值回归处理
+        last_reversion_price = filled_orders[-1].average
+        
+        price_change = (last_reversion_price - current_rate) / last_reversion_price
+        if abs(price_change) < self.mean_reversion_change_pct:
+            return None
+        
+        current_market_value = trade.amount * current_rate
+        
+        # 达到单个品种的标准市值（即总资金/max_open_trades）才考虑均值回归处理，未达到之前等待趋势加仓或者趋势没起来打到止损
+        if current_market_value < entry_stake * trade.leverage:
+            return None
+        
+        reach_high_profit = trade.get_custom_data(self.HIGH_PROFIT, default=None)
+        if reach_high_profit is None:
+            reach_high_profit = False
+            
+        if current_profit < 0.1 and not reach_high_profit:
+            return None
+        
+        # last_market_value = trade.amount * last_reversion_price
+        # market_value_change = last_market_value - current_market_value
+        # reversion_stake = market_value_change / leverage
+        
+        reversion_direction = 1
+        if trade.is_short:
+            reversion_direction = -1 if price_change > 0 else 1
+        else:
+            reversion_direction = 1 if price_change > 0 else -1
+        
+        reversion_stake = entry_stake * reversion_direction / trade.leverage
+        logger.info(f'Initialize reversion stake for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, current_rate:{current_rate:.4f}, price_change:{price_change:.2%})')
+        
+        if abs(reversion_stake) > min_stake:
+            # and abs(adjustment_value) < max_stake:
+            logger.info(f'Mean reversion adjustment for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, current_rate:{current_rate:.4f}, price_change:{price_change:.2%}) at {current_time}')
+            if reversion_stake > 0:
+                return (reversion_stake, 'reversion-addition')
+            else:
+                return (reversion_stake, 'reversion-decrease')
+        else:
+            logger.info(f'Skip mean reversion adjustment for {trade.pair} while stake amount:{reversion_stake:.4f} is not in the valid range({min_stake:.4f}, {max_stake:.4f}) at {current_time}')
+            return None
 
     def adjust_trade_position(self, trade: Trade, current_time: datetime,
                           current_rate: float, current_profit: float, min_stake: float, max_stake: float, 
@@ -263,37 +314,18 @@ class DreamV14Strategy(IStrategy):
         if count_of_orders == 0:
             return None
         
-        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
-        last_candle = dataframe.iloc[-1].squeeze()
-        
         is_short = trade.is_short
         leverage = trade.leverage
         
-        latest_entry_order = None
-        for order in reversed(filled_orders):
-            if order.ft_order_side == trade.entry_side:
-                latest_entry_order = order
-                break
-            
-        if latest_entry_order is None:
-            return None
-
-        # TODO: 根据加仓订单的密集程度动态调整加仓比例
-        # filled_or_open_orders = self.select_filled_or_open_orders()
-        # orders_json = [order.to_json(self.entry_side, minified) for order in filled_or_open_orders]
+        entry_addtion_orders = [order for order in filled_orders if order.ft_order_side == trade.entry_side 
+                                and ('entry-long' in order.ft_order_tag or 'entry-addition' in order.ft_order_tag)]
+        latest_entry_addition_order = entry_addtion_orders[-1]
+        last_addition_price = latest_entry_addition_order.average
         
-        # order_json = latest_order.to_json(trade.entry_side, True)
-        # logger.info(f'{trade.pair} latest order:{order_json}')
+        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
+        last_candle = dataframe.iloc[-1].squeeze()
         
         # 处理是否需要浮盈加仓
-        if self.enable_mean_reversion:
-            last_addition_price = trade.get_custom_data(self.LAST_ADDITION_PRICE)
-            if last_addition_price is None:
-                last_addition_price = latest_entry_order.average
-                trade.set_custom_data(self.LAST_ADDITION_PRICE, last_addition_price)
-        else:
-            last_addition_price = latest_entry_order.average
-        
         addition_signal = False
         # match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
         if is_short:
@@ -332,58 +364,13 @@ class DreamV14Strategy(IStrategy):
                     addition_stake = min_stake
             
             if position_addition:
-                if self.enable_mean_reversion:
-                    trade.set_custom_data(self.LAST_ADDITION_PRICE, current_rate)
-                
                 logger.info(f'Position addition for {trade.pair} with stake amount {addition_stake:.5f}(multiplier:#{addition_multiplier}) triggered at entry signal, current_profit:{current_profit:.2f}, current_rate:{current_rate:.5f} at {current_time}')
                 return (addition_stake, f'entry-addition-{addition_multiplier}')
-
-        if not self.enable_mean_reversion:
-            return None
-
-        # 均值回归处理
-        last_reversion_price = filled_orders[-1].average
-        
-        price_change = (last_reversion_price - current_rate) / last_reversion_price
-        if abs(price_change) < self.mean_reversion_change_pct:
-            return None
-        
-        current_market_value = trade.amount * current_rate
-        
-        # 达到单个品种的标准市值（即总资金/max_open_trades）才考虑均值回归处理，未达到之前等待趋势加仓或者趋势没起来打到止损
-        if current_market_value < entry_stake * leverage:
-            return None
-        
-        reach_high_profit = trade.get_custom_data(self.HIGH_PROFIT, default=None)
-        if reach_high_profit is None:
-            reach_high_profit = False
             
-        if current_profit < 0.1 and not reach_high_profit:
-            return None
+        if self.enable_mean_reversion:
+            return self.adjust_mean_reversion_position(filled_orders, entry_stake, trade, current_time, current_rate, current_profit, min_stake, max_stake, current_entry_rate, current_exit_rate, current_entry_profit, current_exit_profit)
         
-        # last_market_value = trade.amount * last_reversion_price
-        # market_value_change = last_market_value - current_market_value
-        # reversion_stake = market_value_change / leverage
-        
-        reversion_direction = 1
-        if trade.is_short:
-            reversion_direction = -1 if price_change > 0 else 1
-        else:
-            reversion_direction = 1 if price_change > 0 else -1
-        
-        reversion_stake = entry_stake * reversion_direction / leverage
-        logger.info(f'Initialize reversion stake for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, current_rate:{current_rate:.4f}, price_change:{price_change:.2%})')
-        
-        if abs(reversion_stake) > min_stake:
-            # and abs(adjustment_value) < max_stake:
-            logger.info(f'Mean reversion adjustment for {trade.pair} with stake amount:{reversion_stake:.4f}(amount:{trade.amount}, last_price:{last_reversion_price:.4f}, current_rate:{current_rate:.4f}, price_change:{price_change:.2%}) at {current_time}')
-            if reversion_stake > 0:
-                return (reversion_stake, 'reversion-addition')
-            else:
-                return (reversion_stake, 'reversion-decrease')
-        else:
-            logger.info(f'Skip mean reversion adjustment for {trade.pair} while stake amount:{reversion_stake:.4f} is not in the valid range({min_stake:.4f}, {max_stake:.4f}) at {current_time}')
-            return None
+        return None
         
     def calc_entry_stake_without_leverage(self) -> float:
         return self.wallets.get_total_stake_amount() * self.stake_ratio / self.max_open_trades
