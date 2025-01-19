@@ -62,7 +62,7 @@ class DreamV13Strategy(IStrategy):
     
     startup_candle_count = int(ema_long_length)
     
-    exit_loss_ratio = -0.25
+    max_loss_ratio = -0.25
 
     is_long = True
     
@@ -190,10 +190,6 @@ class DreamV13Strategy(IStrategy):
         dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
         last_candle = dataframe.iloc[-1].squeeze()
         reverse_signal = last_candle['reverse_signal'] == 1
-        if reverse_signal and current_profit < 0.02 * leverage:
-            exit_reason = f'reverse|{current_profit:.1f}'
-            logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
-            return exit_reason
         
         market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.4]
         draw_back_ratio_array = [0.6, 0.2]
@@ -213,13 +209,18 @@ class DreamV13Strategy(IStrategy):
                 exit_reason = f'Profit drawback-{index+1}'
                 logger.info(f'{exit_reason} for {pair}: total profit {total_profit_abs:.4f} < (max_profit_abs {max_profit_abs:.4f} * {draw_back_ratio:.2%}), current_rate:{current_rate:.4f} at {current_time}')
                 return exit_reason
+            
+        if reverse_signal and current_profit < 0.02 * leverage:
+            exit_reason = f'reverse|{current_profit:.1f}'
+            logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+            return exit_reason
         
-        profit_drawdown_threshold = entry_stake_with_leverage * self.exit_loss_ratio
-        reach_max_loss = total_profit_abs < profit_drawdown_threshold
-        logger.info(f'Checking {trade.pair} max loss result:{reach_max_loss}, total_profit_abs:{total_profit_abs:.4f}, threshold:{profit_drawdown_threshold:.4f}=(entry_stake_with_leverage:{entry_stake_with_leverage:.4f}*exit_loss_ratio:{self.exit_loss_ratio:.2%}), current_profit:{current_profit:.2%} at {current_time}')
+        max_loss_threshold = entry_stake_with_leverage * self.max_loss_ratio
+        reach_max_loss = total_profit_abs < max_loss_threshold
+        logger.info(f'Checking {trade.pair} max loss result:{reach_max_loss}, total_profit_abs:{total_profit_abs:.4f}, threshold:{max_loss_threshold:.4f}=(entry_stake_with_leverage:{entry_stake_with_leverage:.4f}*exit_loss_ratio:{self.max_loss_ratio:.2%}), current_profit:{current_profit:.2%} at {current_time}')
         if reach_max_loss:
             exit_reason = 'Max loss'
-            logger.info(f'{exit_reason} for {pair}:{total_profit_abs:.4f} < {profit_drawdown_threshold:.4f}, current_rate:{current_rate:.6f} at {current_time}')
+            logger.info(f'{exit_reason} for {pair}:{total_profit_abs:.4f} < {max_loss_threshold:.4f}, current_rate:{current_rate:.6f} at {current_time}')
             return exit_reason
         
         entry_signal = (last_candle['enter_short'] == 1) if trade.is_short else (last_candle['enter_long'] == 1)
