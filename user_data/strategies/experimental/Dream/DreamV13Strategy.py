@@ -64,11 +64,11 @@ class DreamV13Strategy(IStrategy):
     
     exit_loss_ratio = -0.25
 
-    is_long = False
+    is_long = True
     
     # atr_length = int(1.5 * period)
     
-    enable_pair_large_change = True
+    enable_pair_large_change = False
     pair_large_change_comparison = 1.5
     pair_large_price_change_min = 0.1
     min_profit_to_check_pair_large_change = 0.02
@@ -196,7 +196,7 @@ class DreamV13Strategy(IStrategy):
             return exit_reason
         
         market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.4]
-        draw_back_ratio_array = [0.6, 0.3]
+        draw_back_ratio_array = [0.6, 0.2]
         
         if reverse_signal:
             market_value_threshold_array.append(entry_stake_with_leverage * 0.1)
@@ -488,7 +488,7 @@ class DreamV13Strategy(IStrategy):
                             (dataframe['ha_close'] < dataframe['ema_mid']) | (dataframe['ha_close'] < dataframe['ema_long'])
                         )
                         & (ema_mid_down_mask)
-                        & (dataframe['ha_close'] < self.ema_up_ratio * dataframe['ema_long'])
+                        & (dataframe['ha_close'] * self.ema_up_ratio < dataframe['ema_long'])
                     ), 'reverse_signal'] = 1
         else:
             ema_mid_up_mask = self.ema_up_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
