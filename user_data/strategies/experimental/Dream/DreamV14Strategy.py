@@ -7,7 +7,7 @@ from functools import reduce
 from datetime import datetime, timedelta
 from typing import Optional, Tuple, Union
 
-from freqtrade.strategy.interface import IStrategy, Trade
+from freqtrade.strategy.interface import IStrategy, Trade, Order
 from freqtrade.strategy.strategy_helper import stoploss_from_absolute, stoploss_from_open
 from freqtrade.strategy import IntParameter, DecimalParameter
 import freqtrade.vendor.qtpylib.indicators as qtpylib
@@ -67,6 +67,8 @@ class DreamV14Strategy(IStrategy):
     is_long = True
     
     # atr_length = int(1.5 * period)
+    
+    enable_position_decrease = True
     
     enable_pair_large_change = False
     pair_large_change_comparison = 1.5
@@ -301,6 +303,35 @@ class DreamV14Strategy(IStrategy):
             logger.info(f'Skip mean reversion adjustment for {trade.pair} while stake amount:{reversion_stake:.4f} is not in the valid range({min_stake:.4f}, {max_stake:.4f}) at {current_time}')
             return None
 
+    def check_position_decrease(self, filled_orders, entry_addtion_orders, entry_stake, trade: Trade, current_time: datetime,
+                          current_rate: float, current_profit: float, min_stake: float, max_stake: float, 
+                          current_entry_rate: float, current_exit_rate: float,
+                          current_entry_profit: float, current_exit_profit: float, **kwargs): 
+        decrease_orders = []
+        for order in entry_addtion_orders:
+            price_percent = (current_rate - order.average) / order.average
+            if trade.is_short:
+                price_percent *= -1
+            
+            if price_percent < -0.01:
+                decrease_orders.append(order)
+
+        if len(decrease_orders) == 0:
+            return None
+        
+        total_decrease_amount = 0
+        for order in decrease_orders:
+            total_decrease_amount += order.amount
+
+        # TODO: process min and max stake
+        return (-total_decrease_amount * current_rate / trade.leverage, 'position-decrease')
+
+    def order_filled(
+        self, pair: str, trade: Trade, order: Order, current_time: datetime, **kwargs
+    ) -> None:
+        logger.info(f'{pair} order filled, tag:{order.ft_order_tag}')
+        return None
+
     def adjust_trade_position(self, trade: Trade, current_time: datetime,
                           current_rate: float, current_profit: float, min_stake: float, max_stake: float, 
                           current_entry_rate: float, current_exit_rate: float,
@@ -308,7 +339,12 @@ class DreamV14Strategy(IStrategy):
         # Note: 这个函数需要返回的是不带杠杆的金额，具体代码参考freqtradebot.execute_entry()
         if not self.position_adjustment_enable:
             return None
-
+        
+        has_open_orders = any(order.status == "open" and not order.ft_is_open for order in trade.orders)
+        if has_open_orders:
+            logger.info(f'There are open orders for {trade.pair}, skip position adjustment.')
+            return None
+        
         filled_orders = trade.select_filled_orders()
         count_of_orders = len(filled_orders)
         if count_of_orders == 0:
@@ -325,14 +361,23 @@ class DreamV14Strategy(IStrategy):
         dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
         last_candle = dataframe.iloc[-1].squeeze()
         
+        min_stake /= trade.leverage
+        max_stake /= trade.leverage
+        entry_stake = self.calc_entry_stake_without_leverage()
+        
+        # 处理是否需要亏损减仓
+        if self.enable_position_decrease:
+            result = self.check_position_decrease(filled_orders, entry_addtion_orders, entry_stake, trade, current_time, current_rate, current_profit, min_stake, max_stake, current_entry_rate, current_exit_rate, current_entry_profit, current_exit_profit)
+            if result is not None:
+                return result
+        
         # 处理是否需要浮盈加仓
         addition_signal = False
-        # match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
+        price_change_pct = (current_rate - last_addition_price) / last_addition_price
         if is_short:
-            price_change_pct = (last_addition_price - current_rate) / last_addition_price
-        else:
-            price_change_pct = (current_rate - last_addition_price) / last_addition_price
+            price_change_pct *= -1
             
+        # match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
         if price_change_pct > self.addition_price_pct and current_profit > 0:
             # and match_order_interval
             # addition_price_ratio = 0.98
@@ -342,11 +387,7 @@ class DreamV14Strategy(IStrategy):
             elif not is_short and last_candle['enter_long'] == 1:
                 # and current_rate > last_addition_price * addition_price_ratio
                 addition_signal = True
-                
-        min_stake /= trade.leverage
-        max_stake /= trade.leverage
-        
-        entry_stake = self.calc_entry_stake_without_leverage()
+
         if addition_signal:
             base_profit_step = 0.2
             profit_factor = max(min(current_profit, base_profit_step * 3), base_profit_step)

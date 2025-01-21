@@ -64,7 +64,7 @@ class DreamV11Strategy(IStrategy):
     
     exit_loss_ratio = -0.25
 
-    is_long = True
+    is_long = False
     
     # atr_length = int(1.5 * period)
     
@@ -87,15 +87,15 @@ class DreamV11Strategy(IStrategy):
         entry_stake_with_leverage = entry_stake * leverage
         stake_amount = trade.amount * trade.open_rate
         
-        # # 长时间stake amount上不来，例如不到相当于4次加仓的市值，说明加仓少，趋势不明朗，尽早退出
-        # low_stake_threshold = 4 * entry_stake_with_leverage
-        # is_low_stake = stake_amount < low_stake_threshold
-        # logger.info(f'Checking {trade.pair} low stake result:{is_low_stake}, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
-        # if is_low_stake:
-        #     if (current_time - timedelta(minutes=180)) > trade.open_date_utc and 0.002 * leverage < current_profit < 0.02 * leverage:
-        #         exit_reason = 'Long time low profit'
-        #         logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
-        #         return exit_reason
+        # 长时间stake amount上不来，例如不到相当于5次加仓的市值，说明加仓少，趋势不明朗，尽早退出
+        low_stake_threshold = 3.5 * entry_stake_with_leverage
+        is_low_stake = stake_amount < low_stake_threshold
+        logger.info(f'Checking {trade.pair} low stake result:{is_low_stake}, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
+        if is_low_stake:
+            if (current_time - timedelta(minutes=180)) > trade.open_date_utc and 0.005 * leverage < current_profit < 0.02 * leverage:
+                exit_reason = 'Long time low profit'
+                logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+                return exit_reason
         #     if (current_time - timedelta(minutes=300)) > trade.open_date_utc and -0.01 * leverage < current_profit < 0.002 * leverage:
         #         exit_reason = 'Long time low profit-2'
         #         logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
@@ -129,12 +129,12 @@ class DreamV11Strategy(IStrategy):
             logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
             return exit_reason
         
-        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.4]
-        draw_back_ratio_array = [0.6, 0.3]
+        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.2]
+        draw_back_ratio_array = [0.6, 0.5, 0.2]
         
         if reverse_signal:
             market_value_threshold_array.append(entry_stake_with_leverage * 0.1)
-            draw_back_ratio_array.append(0.3)
+            draw_back_ratio_array.append(0.1)
         
         for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
             reach_profit = max_profit_abs > market_value_threshold
@@ -142,7 +142,7 @@ class DreamV11Strategy(IStrategy):
                 trade.set_custom_data(self.HIGH_PROFIT, reach_profit)
                 
             reach_drawback = reach_profit and total_profit_abs < max_profit_abs * draw_back_ratio
-            logger.info(f'Checking {trade.pair} drawback result:{reach_drawback}(reverse:{reverse_signal}) on threshold #{index+1}:{market_value_threshold:.4f} and total_profit_abs:{total_profit_abs:.4f} with {max_profit_abs*draw_back_ratio:.4f}(max_profit_abs:{max_profit_abs:.4f}*ratio:{draw_back_ratio:.2%}) at {current_time}')
+            logger.info(f'Checking {trade.pair} drawback result:{reach_drawback}(reverse:{reverse_signal}) on threshold #{index+1}:{market_value_threshold:.4f}(market_value) and total_profit_abs:{total_profit_abs:.4f} vs {max_profit_abs*draw_back_ratio:.4f}(max_profit_abs:{max_profit_abs:.4f}*ratio:{draw_back_ratio:.2%}) at {current_time}')
             if reach_drawback:
                 exit_reason = f'Profit drawback-{index+1}'
                 logger.info(f'{exit_reason} for {pair}: total profit {total_profit_abs:.4f} < (max_profit_abs {max_profit_abs:.4f} * {draw_back_ratio:.2%}), current_rate:{current_rate:.4f} at {current_time}')
