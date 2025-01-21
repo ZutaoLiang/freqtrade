@@ -415,7 +415,7 @@ class DreamV11Strategy(IStrategy):
                             (dataframe['ha_close'] < dataframe['ema_mid']) | (dataframe['ha_close'] < dataframe['ema_long'])
                         )
                         & (ema_mid_down_mask)
-                        & (dataframe['ha_close'] < self.ema_up_ratio * dataframe['ema_long'])
+                        & (dataframe['ha_close'] < dataframe['ema_long'])
                     ), 'reverse_signal'] = 1
         else:
             ema_mid_up_mask = self.ema_up_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
@@ -425,7 +425,7 @@ class DreamV11Strategy(IStrategy):
                             (dataframe['ha_close'] > dataframe['ema_mid']) | (dataframe['ha_close'] > dataframe['ema_long'])
                         )
                         & (ema_mid_up_mask)
-                        & (dataframe['ha_close'] > self.ema_up_ratio * dataframe['ema_long'])
+                        & (dataframe['ha_close'] > dataframe['ema_long'])
                     ), 'reverse_signal'] = 1
             
         return dataframe
