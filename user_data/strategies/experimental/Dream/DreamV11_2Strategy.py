@@ -64,7 +64,7 @@ class DreamV11_2Strategy(IStrategy):
     
     exit_loss_ratio = -0.25
 
-    is_long = False
+    is_long = True
     
     # atr_length = int(1.5 * period)
     
@@ -183,63 +183,58 @@ class DreamV11_2Strategy(IStrategy):
         # Note: 这个函数需要返回的是不带杠杆的金额，具体代码参考freqtradebot.execute_entry()
         if not self.position_adjustment_enable:
             return None
-
+        
+        has_open_orders = any(order.status == "open" and not order.ft_is_open for order in trade.orders)
+        if has_open_orders:
+            logger.info(f'There are open orders for {trade.pair}, skip position adjustment.')
+            return None
+        
         filled_orders = trade.select_filled_orders()
         count_of_orders = len(filled_orders)
         if count_of_orders == 0:
             return None
         
-        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
-        last_candle = dataframe.iloc[-1].squeeze()
-        
         is_short = trade.is_short
         leverage = trade.leverage
         
-        latest_entry_order = None
-        for order in reversed(filled_orders):
-            if order.ft_order_side == trade.entry_side:
-                latest_entry_order = order
-                break
-            
-        if latest_entry_order is None:
-            return None
-
-        # TODO: 根据加仓订单的密集程度动态调整加仓比例
-        # filled_or_open_orders = self.select_filled_or_open_orders()
-        # orders_json = [order.to_json(self.entry_side, minified) for order in filled_or_open_orders]
+        entry_addtion_orders = [order for order in filled_orders if order.ft_order_side == trade.entry_side 
+                                and ('entry-long' in order.ft_order_tag or 'entry-addition' in order.ft_order_tag)]
+        first_order = entry_addtion_orders[0]
+        first_order_price = first_order.average
         
-        # order_json = latest_order.to_json(trade.entry_side, True)
-        # logger.info(f'{trade.pair} latest order:{order_json}')
+        price_direction = 1
+        if is_short:
+            price_direction = -1
+            
+        price_threshold = first_order_price * (1 + price_direction * len(entry_addtion_orders) * self.addition_price_pct)
+        
+        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
+        last_candle = dataframe.iloc[-1].squeeze()
         
         # 处理是否需要浮盈加仓
-        if self.enable_mean_reversion:
-            last_addition_price = trade.get_custom_data(self.LAST_ADDITION_PRICE)
-            if last_addition_price is None:
-                last_addition_price = latest_entry_order.average
-                trade.set_custom_data(self.LAST_ADDITION_PRICE, last_addition_price)
-        else:
-            last_addition_price = latest_entry_order.average
-        
         addition_signal = False
-        # match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
+        
         if is_short:
-            price_change_pct = (last_addition_price - current_rate) / last_addition_price
+            addition_signal = current_rate <= price_threshold and last_candle['close'] <= price_threshold and current_profit > self.addition_price_pct * leverage
         else:
-            price_change_pct = (current_rate - last_addition_price) / last_addition_price
-            
-        if price_change_pct > self.addition_price_pct and current_profit > 0:
-            # and match_order_interval
-            # addition_price_ratio = 0.98
-            if is_short and last_candle['enter_short'] == 1:
-                # and current_rate < last_addition_price / addition_price_ratio
-                addition_signal = True
-            elif not is_short and last_candle['enter_long'] == 1:
-                # and current_rate > last_addition_price * addition_price_ratio
-                addition_signal = True
-                
+            addition_signal = current_rate >= price_threshold and last_candle['close'] >= price_threshold and current_profit > self.addition_price_pct * leverage
+        
+        # price_change_pct = (current_rate - last_addition_price) / last_addition_price
+        # if is_short:
+        #     price_change_pct *= -1
+        # # match_order_interval = (current_time - timedelta(seconds=self.order_interval_seconds)) > latest_entry_order.order_filled_utc
+        # if price_change_pct > self.addition_price_pct and current_profit > 0:
+        #     # and match_order_interval
+        #     # addition_price_ratio = 0.98
+        #     if is_short and last_candle['enter_short'] == 1:
+        #         # and current_rate < last_addition_price / addition_price_ratio
+        #         addition_signal = True
+        #     elif not is_short and last_candle['enter_long'] == 1:
+        #         # and current_rate > last_addition_price * addition_price_ratio
+        #         addition_signal = True
+
         min_stake /= trade.leverage
         max_stake /= trade.leverage
-        
         entry_stake = self.calc_entry_stake_without_leverage()
         if addition_signal:
             base_profit_step = 0.2
@@ -258,12 +253,9 @@ class DreamV11_2Strategy(IStrategy):
                     addition_stake = min_stake
             
             if position_addition:
-                if self.enable_mean_reversion:
-                    trade.set_custom_data(self.LAST_ADDITION_PRICE, current_rate)
-                
                 logger.info(f'Position addition for {trade.pair} with stake amount {addition_stake:.5f}(multiplier:#{addition_multiplier}) triggered at entry signal, current_profit:{current_profit:.2f}, current_rate:{current_rate:.5f} at {current_time}')
                 return (addition_stake, f'entry-addition-{addition_multiplier}')
-
+ 
         if not self.enable_mean_reversion:
             return None
 
