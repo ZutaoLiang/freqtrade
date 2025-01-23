@@ -30,7 +30,7 @@ class DreamV11_3Strategy(IStrategy):
 
     timeframe = '3m'
     
-    base_stoploss_pct = 0.08
+    base_stoploss_pct = 0.07
     stoploss = -base_stoploss_pct * trade_leverage
     trailing_stop = False
     use_custom_stoploss = True
@@ -40,7 +40,7 @@ class DreamV11_3Strategy(IStrategy):
     position_adjustment_enable = True
     stake_ratio = 0.25
     order_interval_seconds = 50
-    addition_price_pct = 0.015
+    addition_price_pct = 0.01
     
     period = 10
     
@@ -50,7 +50,7 @@ class DreamV11_3Strategy(IStrategy):
     ema_trend = 6
     ema_mid_trend = ema_trend
     ema_long_trend = ema_trend * 3
-    ema_up_ratio = 1.012
+    ema_dist_ratio = 1.02
     
     breakout_period = 4
     
@@ -92,7 +92,7 @@ class DreamV11_3Strategy(IStrategy):
         is_low_stake = stake_amount < low_stake_threshold
         logger.info(f'Checking {trade.pair} low stake result:{is_low_stake}, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
         if is_low_stake:
-            if (current_time - timedelta(minutes=180)) > trade.open_date_utc and 0.005 * leverage < current_profit < 0.02 * leverage:
+            if (current_time - timedelta(minutes=120)) > trade.open_date_utc and 0.005 * leverage < current_profit < 0.02 * leverage:
                 exit_reason = 'Long time low profit'
                 logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
                 return exit_reason
@@ -164,6 +164,11 @@ class DreamV11_3Strategy(IStrategy):
         leverage = trade.leverage
 
         if after_fill:
+            filled_orders = trade.select_filled_orders()
+            count_of_orders = len(filled_orders)
+            if count_of_orders > 2:
+                return stoploss_from_open(leverage * self.addition_price_pct, current_profit, trade.is_short, leverage)
+ 
             return self.stoploss
         
         # profit_pct = current_profit / leverage
@@ -198,7 +203,7 @@ class DreamV11_3Strategy(IStrategy):
         leverage = trade.leverage
         
         entry_addtion_orders = [order for order in filled_orders if order.ft_order_side == trade.entry_side 
-                                and ('entry-long' in order.ft_order_tag or 'entry-addition' in order.ft_order_tag)]
+                                and ('entry' in order.ft_order_tag or 'entry-addition' in order.ft_order_tag)]
         first_order = entry_addtion_orders[0]
         first_order_price = first_order.average
         
@@ -215,9 +220,13 @@ class DreamV11_3Strategy(IStrategy):
         addition_signal = False
         
         if is_short:
-            addition_signal = current_rate <= price_threshold and last_candle['close'] <= price_threshold and current_profit > self.addition_price_pct * leverage
+            addition_signal = current_rate <= price_threshold and last_candle['close'] <= price_threshold \
+                and last_candle['addition'] == 1 \
+                and current_profit > len(entry_addtion_orders) * self.addition_price_pct * leverage
         else:
-            addition_signal = current_rate >= price_threshold and last_candle['close'] >= price_threshold and current_profit > self.addition_price_pct * leverage
+            addition_signal = current_rate >= price_threshold and last_candle['close'] >= price_threshold \
+                and last_candle['addition'] == 1 \
+                and current_profit > len(entry_addtion_orders) * self.addition_price_pct * leverage
         
         # price_change_pct = (current_rate - last_addition_price) / last_addition_price
         # if is_short:
@@ -353,43 +362,54 @@ class DreamV11_3Strategy(IStrategy):
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['enter_long'] = 0
         dataframe['enter_short'] = 0
+        dataframe['addition'] = 0
         
         if self.is_long:
             ema_up_mask = self.ema_up_n_days_mask(dataframe, 'ema', self.ema_trend)
             ema_mid_up_mask = self.ema_up_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
             ema_long_up_mask = self.ema_up_n_days_mask(dataframe, 'ema_long', self.ema_long_trend)
         
+            addition_trend_mask = (dataframe['ha_close'] > self.ema_dist_ratio * dataframe['ema_long']) \
+                                    & (dataframe['ha_close'] > dataframe['ema']) \
+                                    & (ema_long_up_mask) \
+                                    & (dataframe['ema_mid'] > dataframe['ema_long'])
+                                    
+            dataframe.loc[addition_trend_mask, 'addition'] = 1
+            
             dataframe.loc[
                     (
-                        (dataframe['ha_close'] > self.ema_up_ratio * dataframe['ema_long']) &
+                        addition_trend_mask &
                         (ema_up_mask) &
                         (ema_mid_up_mask) &
-                        (ema_long_up_mask) &
                         (dataframe['ema'] > dataframe['ema_mid']) &
-                        (dataframe['ema_mid'] > dataframe['ema_long']) &
                         (dataframe['ha_close'] > dataframe['recent_high'].shift(1))
                         # (dataframe['rsi'] > self.rsi_long_threshold) & 
                         # (dataframe['adx'] > self.adx_threshold)
                     ),
-                    ['enter_long', 'enter_tag']] = (1, 'entry-long')
+                    ['enter_long', 'enter_tag']] = (1, 'entry')
         else:
             ema_down_mask = self.ema_down_n_days_mask(dataframe, 'ema', self.ema_trend)
             ema_mid_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
             ema_long_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_long', self.ema_long_trend)
             
+            addition_trend_mask = (dataframe['ha_close'] * self.ema_dist_ratio < dataframe['ema_long']) \
+                        & (dataframe['ha_close'] < dataframe['ema']) \
+                        & (ema_long_down_mask) \
+                        & (dataframe['ema_mid'] < dataframe['ema_long'])
+            
+            dataframe.loc[addition_trend_mask, 'addition'] = 1
+            
             dataframe.loc[
                     (
-                        (dataframe['ha_close'] * self.ema_up_ratio < dataframe['ema_long']) &
+                        addition_trend_mask &
                         (ema_down_mask) &
                         (ema_mid_down_mask) &
-                        (ema_long_down_mask) &
                         (dataframe['ema'] < dataframe['ema_mid']) &
-                        (dataframe['ema_mid'] < dataframe['ema_long']) &
                         (dataframe['ha_close'] < dataframe['recent_low'].shift(1))
                         # (dataframe['rsi'] < self.rsi_short_threshold) & 
                         # (dataframe['adx'] > self.adx_threshold)
                     ),
-                    ['enter_short', 'enter_tag']] = (1, 'entry-short')
+                    ['enter_short', 'enter_tag']] = (1, 'entry')
             
         return dataframe
         
@@ -407,7 +427,7 @@ class DreamV11_3Strategy(IStrategy):
                             (dataframe['ha_close'] < dataframe['ema_mid']) | (dataframe['ha_close'] < dataframe['ema_long'])
                         )
                         & (ema_mid_down_mask)
-                        & (dataframe['ha_close'] < dataframe['ema_long'])
+                        & (dataframe['ha_close'] < self.ema_dist_ratio * dataframe['ema_long'])
                     ), 'reverse_signal'] = 1
         else:
             ema_mid_up_mask = self.ema_up_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
@@ -417,7 +437,7 @@ class DreamV11_3Strategy(IStrategy):
                             (dataframe['ha_close'] > dataframe['ema_mid']) | (dataframe['ha_close'] > dataframe['ema_long'])
                         )
                         & (ema_mid_up_mask)
-                        & (dataframe['ha_close'] > dataframe['ema_long'])
+                        & (dataframe['ha_close'] > self.ema_dist_ratio * dataframe['ema_long'])
                     ), 'reverse_signal'] = 1
             
         return dataframe
