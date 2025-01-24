@@ -64,7 +64,7 @@ class DreamV11_4Strategy(IStrategy):
     
     exit_loss_ratio = -0.25
 
-    is_long = True
+    is_long = False
     
     # atr_length = int(1.5 * period)
     
@@ -120,21 +120,21 @@ class DreamV11_4Strategy(IStrategy):
         
         logger.info(f'{trade.pair} total profit:{total_profit_abs:.4f}(open:{open_profit_abs:.4f}, close:{realized_profit_abs:.4f}), current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
         
-        # 出现反转信号并且利润比较低时退出
-        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
-        last_candle = dataframe.iloc[-1].squeeze()
-        reverse_signal = last_candle['reverse_signal'] == 1
-        if reverse_signal and current_profit < 0.02 * leverage:
-            exit_reason = f'reverse|{current_profit:.1f}'
-            logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
-            return exit_reason
+        # # 出现反转信号并且利润比较低时退出
+        # dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
+        # last_candle = dataframe.iloc[-1].squeeze()
+        # reverse_signal = last_candle['reverse_signal'] == 1
+        # if reverse_signal and current_profit < 0.02 * leverage:
+        #     exit_reason = f'reverse|{current_profit:.1f}'
+        #     logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+        #     return exit_reason
         
         market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.2]
         draw_back_ratio_array = [0.6, 0.5, 0.2]
         
-        if reverse_signal:
-            market_value_threshold_array.append(entry_stake_with_leverage * 0.1)
-            draw_back_ratio_array.append(0.1)
+        # if reverse_signal:
+        #     market_value_threshold_array.append(entry_stake_with_leverage * 0.1)
+        #     draw_back_ratio_array.append(0.1)
         
         for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
             reach_profit = max_profit_abs > market_value_threshold
@@ -142,7 +142,7 @@ class DreamV11_4Strategy(IStrategy):
                 trade.set_custom_data(self.HIGH_PROFIT, reach_profit)
                 
             reach_drawback = reach_profit and total_profit_abs < max_profit_abs * draw_back_ratio
-            logger.info(f'Checking {trade.pair} drawback result:{reach_drawback}(reverse:{reverse_signal}) on threshold #{index+1}:{market_value_threshold:.4f}(market_value) and total_profit_abs:{total_profit_abs:.4f} vs {max_profit_abs*draw_back_ratio:.4f}(max_profit_abs:{max_profit_abs:.4f}*ratio:{draw_back_ratio:.2%}) at {current_time}')
+            logger.info(f'Checking {trade.pair} drawback result:{reach_drawback} on threshold #{index+1}:{market_value_threshold:.4f}(market_value) and total_profit_abs:{total_profit_abs:.4f} vs {max_profit_abs*draw_back_ratio:.4f}(max_profit_abs:{max_profit_abs:.4f}*ratio:{draw_back_ratio:.2%}) at {current_time}')
             if reach_drawback:
                 exit_reason = f'Profit drawback-{index+1}'
                 logger.info(f'{exit_reason} for {pair}: total profit {total_profit_abs:.4f} < (max_profit_abs {max_profit_abs:.4f} * {draw_back_ratio:.2%}), current_rate:{current_rate:.4f} at {current_time}')
@@ -162,14 +162,37 @@ class DreamV11_4Strategy(IStrategy):
                         current_rate: float, current_profit: float, after_fill: bool,
                         **kwargs) -> Optional[float]:
         leverage = trade.leverage
+        is_short = trade.is_short
+        _current_profit = current_profit / leverage
 
         if after_fill:
             filled_orders = trade.select_filled_orders()
             count_of_orders = len(filled_orders)
-            if count_of_orders > 2:
-                return stoploss_from_open(leverage * self.addition_price_pct, current_profit, trade.is_short, leverage)
- 
-            return self.stoploss
+            if count_of_orders <= 1:
+                return self.stoploss
+            
+            if _current_profit < 0.015:
+                relative_factor = 0.005
+            elif _current_profit < 0.03:
+                relative_factor = 0.0075
+            elif _current_profit < 0.06:
+                relative_factor = 0.01
+            elif _current_profit < 0.06:
+                relative_factor = 0.02
+            elif _current_profit < 0.06:
+                relative_factor = 0.03
+            else:
+                return self.stoploss
+                
+            open_rate = trade.open_rate
+            if is_short:
+                relative_factor *= -1
+                
+            stop_rate = trade.open_rate*(1+relative_factor)
+            
+            logger.info(f'Setting {trade.pair} #{count_of_orders} after fill stoploss rate to:{stop_rate:.6f}, open_rate:{open_rate:.6f}(stop/open ratio:{abs(stop_rate/open_rate-1):.2%}), current_rate:{current_rate:.6f}, current_profit:{current_profit:.2%}(without leverage:{current_profit/leverage:.2%}) at {current_time}')
+            
+            return stoploss_from_absolute(stop_rate, current_rate, is_short, leverage)
         
         # profit_pct = current_profit / leverage
         # if profit_pct >= 0.25:
@@ -201,9 +224,11 @@ class DreamV11_4Strategy(IStrategy):
         
         is_short = trade.is_short
         leverage = trade.leverage
+        _current_profit = current_profit / leverage
         
         entry_addtion_orders = [order for order in filled_orders if order.ft_order_side == trade.entry_side 
                                 and ('entry' in order.ft_order_tag or 'entry-addition' in order.ft_order_tag)]
+        count_of_addition_orders = len(entry_addtion_orders)
         first_order = entry_addtion_orders[0]
         first_order_price = first_order.average
         
@@ -218,16 +243,24 @@ class DreamV11_4Strategy(IStrategy):
         
         # 处理是否需要浮盈加仓
         addition_signal = False
+        profit_signal = False
         
         if is_short:
             addition_signal = current_rate <= price_threshold and last_candle['close'] <= price_threshold \
-                and last_candle['addition'] == 1 \
-                and current_profit > len(entry_addtion_orders) * self.addition_price_pct * leverage
+                and last_candle['addition'] == 1
         else:
             addition_signal = current_rate >= price_threshold and last_candle['close'] >= price_threshold \
-                and last_candle['addition'] == 1 \
-                and current_profit > len(entry_addtion_orders) * self.addition_price_pct * leverage
-        
+                and last_candle['addition'] == 1 
+            
+        if count_of_addition_orders < 2:
+            profit_signal = _current_profit > 0.03
+        elif count_of_addition_orders < 3:
+            profit_signal = _current_profit > 0.045
+        elif count_of_addition_orders < 4:
+            profit_signal = _current_profit > 0.06
+        else:
+            profit_signal = _current_profit > (1 + count_of_addition_orders) * self.addition_price_pct
+                
         # price_change_pct = (current_rate - last_addition_price) / last_addition_price
         # if is_short:
         #     price_change_pct *= -1
@@ -245,7 +278,7 @@ class DreamV11_4Strategy(IStrategy):
         min_stake /= trade.leverage
         max_stake /= trade.leverage
         entry_stake = self.calc_entry_stake_without_leverage()
-        if addition_signal:
+        if addition_signal and profit_signal:
             base_profit_step = 0.2
             profit_factor = max(min(current_profit, base_profit_step * 3), base_profit_step)
             addition_multiplier = int(round(profit_factor / base_profit_step))
