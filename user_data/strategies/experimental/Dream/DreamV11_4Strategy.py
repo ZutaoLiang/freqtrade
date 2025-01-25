@@ -87,15 +87,17 @@ class DreamV11_4Strategy(IStrategy):
         entry_stake_with_leverage = entry_stake * leverage
         stake_amount = trade.amount * trade.open_rate
         
-        # 长时间stake amount上不来，例如不到相当于5次加仓的市值，说明加仓少，趋势不明朗，尽早退出
-        low_stake_threshold = 3.5 * entry_stake_with_leverage
-        is_low_stake = stake_amount < low_stake_threshold
-        logger.info(f'Checking {trade.pair} low stake result:{is_low_stake}, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
-        if is_low_stake:
-            if (current_time - timedelta(minutes=120)) > trade.open_date_utc and 0.005 * leverage < current_profit < 0.02 * leverage:
-                exit_reason = 'Long time low profit'
-                logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
-                return exit_reason
+        # 长时间stake amount上不来，例如不到相当于3次加仓的市值，说明加仓少，趋势不明朗，尽早退出
+        low_stake_threshold_array = [2.5 * entry_stake_with_leverage, 3.5 * entry_stake_with_leverage]
+        holding_minutes_array = [120, 240]
+        for index, (low_stake_threshold, holding_minutes) in enumerate(zip(low_stake_threshold_array, holding_minutes_array)):
+            is_low_stake = stake_amount < low_stake_threshold
+            if is_low_stake:
+                logger.info(f'{trade.pair} low stake for {holding_minutes}mins, stake_amount:{stake_amount:.4f}, threshold:{low_stake_threshold:.4f}, current_profit:{current_profit:.2%} at {current_time}')
+                if (current_time - timedelta(minutes=holding_minutes)) > trade.open_date_utc and 0.005 * leverage < current_profit < 0.02 * leverage:
+                    exit_reason = f'Long time low profit-{index+1}'
+                    logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+                    return exit_reason
         #     if (current_time - timedelta(minutes=300)) > trade.open_date_utc and -0.01 * leverage < current_profit < 0.002 * leverage:
         #         exit_reason = 'Long time low profit-2'
         #         logger.info(f'{exit_reason} for pair:{trade.pair}, current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
@@ -130,7 +132,7 @@ class DreamV11_4Strategy(IStrategy):
         #     return exit_reason
         
         market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.2]
-        draw_back_ratio_array = [0.6, 0.5, 0.2]
+        draw_back_ratio_array = [0.65, 0.5, 0.2]
         
         # if reverse_signal:
         #     market_value_threshold_array.append(entry_stake_with_leverage * 0.1)
