@@ -59,14 +59,13 @@ class DreamV11_4Strategy(IStrategy):
     rsi_length = period
     rsi_long_threshold = 55
     rsi_short_threshold = 30
+    atr_length = int(1.5 * period)
     
     startup_candle_count = int(ema_long_length)
     
     exit_loss_ratio = -0.25
 
-    is_long = False
-    
-    # atr_length = int(1.5 * period)
+    is_long = True
     
     enable_mean_reversion = False # default to False
     mean_reversion_change_pct = 0.005
@@ -376,9 +375,9 @@ class DreamV11_4Strategy(IStrategy):
         dataframe['ema_long'] = pta.ema(close=dataframe['ha_close'], length=self.ema_long_length, talib=False)
         dataframe['recent_high'] = dataframe['ha_close'].rolling(window=self.breakout_period).max()
         dataframe['recent_low'] = dataframe['ha_close'].rolling(window=self.breakout_period).min()
-        # dataframe['adx'] = pta.adx(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.adx_length)[f'ADX_{self.adx_length}']
-        # dataframe['rsi'] = pta.rsi(dataframe['ha_close'], length=self.rsi_length, talib=False)
-        # dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_length)
+        dataframe['adx'] = pta.adx(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.adx_length)[f'ADX_{self.adx_length}']
+        dataframe['rsi'] = pta.rsi(dataframe['ha_close'], length=self.rsi_length, talib=False)
+        dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_length)
          
         return dataframe
         
