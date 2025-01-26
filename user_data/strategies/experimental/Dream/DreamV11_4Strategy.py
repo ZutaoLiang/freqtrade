@@ -55,7 +55,7 @@ class DreamV11_4Strategy(IStrategy):
     breakout_period = 4
     
     adx_length = period
-    adx_threshold = 25
+    adx_threshold = 40
     rsi_length = period
     rsi_long_threshold = 55
     rsi_short_threshold = 30
@@ -412,13 +412,13 @@ class DreamV11_4Strategy(IStrategy):
             
             dataframe.loc[
                     (
-                        addition_trend_mask &
-                        (ema_up_mask) &
-                        (ema_mid_up_mask) &
-                        (dataframe['ema'] > dataframe['ema_mid']) &
-                        (dataframe['ha_close'] > dataframe['recent_high'].shift(1))
-                        # (dataframe['rsi'] > self.rsi_long_threshold) & 
-                        # (dataframe['adx'] > self.adx_threshold)
+                        addition_trend_mask
+                        & (ema_up_mask)
+                        & (ema_mid_up_mask)
+                        & (dataframe['ema'] > dataframe['ema_mid'])
+                        & (dataframe['ha_close'] > dataframe['recent_high'].shift(1))
+                        & (dataframe['adx'] > self.adx_threshold)
+                        # & (dataframe['rsi'] > self.rsi_long_threshold) 
                     ),
                     ['enter_long', 'enter_tag']] = (1, 'entry')
         else:
@@ -435,13 +435,13 @@ class DreamV11_4Strategy(IStrategy):
             
             dataframe.loc[
                     (
-                        addition_trend_mask &
-                        (ema_down_mask) &
-                        (ema_mid_down_mask) &
-                        (dataframe['ema'] < dataframe['ema_mid']) &
-                        (dataframe['ha_close'] < dataframe['recent_low'].shift(1))
-                        # (dataframe['rsi'] < self.rsi_short_threshold) & 
-                        # (dataframe['adx'] > self.adx_threshold)
+                        addition_trend_mask 
+                        & (ema_down_mask) 
+                        & (ema_mid_down_mask) 
+                        & (dataframe['ema'] < dataframe['ema_mid']) 
+                        & (dataframe['ha_close'] < dataframe['recent_low'].shift(1))
+                        & (dataframe['adx'] > self.adx_threshold)
+                        # & (dataframe['rsi'] < self.rsi_short_threshold) 
                     ),
                     ['enter_short', 'enter_tag']] = (1, 'entry')
             
