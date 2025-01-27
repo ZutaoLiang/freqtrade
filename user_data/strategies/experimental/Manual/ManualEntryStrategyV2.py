@@ -14,7 +14,7 @@ from freqtrade.strategy import IntParameter, DecimalParameter
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 
 
-class ManualEntryStrategy(IStrategy):
+class ManualEntryStrategyV2(IStrategy):
     
     # common
     minimal_roi = {"0": 100}
