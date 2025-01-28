@@ -146,14 +146,9 @@ class StakePositionManager(IStrategy):
         for index, (addition_count_threshold, holding_minutes) in enumerate(zip(addition_count_array, holding_minutes_array)):
             if count_of_orders < addition_count_threshold and (current_time - timedelta(minutes=holding_minutes)) > trade.open_date_utc:
                 if 0.006 < _current_profit < 0.015:
-                    relative_factor = -1 if is_short else 1
-                    stop_rate = open_rate * (1 + relative_factor * (_current_profit-0.001))
-                    
                     logger.info(f'{trade.pair} filled count:{count_of_orders}(threshold:{addition_count_threshold}) for {holding_minutes}mins, '
                                 f'current_profit:{current_profit:.2%} at {current_time}')
-                    logger.info(f'Stoploss for pair:{trade.pair} as long time low profit, current_profit:{current_profit:.2%}(without leverage:{_current_profit:.2%}), '
-                                f'stoploss rate:{stop_rate:.6f}, open_rate:{open_rate:.6f}(stop/open ratio:{abs(stop_rate/open_rate-1):.2%}), current_rate:{current_rate:.6f}, at {current_time}')
-                    return stoploss_from_absolute(stop_rate, current_rate, is_short, leverage)
+                    return 0.002 * leverage
         
         return None
     
