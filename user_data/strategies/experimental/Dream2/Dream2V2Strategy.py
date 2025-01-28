@@ -41,6 +41,7 @@ class StakePositionManager(IStrategy):
     addition_price_pct = 0.005
     exit_loss_ratio = -0.25
     atr_length = 15
+    atr_stoploss_multiplier = int(5)
 
         
     def leverage(self, pair: str, current_time: datetime, current_rate: float,
@@ -51,7 +52,7 @@ class StakePositionManager(IStrategy):
     def custom_exit(self, pair: str, trade: Trade, current_time: datetime,
                    current_rate: float, current_profit: float, **kwargs) -> bool:
         leverage = trade.leverage
-        entry_stake = self.calc_entry_stake_without_leverage()
+        entry_stake = self.get_entry_stake_without_leverage()
         entry_stake_with_leverage = entry_stake * leverage
         stake_amount = trade.amount * trade.open_rate
         
@@ -103,17 +104,17 @@ class StakePositionManager(IStrategy):
         open_rate = trade.open_rate
         _current_profit = current_profit / leverage
 
-        filled_orders = trade.select_filled_orders()
-        count_of_orders = len(filled_orders)
-        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
-        last_candle = dataframe.iloc[-1].squeeze()
-        factor = 1 if is_short else -1
-        stop_rate_atr = filled_orders[-1].average + factor * 5 * last_candle['atr']
-        if count_of_orders <= 1:
-            logger.info(f'Setting {trade.pair} #{count_of_orders} after fill stoploss rate atr to:{stop_rate_atr:.6f}, open_rate:{open_rate:.6f}(stop/open ratio:{abs(stop_rate_atr/open_rate-1):.2%}), current_rate:{current_rate:.6f}, current_profit:{current_profit:.2%}(without leverage:{current_profit/leverage:.2%}) at {current_time}')
-            return stoploss_from_absolute(stop_rate_atr, current_rate, is_short, leverage)
-
         if after_fill:
+            filled_orders = trade.select_filled_orders()
+            count_of_orders = len(filled_orders)
+            last_candle = self.get_last_candle(trade)
+            factor = 1 if is_short else -1
+            stop_rate_atr = filled_orders[-1].average + (factor * self.atr_stoploss_multiplier * last_candle['atr'])
+        
+            if count_of_orders <= 1:
+                logger.info(f'Setting {trade.pair} #{count_of_orders} after fill stoploss rate atr to:{stop_rate_atr:.6f}, open_rate:{open_rate:.6f}(stop/open ratio:{abs(stop_rate_atr/open_rate-1):.2%}), current_rate:{current_rate:.6f}, current_profit:{current_profit:.2%}(without leverage:{current_profit/leverage:.2%}) at {current_time}')
+                return stoploss_from_absolute(stop_rate_atr, current_rate, is_short, leverage)
+            
             if _current_profit < 0.015:
                 relative_factor = 0.005
             elif _current_profit < 0.03:
@@ -173,8 +174,7 @@ class StakePositionManager(IStrategy):
             
         price_threshold = entry_order_price * (1 + price_direction * len(entry_side_orders) * self.addition_price_pct)
         
-        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
-        last_candle = dataframe.iloc[-1].squeeze()
+        last_candle = self.get_last_candle(trade)
         
         addition_signal = False
         profit_signal = False
@@ -198,7 +198,7 @@ class StakePositionManager(IStrategy):
 
         min_stake /= trade.leverage
         max_stake /= trade.leverage
-        entry_stake = self.calc_entry_stake_without_leverage()
+        entry_stake = self.get_entry_stake_without_leverage()
         if addition_signal and profit_signal:
             base_profit_step = 0.1
             profit_factor = max(min(_current_profit, base_profit_step * 3), base_profit_step)
@@ -229,7 +229,12 @@ class StakePositionManager(IStrategy):
         logger.info(f'Stake amount for {pair}={stake_amount:.5f} with leverage:{leverage}(after leverage={stake_amount*leverage:.5f}), proposed:{proposed_stake:.5f}, min_stake:{min_stake:.5f}, max_stake:{max_stake:.5f}, rate:{current_rate:.5f} at {current_time}')
         return stake_amount
 
-    def calc_entry_stake_without_leverage(self) -> float:
+    def get_last_candle(self, trade: Trade):
+        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
+        last_candle = dataframe.iloc[-1].squeeze()
+        return last_candle
+        
+    def get_entry_stake_without_leverage(self) -> float:
         return self.wallets.get_total_stake_amount() * self.stake_ratio / self.max_open_trades
     
     def heikinashi(self, dataframe: DataFrame) -> DataFrame:
@@ -247,8 +252,7 @@ class StakePositionManager(IStrategy):
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe = self.heikinashi(dataframe)
         dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_length)
-        # for i in range(3, 7):
-        #     dataframe[f'close_{i}_atr'] = dataframe['ha_close'] - i * dataframe['atr']
+        dataframe[f'close_{self.atr_stoploss_multiplier}_atr'] = dataframe['ha_close'] - self.atr_stoploss_multiplier * dataframe['atr']
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -263,7 +267,7 @@ class StakePositionManager(IStrategy):
         return dataframe
     
 
-class Dream2V2Strategy(StakePositionManager):
+class Dream2V2ManualStrategy(StakePositionManager):
     """Trading strategy implementation"""
     
     timeframe = '3m'
@@ -288,7 +292,7 @@ class Dream2V2Strategy(StakePositionManager):
     rsi_short_threshold = 30
     
     startup_candle_count = int(ema_long_length)
-    
+
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe = super().populate_indicators(dataframe, metadata)
         
@@ -301,6 +305,9 @@ class Dream2V2Strategy(StakePositionManager):
         dataframe['rsi'] = pta.rsi(dataframe['ha_close'], length=self.rsi_length, talib=False)
         
         return dataframe
+        
+
+class Dream2V2Strategy(Dream2V2ManualStrategy):
         
     def ema_up_n_days_mask(self, dataframe: DataFrame, ema: str, days: int):
         ema_up_mask = (dataframe[f'{ema}'] > dataframe[f'{ema}'].shift(1))
