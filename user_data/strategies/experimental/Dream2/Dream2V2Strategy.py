@@ -317,6 +317,10 @@ class Dream2V2ManualStrategy(StakePositionManager):
         dataframe['adx'] = pta.adx(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.adx_length)[f'ADX_{self.adx_length}']
         dataframe['rsi'] = pta.rsi(dataframe['ha_close'], length=self.rsi_length, talib=False)
         
+        dataframe['rumi_fast'] = pta.sma(dataframe['ha_close'], length=self.ema_length)
+        dataframe['rumi_slow'] = pta.wma(dataframe['ha_close'], length=self.ema_mid_length)
+        dataframe['rumi_diff'] = dataframe['rumi_fast'] - dataframe['rumi_slow']
+        dataframe['rumi'] = pta.sma(dataframe['rumi_diff'], length=self.ema_length)
         return dataframe
         
 
