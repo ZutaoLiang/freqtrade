@@ -41,7 +41,7 @@ class StakePositionManager(IStrategy):
     addition_price_pct = 0.005
     exit_loss_ratio = -0.25
     atr_length = 15
-    atr_stoploss_multiplier = int(5)
+    atr_stoploss_multiplier = int(6)
 
         
     def leverage(self, pair: str, current_time: datetime, current_rate: float,
@@ -252,7 +252,8 @@ class StakePositionManager(IStrategy):
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe = self.heikinashi(dataframe)
         dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_length)
-        dataframe[f'close_{self.atr_stoploss_multiplier}_atr'] = dataframe['ha_close'] - self.atr_stoploss_multiplier * dataframe['atr']
+        dataframe[f'close_plus_atr'] = dataframe['ha_close'] + self.atr_stoploss_multiplier * dataframe['atr']
+        dataframe[f'close_minus_atr'] = dataframe['ha_close'] - self.atr_stoploss_multiplier * dataframe['atr']
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
