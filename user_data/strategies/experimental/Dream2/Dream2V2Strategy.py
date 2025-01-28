@@ -55,8 +55,9 @@ class StakePositionManager(IStrategy):
         entry_stake = self.get_entry_stake_without_leverage()
         entry_stake_with_leverage = entry_stake * leverage
         stake_amount = trade.amount * trade.open_rate
+        _current_profit = current_profit / leverage
         
-        open_profit_abs = current_profit / leverage * stake_amount
+        open_profit_abs = _current_profit * stake_amount
         realized_profit_abs = trade.realized_profit if trade.realized_profit else 0
         total_profit_abs = realized_profit_abs + open_profit_abs
         
@@ -134,10 +135,26 @@ class StakePositionManager(IStrategy):
             else:
                 stop_rate = max(stop_rate_atr, open_rate*(1+relative_factor))
             
-            logger.info(f'Setting {trade.pair} #{count_of_orders} after fill stoploss rate to:{stop_rate:.6f}, open_rate:{open_rate:.6f}(stop/open ratio:{abs(stop_rate/open_rate-1):.2%}), current_rate:{current_rate:.6f}, current_profit:{current_profit:.2%}(without leverage:{current_profit/leverage:.2%}) at {current_time}')
+            logger.info(f'Setting {trade.pair} #{count_of_orders} after fill stoploss rate to:{stop_rate:.6f}, open_rate:{open_rate:.6f}(stop/open ratio:{abs(stop_rate/open_rate-1):.2%}), current_rate:{current_rate:.6f}, current_profit:{current_profit:.2%}(without leverage:{_current_profit:.2%}) at {current_time}')
             
             return stoploss_from_absolute(stop_rate, current_rate, is_short, leverage)
-            
+        
+        filled_orders = trade.select_filled_orders()
+        count_of_orders = len(filled_orders)
+        addition_count_array = [2, 4]
+        holding_minutes_array = [90, 240]
+        for index, (addition_count_threshold, holding_minutes) in enumerate(zip(addition_count_array, holding_minutes_array)):
+            if count_of_orders < addition_count_threshold and (current_time - timedelta(minutes=holding_minutes)) > trade.open_date_utc:
+                if 0.006 < _current_profit < 0.015:
+                    relative_factor = -1 if is_short else 1
+                    stop_rate = open_rate * (1 + relative_factor * (_current_profit-0.001))
+                    
+                    logger.info(f'{trade.pair} filled count:{count_of_orders}(threshold:{addition_count_threshold}) for {holding_minutes}mins, '
+                                f'current_profit:{current_profit:.2%} at {current_time}')
+                    logger.info(f'Stoploss for pair:{trade.pair} as long time low profit, current_profit:{current_profit:.2%}(without leverage:{_current_profit:.2%}), '
+                                f'stoploss rate:{stop_rate:.6f}, open_rate:{open_rate:.6f}(stop/open ratio:{abs(stop_rate/open_rate-1):.2%}), current_rate:{current_rate:.6f}, at {current_time}')
+                    return stoploss_from_absolute(stop_rate, current_rate, is_short, leverage)
+        
         return None
     
     def adjust_trade_position(self, trade: Trade, current_time: datetime,
@@ -161,8 +178,8 @@ class StakePositionManager(IStrategy):
         leverage = trade.leverage
         _current_profit = current_profit / leverage
         
-        entry_side_orders = [order for order in filled_orders if order.ft_order_side == trade.entry_side 
-                                and ('entry' in order.ft_order_tag or 'entry-addition' in order.ft_order_tag)]
+        entry_side_orders = [order for order in filled_orders
+                             if order.ft_order_side == trade.entry_side and ('entry' in order.ft_order_tag)]
         count_of_orders = len(entry_side_orders)
         count_of_addition_orders = count_of_orders - 1
         entry_order = entry_side_orders[0]
@@ -272,7 +289,7 @@ class Dream2V2ManualStrategy(StakePositionManager):
     """Trading strategy implementation"""
     
     timeframe = '3m'
-    is_long = True
+    is_long = False
     
     # Strategy parameters
     period = 10
@@ -345,7 +362,7 @@ class Dream2V2Strategy(Dream2V2ManualStrategy):
                         & (dataframe['ha_close'] > dataframe['recent_high'].shift(1))
                         & (dataframe['adx'] > self.adx_threshold)
                     ),
-                    ['enter_long', 'enter_tag']] = (1, 'entry')
+                    ['enter_long', 'enter_tag']] = (1, 'entry_long')
         else:
             ema_down_mask = self.ema_down_n_days_mask(dataframe, 'ema', self.ema_trend)
             ema_mid_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
@@ -366,7 +383,7 @@ class Dream2V2Strategy(Dream2V2ManualStrategy):
                         & (dataframe['ha_close'] < dataframe['recent_low'].shift(1))
                         & (dataframe['adx'] > self.adx_threshold)
                     ),
-                    ['enter_short', 'enter_tag']] = (1, 'entry')
+                    ['enter_short', 'enter_tag']] = (1, 'entry_short')
             
         return dataframe
         
