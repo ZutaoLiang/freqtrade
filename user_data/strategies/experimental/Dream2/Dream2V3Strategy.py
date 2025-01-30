@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import pandas_ta as pta
 import pandas as pd
@@ -35,13 +36,15 @@ class StakePositionManager(IStrategy):
 
     # 自定义变量，可微调
     trade_leverage = 5
-    base_stoploss_pct = 0.07
+    base_stoploss_pct = 0.08
     stoploss = -base_stoploss_pct * trade_leverage
-    stake_ratio = 0.25
-    addition_price_pct = 0.005
-    exit_loss_ratio = -0.25
+    entry_stake_ratio = 0.25
+    addition_stake_ratio = 1
+    exit_loss_ratio = -0.2
     atr_length = 15
-    atr_stoploss_multiplier = int(6)
+    atr_entry_stoploss_multiplier = 5               # 进场时基于open_rate的止损ATR倍数
+    atr_addition_base_multiplier = 2.5              # 加仓时的价格ATR倍数，即当前价格超过成本价的这个ATR倍数加仓
+    atr_addition_stoploss_base_multiplier = 0.5     # 加仓后的价格ATR止损倍数，即加仓后超过成本价的这个ATR倍数止损
 
         
     def leverage(self, pair: str, current_time: datetime, current_rate: float,
@@ -66,14 +69,14 @@ class StakePositionManager(IStrategy):
             max_profit_abs = total_profit_abs
             trade.set_custom_data(self.MAX_PROFIT_ABS, max_profit_abs)
         elif total_profit_abs > max_profit_abs:
-            logger.info(f'New max profit for {trade.pair}, from {max_profit_abs:.4f} to {total_profit_abs:.4f}, current_rate:{current_rate:.6f} at {current_time}')
+            logger.debug(f'New max profit for {trade.pair}, from {max_profit_abs:.4f} to {total_profit_abs:.4f}, current_rate:{current_rate:.6f} at {current_time}')
             max_profit_abs = total_profit_abs
             trade.set_custom_data(self.MAX_PROFIT_ABS, max_profit_abs)
         
-        logger.info(f'{trade.pair} total profit:{total_profit_abs:.4f}(open:{open_profit_abs:.4f}, close:{realized_profit_abs:.4f}), current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+        logger.debug(f'{trade.pair} total profit:{total_profit_abs:.4f}(open:{open_profit_abs:.4f}, close:{realized_profit_abs:.4f}), current_rate:{current_rate:.6f}, open_rate:{trade.open_rate:.6f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
 
-        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.2]
-        draw_back_ratio_array = [0.75, 0.65, 0.2]
+        market_value_threshold_array = [entry_stake_with_leverage, entry_stake_with_leverage * 0.5, entry_stake_with_leverage * 0.25]
+        draw_back_ratio_array = [0.75, 0.6, 0.3]
         
         for index, (market_value_threshold, draw_back_ratio) in enumerate(zip(market_value_threshold_array, draw_back_ratio_array)):
             reach_profit = max_profit_abs > market_value_threshold
@@ -96,6 +99,12 @@ class StakePositionManager(IStrategy):
             return exit_reason
         
         return False
+    
+    def atr_addition_multiplier(self, count_of_orders: int) -> float:
+        return self.atr_addition_base_multiplier + (count_of_orders-1) / 4
+
+    def atr_addition_stoploss_multiplier(self, count_of_orders: int) -> float:
+        return self.atr_addition_stoploss_base_multiplier + (count_of_orders-1) / 8
 
     def custom_stoploss(self, pair: str, trade: Trade, current_time: datetime,
                        current_rate: float, current_profit: float, after_fill: bool,
@@ -108,35 +117,43 @@ class StakePositionManager(IStrategy):
         if after_fill:
             filled_orders = trade.select_filled_orders()
             count_of_orders = len(filled_orders)
+            if count_of_orders == 0:
+                return None
+            
+            last_filled_price = filled_orders[-1].average
             last_candle = self.get_last_candle(trade)
-            factor = 1 if is_short else -1
-            stop_rate_atr = filled_orders[-1].average + (factor * self.atr_stoploss_multiplier * last_candle['atr'])
-        
-            if count_of_orders <= 1:
-                logger.info(f'Setting {trade.pair} #{count_of_orders} after fill stoploss rate atr to:{stop_rate_atr:.6f}, open_rate:{open_rate:.6f}(stop/open ratio:{abs(stop_rate_atr/open_rate-1):.2%}), current_rate:{current_rate:.6f}, current_profit:{current_profit:.2%}(without leverage:{current_profit/leverage:.2%}) at {current_time}')
-                return stoploss_from_absolute(stop_rate_atr, current_rate, is_short, leverage)
-            
-            if _current_profit < 0.015:
-                relative_factor = 0.005
-            elif _current_profit < 0.03:
-                relative_factor = 0.0075
-            elif _current_profit < 0.06:
-                relative_factor = 0.01
-            elif _current_profit < 0.06:
-                relative_factor = 0.02
-            elif _current_profit < 0.06:
-                relative_factor = 0.03
+            atr = last_candle['atr']
+            atr_ratio = atr / open_rate
+
+            if count_of_orders == 1:
+                # 进场的止损空间给大一些
+                atr_multiplier = self.atr_entry_stoploss_multiplier
+
+                if is_short:
+                    stop_rate_atr = open_rate + (atr_multiplier * atr)                  # ATR止损
+                    stop_rate_abs = open_rate * (1 + self.base_stoploss_pct)            # 绝对比例止损
+                    stop_rate = min(stop_rate_atr, stop_rate_abs)
+                else:
+                    stop_rate_atr = open_rate - (atr_multiplier * atr)                  # ATR止损
+                    stop_rate_abs = open_rate * (1 - self.base_stoploss_pct)            # 绝对比例止损
+                    stop_rate = max(stop_rate_atr, stop_rate_abs)
             else:
-                return self.stoploss
+                # return None
+            
+                # 加仓的止损空间给小一些，因为是在一定倍数ATR盈利的基础上加仓的
+                atr_multiplier = self.atr_addition_stoploss_multiplier(count_of_orders)
+                if is_short:
+                    stop_rate_atr = open_rate - (atr_multiplier * atr)                          # ATR止损
+                    stop_rate_abs = last_filled_price * (1 + self.base_stoploss_pct)            # 绝对比例止损
+                    stop_rate = min(stop_rate_atr, stop_rate_abs)
+                else:
+                    stop_rate_atr = open_rate + (atr_multiplier * atr)                          # ATR止损
+                    stop_rate_abs = last_filled_price * (1 - self.base_stoploss_pct)            # 绝对比例止损
+                    stop_rate = max(stop_rate_atr, stop_rate_abs)
                 
-            if is_short:
-                relative_factor *= -1
-                stop_rate = min(stop_rate_atr, open_rate*(1+relative_factor))
-            else:
-                stop_rate = max(stop_rate_atr, open_rate*(1+relative_factor))
-            
-            logger.info(f'Setting {trade.pair} #{count_of_orders} after fill stoploss rate to:{stop_rate:.6f}, open_rate:{open_rate:.6f}(stop/open ratio:{abs(stop_rate/open_rate-1):.2%}), current_rate:{current_rate:.6f}, current_profit:{current_profit:.2%}(without leverage:{_current_profit:.2%}) at {current_time}')
-            
+            logger.info(f'Set {trade.pair} after fill #{count_of_orders} stoploss rate to:{stop_rate:.6f}(stop_rate_atr:{stop_rate_atr:.6f}<open_atr_ratio:{atr_ratio:.2%}>, stop_rate_abs:{stop_rate_abs:.6f}), '
+                        f'[new_open_rate:{open_rate:.6f}](stop/open dist:{abs(stop_rate/open_rate-1):.2%}, atr:{atr:.6f}), current_rate:{current_rate:.6f}, '
+                        f'current_profit:{current_profit:.2%}(without leverage:{_current_profit:.2%}) at {current_time}')
             return stoploss_from_absolute(stop_rate, current_rate, is_short, leverage)
         
         filled_orders = trade.select_filled_orders()
@@ -151,7 +168,7 @@ class StakePositionManager(IStrategy):
                     return 0.002 * leverage
         
         return None
-    
+
     def adjust_trade_position(self, trade: Trade, current_time: datetime,
                           current_rate: float, current_profit: float, min_stake: float, max_stake: float, 
                           current_entry_rate: float, current_exit_rate: float,
@@ -171,65 +188,47 @@ class StakePositionManager(IStrategy):
         
         is_short = trade.is_short
         leverage = trade.leverage
+        open_rate = trade.open_rate
         _current_profit = current_profit / leverage
         
         entry_side_orders = [order for order in filled_orders
                              if order.ft_order_side == trade.entry_side and ('entry' in order.ft_order_tag)]
         count_of_orders = len(entry_side_orders)
-        count_of_addition_orders = count_of_orders - 1
-        entry_order = entry_side_orders[0]
-        entry_order_price = entry_order.average
-        
-        price_direction = 1
-        if is_short:
-            price_direction = -1
-            
-        price_threshold = entry_order_price * (1 + price_direction * len(entry_side_orders) * self.addition_price_pct)
-        
-        last_candle = self.get_last_candle(trade)
-        
-        addition_signal = False
-        profit_signal = False
-        
-        if is_short:
-            addition_signal = current_rate <= price_threshold and last_candle['close'] <= price_threshold \
-                and last_candle['addition'] == 1
-        else:
-            addition_signal = current_rate >= price_threshold and last_candle['close'] >= price_threshold \
-                and last_candle['addition'] == 1
-        
-        if count_of_addition_orders < 1:
-            profit_signal = _current_profit > 0.02
-        else:
-            last_addition_price = entry_side_orders[-1].average
-            price_change_pct = (current_rate - last_addition_price) / last_addition_price
-            if is_short:
-                price_change_pct *= -1
-            
-            profit_signal = (_current_profit > min(6, count_of_addition_orders + 1) * 0.01) and (price_change_pct > 0)
 
-        min_stake /= trade.leverage
-        max_stake /= trade.leverage
-        entry_stake = self.get_entry_stake_without_leverage()
-        if addition_signal and profit_signal:
+        addition_stake = self.get_entry_stake_without_leverage() * leverage * self.addition_stake_ratio
+        min_stake_threshold = 0.75 * min_stake
+        if addition_stake < min_stake_threshold:
+            logger.info(f'Skip position addition for {trade.pair} while stake amount:{addition_stake:.5f} is smaller than threshold:{min_stake_threshold:.5f}(min_stake:{min_stake:.5f}) at {current_time}')
+            return None
+
+        addition_amount = round(addition_stake / current_rate)
+        addition_stake = addition_amount * current_rate
+        if min_stake_threshold < addition_stake < min_stake:
+            logger.info(f'Adjusting {trade.pair} addition stake:{addition_stake:.5f} to around min_stake:{min_stake:.5f} at {current_time}')
+            addition_amount = math.ceil(min_stake / current_rate)
+            addition_stake = addition_amount * current_rate
+        
+        new_open_rate = (trade.amount * trade.open_rate + addition_stake) / (trade.amount + addition_amount)
+        last_candle = self.get_last_candle(trade)
+        atr = last_candle['atr']
+
+        addition_signal = False
+        if last_candle['addition'] == 1 and _current_profit > 0:
+            if is_short:
+                addition_signal = current_rate < new_open_rate - (self.atr_addition_multiplier(count_of_orders) * atr)
+            else:
+                addition_signal = current_rate > new_open_rate + (self.atr_addition_multiplier(count_of_orders) * atr)
+
+        if addition_signal:
+            logger.info(f'Initialize {trade.pair} addition stake to {addition_stake:.5f}(open rate:{open_rate:.6f}, [new_open_rate:{new_open_rate:.6f}], atr:{atr:.6f}, addition amount:{addition_amount:.2f}) '
+                    f'at current_rate:{current_rate:.5f}({new_open_rate+atr:.5f}) with profit:{current_profit:.2%}({_current_profit:.2%}) at {current_time}')
+
             base_profit_step = 0.1
             profit_factor = max(min(_current_profit, base_profit_step * 3), base_profit_step)
             addition_multiplier = int(round(profit_factor / base_profit_step))
-            addition_stake = entry_stake * 0.5 * addition_multiplier
-            logger.info(f'Initialize {trade.pair} addition stake #{addition_multiplier} to {addition_stake:.5f} at {current_time}')
             
-            position_addition = True
-            if addition_stake < min_stake:
-                if addition_stake < 0.75 * min_stake:
-                    logger.info(f'Skip position addition for {trade.pair} while stake amount:{addition_stake:.5f} is smaller than min_stake:{min_stake:.5f} at {current_time}')
-                    position_addition = False
-                else:
-                    logger.info(f'Adjusting {trade.pair} addition stake:{addition_stake:.5f} to min_stake:{min_stake:.5f} at {current_time}')
-                    addition_stake = min_stake
-            
-            if position_addition:
-                logger.info(f'Position addition for {trade.pair} with stake amount {addition_stake:.5f}(multiplier:#{addition_multiplier}) triggered at entry signal, current_profit:{current_profit:.2f}, current_rate:{current_rate:.5f} at {current_time}')
-                return (addition_stake, f'entry-addition-{addition_multiplier}')
+            logger.info(f'Position addition for {trade.pair} with stake amount {addition_stake:.5f}(multiplier:#{addition_multiplier}) triggered at addition signal, current_profit:{current_profit:.2f}, current_rate:{current_rate:.5f} at {current_time}')
+            return (addition_stake / leverage, f'entry-addition-{addition_multiplier}')
         
         return None
         
@@ -237,8 +236,9 @@ class StakePositionManager(IStrategy):
                           proposed_stake: float, min_stake: Optional[float], max_stake: float,
                           leverage: float, entry_tag: Optional[str], side: str,
                           **kwargs) -> float:
-        stake_amount = min(proposed_stake * self.stake_ratio, max_stake)
-        logger.info(f'Stake amount for {pair}={stake_amount:.5f} with leverage:{leverage}(after leverage={stake_amount*leverage:.5f}), proposed:{proposed_stake:.5f}, min_stake:{min_stake:.5f}, max_stake:{max_stake:.5f}, rate:{current_rate:.5f} at {current_time}')
+        stake_amount = min(proposed_stake * self.entry_stake_ratio, max_stake)
+        logger.info(f'Stake amount for {pair}={stake_amount:.5f} with leverage:{leverage}(after leverage={stake_amount*leverage:.5f}), '
+                    f'proposed:{proposed_stake:.5f}, min_stake:{min_stake:.5f}, max_stake:{max_stake:.5f}, current_rate:{current_rate:.5f} at {current_time}')
         return stake_amount
 
     def get_last_candle(self, trade: Trade):
@@ -247,7 +247,7 @@ class StakePositionManager(IStrategy):
         return last_candle
         
     def get_entry_stake_without_leverage(self) -> float:
-        return self.wallets.get_total_stake_amount() * self.stake_ratio / self.max_open_trades
+        return self.wallets.get_total_stake_amount() * self.entry_stake_ratio / self.max_open_trades
     
     def heikinashi(self, dataframe: DataFrame) -> DataFrame:
         if self.enable_heikinashi:
@@ -263,9 +263,9 @@ class StakePositionManager(IStrategy):
     
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe = self.heikinashi(dataframe)
-        dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_length)
-        dataframe[f'close_plus_atr'] = dataframe['ha_close'] + self.atr_stoploss_multiplier * dataframe['atr']
-        dataframe[f'close_minus_atr'] = dataframe['ha_close'] - self.atr_stoploss_multiplier * dataframe['atr']
+        dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_length, talib=False)
+        dataframe[f'close_plus_atr'] = dataframe['ha_close'] + (self.atr_entry_stoploss_multiplier * dataframe['atr'])
+        dataframe[f'close_minus_atr'] = dataframe['ha_close'] - (self.atr_entry_stoploss_multiplier * dataframe['atr'])
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -284,7 +284,7 @@ class Dream2V3ManualStrategy(StakePositionManager):
     """Trading strategy implementation"""
     
     timeframe = '3m'
-    is_long = False
+    is_long = True
     
     # Strategy parameters
     period = 10
