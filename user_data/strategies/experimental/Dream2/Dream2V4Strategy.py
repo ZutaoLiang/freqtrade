@@ -35,16 +35,17 @@ class StakePositionManager(IStrategy):
     enable_heikinashi = False
 
     # 自定义变量，可微调
+    timeframe = '3m'
     trade_leverage = 5
     base_stoploss_pct = 0.08
     stoploss = -base_stoploss_pct * trade_leverage
-    entry_stake_ratio = 0.25
+    entry_stake_ratio = 0.2
     addition_stake_ratio = 1
     exit_loss_ratio = -0.2
     atr_length = 15
     atr_entry_stoploss_multiplier = 5               # 进场时基于open_rate的止损ATR倍数
     atr_addition_base_multiplier = 2.5              # 加仓时的价格ATR倍数，即当前价格超过成本价的这个ATR倍数加仓
-    atr_addition_stoploss_base_multiplier = 0.5     # 加仓后的价格ATR止损倍数，即加仓后超过成本价的这个ATR倍数止损
+    atr_addition_stoploss_base_multiplier = 0.25    # 加仓后的价格ATR止损倍数，即加仓后不足成本价的这个ATR倍数止损
 
         
     def leverage(self, pair: str, current_time: datetime, current_rate: float,
@@ -104,7 +105,7 @@ class StakePositionManager(IStrategy):
         return self.atr_addition_base_multiplier + (count_of_orders-1) / 4
 
     def atr_addition_stoploss_multiplier(self, count_of_orders: int) -> float:
-        return self.atr_addition_stoploss_base_multiplier + (count_of_orders-1) / 8
+        return self.atr_addition_stoploss_base_multiplier + (count_of_orders-1) / 10
 
     def custom_stoploss(self, pair: str, trade: Trade, current_time: datetime,
                        current_rate: float, current_profit: float, after_fill: bool,
@@ -158,8 +159,16 @@ class StakePositionManager(IStrategy):
         
         filled_orders = trade.select_filled_orders()
         count_of_orders = len(filled_orders)
-        addition_count_array = [2, 4]
-        holding_minutes_array = [90, 240]
+        addition_count_array = [2, 3]
+        if 'm' in self.timeframe:
+            minutes = int(self.timeframe[:-1])
+        elif 'h' in self.timeframe:
+            minutes = int(self.timeframe[:-1]) * 60
+        else:
+            minutes = int(self.timeframe[:-1]) * 60 * 24
+
+        holding_minutes_array = [int(90 * math.log2(minutes + 1)), int(180 * math.log2(minutes + 1))]
+        
         for index, (addition_count_threshold, holding_minutes) in enumerate(zip(addition_count_array, holding_minutes_array)):
             if count_of_orders < addition_count_threshold and (current_time - timedelta(minutes=holding_minutes)) > trade.open_date_utc:
                 if 0.006 < _current_profit < 0.015:
@@ -264,8 +273,10 @@ class StakePositionManager(IStrategy):
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe = self.heikinashi(dataframe)
         dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_length, talib=False)
-        dataframe[f'close_plus_atr'] = dataframe['ha_close'] + (self.atr_entry_stoploss_multiplier * dataframe['atr'])
-        dataframe[f'close_minus_atr'] = dataframe['ha_close'] - (self.atr_entry_stoploss_multiplier * dataframe['atr'])
+        dataframe[f'addition_plus_atr'] = dataframe['ha_close'] + (self.atr_addition_base_multiplier * dataframe['atr'])
+        dataframe[f'addition_minus_atr'] = dataframe['ha_close'] - (self.atr_addition_base_multiplier * dataframe['atr'])
+        dataframe[f'stoploss_plus_atr'] = dataframe['ha_close'] + (self.atr_entry_stoploss_multiplier * dataframe['atr'])
+        dataframe[f'stoploss_minus_atr'] = dataframe['ha_close'] - (self.atr_entry_stoploss_multiplier * dataframe['atr'])
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -283,23 +294,21 @@ class StakePositionManager(IStrategy):
 class Dream2V4ManualStrategy(StakePositionManager):
     """Trading strategy implementation"""
     
-    timeframe = '3m'
     is_long = True
     
     # Strategy parameters
     period = 10
     ema_length = period
-    ema_mid_length = 9 * period
-    ema_long_length = 24 * period
-    ema_trend = 6
+    ema_mid_length = 6 * period
+    ema_long_length = 12 * period
+    ema_trend = 4
     ema_mid_trend = ema_trend
     ema_long_trend = ema_trend * 3
-    ema_dist_ratio = 1.02
     
     breakout_period = 4
     
     adx_length = period
-    adx_threshold = 40
+    adx_threshold = 32
     rsi_length = period
     rsi_long_threshold = 55
     rsi_short_threshold = 30
@@ -312,6 +321,8 @@ class Dream2V4ManualStrategy(StakePositionManager):
         dataframe['ema'] = pta.ema(close=dataframe['ha_close'], length=self.ema_length, talib=False)
         dataframe['ema_mid'] = pta.ema(close=dataframe['ha_close'], length=self.ema_mid_length, talib=False)
         dataframe['ema_long'] = pta.ema(close=dataframe['ha_close'], length=self.ema_long_length, talib=False)
+        dataframe['ema_long_plus_atr'] = dataframe['ema_long'] + self.atr_addition_base_multiplier * dataframe['atr']
+        dataframe['ema_long_minus_atr'] = dataframe['ema_long'] - self.atr_addition_base_multiplier * dataframe['atr']
         dataframe['recent_high'] = dataframe['ha_close'].rolling(window=self.breakout_period).max()
         dataframe['recent_low'] = dataframe['ha_close'].rolling(window=self.breakout_period).min()
         dataframe['adx'] = pta.adx(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.adx_length)[f'ADX_{self.adx_length}']
@@ -346,7 +357,7 @@ class Dream2V4Strategy(Dream2V4ManualStrategy):
             ema_mid_up_mask = self.ema_up_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
             ema_long_up_mask = self.ema_up_n_days_mask(dataframe, 'ema_long', self.ema_long_trend)
         
-            addition_trend_mask = (dataframe['ha_close'] > self.ema_dist_ratio * dataframe['ema_long']) \
+            addition_trend_mask = (dataframe['ha_close'] > dataframe['ema_long_plus_atr']) \
                                     & (dataframe['ha_close'] > dataframe['ema']) \
                                     & (ema_long_up_mask)
                                     
@@ -367,7 +378,7 @@ class Dream2V4Strategy(Dream2V4ManualStrategy):
             ema_mid_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_mid', self.ema_mid_trend)
             ema_long_down_mask = self.ema_down_n_days_mask(dataframe, 'ema_long', self.ema_long_trend)
             
-            addition_trend_mask = (dataframe['ha_close'] * self.ema_dist_ratio < dataframe['ema_long']) \
+            addition_trend_mask = (dataframe['ha_close'] < dataframe['ema_long_minus_atr']) \
                         & (dataframe['ha_close'] < dataframe['ema']) \
                         & (ema_long_down_mask)
             
