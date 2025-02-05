@@ -32,12 +32,12 @@ class StakePositionManager(IStrategy):
     position_adjustment_enable = False
     
     # 自定义变量，不常改
-    enable_heikinashi = False
+    enable_heikinashi = True
 
     # 自定义变量，可微调
     timeframe = '3m'
-    trade_leverage = 25
-    base_stoploss_pct = 0.1
+    trade_leverage = 10
+    base_stoploss_pct = 0.09
     stoploss = -base_stoploss_pct * trade_leverage
     entry_stake_ratio = 0.2
     addition_stake_ratio = 1
@@ -88,7 +88,7 @@ class StakePositionManager(IStrategy):
         if _current_profit > 0.10:
             return stoploss_from_absolute(open_rate*(1+factor*0.05), current_rate, is_short, leverage)
 
-        if _current_profit > 0.04:
+        if _current_profit > 0.06:
             return stoploss_from_absolute(open_rate*(1+factor*0.01), current_rate, is_short, leverage)
 
         # if _current_profit > 0.02:
@@ -144,9 +144,9 @@ class StakePositionManager(IStrategy):
         atr = last_candle['atr']
 
         addition_signal = False
-        if is_short and last_candle['enter_short'] == 1 and new_open_profit > 0.3:
+        if is_short and last_candle['enter_short'] == 1 and new_open_profit > (0.1 + 0.05 * count_of_orders):
             addition_signal = True
-        elif not is_short and last_candle['enter_long'] == 1 and new_open_profit > 0.3:
+        elif not is_short and last_candle['enter_long'] == 1 and new_open_profit > (0.1 + 0.05 * count_of_orders):
             addition_signal = True
 
         if addition_signal:
