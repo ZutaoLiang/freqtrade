@@ -6,8 +6,11 @@ from pandas import DataFrame
 from functools import reduce
 
 from datetime import datetime, timedelta
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Callable
+from dataclasses import dataclass
+from functools import wraps
 
+from freqtrade.constants import Config
 from freqtrade.strategy.interface import IStrategy, Trade
 from freqtrade.strategy.strategy_helper import stoploss_from_absolute, stoploss_from_open
 from freqtrade.strategy import IntParameter, DecimalParameter
@@ -15,6 +18,38 @@ import freqtrade.vendor.qtpylib.indicators as qtpylib
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Factor:
+    weight: float
+    calc_score: Callable[[pd.DataFrame], pd.Series]
+    
+
+class FactorAnalyzer:
+    def __init__(self):
+        self.factors: Dict[str, Factor] = {}
+        
+    def add_factor(self, name: str, weight: float, calc_score: Callable[[pd.DataFrame], pd.Series]):
+        self.factors[name] = Factor(weight=weight, calc_score=calc_score)
+        self._normalize_weights()
+    
+    def _normalize_weights(self):
+        total_weight = sum(f.weight for f in self.factors.values())
+        if total_weight != 1.0:
+            for f in self.factors.values():
+                f.weight = f.weight / total_weight
+    
+    def analyze(self, dataframe: pd.DataFrame) -> pd.DataFrame:                
+        for name, factor in self.factors.items():
+            dataframe[f'{name}_score'] = factor.calc_score(dataframe)
+            
+        combined_score = pd.Series(0, index=dataframe.index)
+        for name, factor in self.factors.items():
+            combined_score += dataframe[f'{name}_score'] * factor.weight
+            
+        dataframe['factor_score'] = combined_score
+        return dataframe
 
 
 class StakePositionManager(IStrategy):
@@ -48,7 +83,10 @@ class StakePositionManager(IStrategy):
     atr_addition_base_multiplier = 2.5              # 加仓时的价格ATR倍数，即当前价格超过成本价的这个ATR倍数加仓
     atr_addition_stoploss_base_multiplier = 0.25    # 加仓后的价格ATR止损倍数，即加仓后不足成本价的这个ATR倍数止损
 
-
+    def __init__(self, config: Config) -> None:
+        super().__init__(config)
+        self.factor_analyzer = FactorAnalyzer()
+ 
     def leverage(self, pair: str, current_time: datetime, current_rate: float,
                 proposed_leverage: float, max_leverage: float, entry_tag: Optional[str],
                 side: str, **kwargs) -> float:
@@ -199,6 +237,8 @@ class StakePositionManager(IStrategy):
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        self.factor_analyzer.analyze(dataframe)
+
         dataframe['enter_long'] = 0
         dataframe['enter_short'] = 0
         dataframe['addition'] = 0
@@ -261,15 +301,30 @@ class Dream3V3ManualStrategy(StakePositionManager):
         dataframe['recent_low'] = dataframe['ha_close'].rolling(window=self.breakout_period).min()
         dataframe['adx'] = pta.adx(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.adx_length)[f'ADX_{self.adx_length}']
         dataframe['rsi'] = pta.rsi(dataframe['ha_close'], length=self.rsi_length, talib=False)
-        
+
         dataframe['rumi_fast'] = pta.sma(dataframe['ha_close'], length=self.ema_length)
         dataframe['rumi_slow'] = pta.wma(dataframe['ha_close'], length=self.ema_mid_length)
         dataframe['rumi'] = pta.sma(dataframe['rumi_fast'] - dataframe['rumi_slow'], length=self.ema_length)
 
         dataframe['rumi_long_slow'] = pta.wma(dataframe['ha_close'], length=self.ema_long_length)
         dataframe['rumi_long'] = pta.sma(dataframe['rumi_fast'] - dataframe['rumi_long_slow'], length=self.ema_length)
+        
+        # factor analyze
+        self.factor_analyzer.add_factor(
+            'rsi_long', 0.4,
+            lambda df: (df['rsi'] > self.rsi_long_threshold)
+        )
+        
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe = super().populate_entry_trend(dataframe, metadata)
         return dataframe
         
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe = super().populate_exit_trend(dataframe, metadata)
+        return dataframe
+
 
 class Dream3V3Strategy(Dream3V3ManualStrategy):
         
