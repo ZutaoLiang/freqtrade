@@ -24,31 +24,38 @@ logger = logging.getLogger(__name__)
 class Factor:
     weight: float
     calc_score: Callable[[pd.DataFrame], pd.Series]
-    
+
 
 class FactorAnalyzer:
     def __init__(self):
-        self.factors: Dict[str, Factor] = {}
+        self.factors: Dict[str, Dict[str, Factor]] = {}
         
-    def add_factor(self, name: str, weight: float, calc_score: Callable[[pd.DataFrame], pd.Series]):
-        self.factors[name] = Factor(weight=weight, calc_score=calc_score)
-        self._normalize_weights()
+    def add_factor(self, dimension: str, name: str, weight: float, 
+                  calc_score: Callable[[pd.DataFrame], pd.Series]):
+        if dimension not in self.factors:
+            self.factors[dimension] = {}
+            
+        self.factors[dimension][name] = Factor(weight=weight, calc_score=calc_score)        
     
-    def _normalize_weights(self):
-        total_weight = sum(f.weight for f in self.factors.values())
+    def _normalize_weights(self, dimension: str):
+        factors = self.factors[dimension]
+        total_weight = sum(f.weight for f in factors.values())
         if total_weight != 1.0:
-            for f in self.factors.values():
+            for f in factors.values():
                 f.weight = f.weight / total_weight
     
-    def analyze(self, dataframe: pd.DataFrame) -> pd.DataFrame:                
-        for name, factor in self.factors.items():
-            dataframe[f'{name}_score'] = factor.calc_score(dataframe)
+    def analyze(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        for dimension, factors in self.factors.items():
+            self._normalize_weights(dimension)
+            dimension_score = pd.Series(0, index=dataframe.index)
             
-        combined_score = pd.Series(0, index=dataframe.index)
-        for name, factor in self.factors.items():
-            combined_score += dataframe[f'{name}_score'] * factor.weight
+            for name, factor in factors.items():
+                factor_score = factor.calc_score(dataframe)
+                dataframe[f'{dimension}_{name}_score'] = factor_score
+                dimension_score += factor_score * factor.weight
             
-        dataframe['factor_score'] = combined_score
+            dataframe[f'{dimension}_factor_score'] = dimension_score
+            
         return dataframe
 
 
@@ -64,18 +71,18 @@ class StakePositionManager(IStrategy):
     trailing_stop = False
     use_custom_stoploss = True
     can_short = True
-    position_adjustment_enable = False
+    position_adjustment_enable = True
     
     # 自定义变量，不常改
-    enable_heikinashi = True
+    enable_heikinashi = False
 
     # 自定义变量，可微调
-    timeframe = '3m'
+    timeframe = '5m'
     trade_leverage = 10
-    base_stoploss_pct = 0.09
+    base_stoploss_pct = 0.075
     stoploss = -base_stoploss_pct * trade_leverage
-    entry_stake_ratio = 0.2
-    addition_stake_ratio = 1
+    entry_stake_ratio = 0.5
+    addition_stake_ratio = 0.75
     exit_loss_ratio = -0.2
     atr_length = 15
     atr_entry_stoploss_multiplier = 5               # 进场时基于open_rate的止损ATR倍数
@@ -111,26 +118,35 @@ class StakePositionManager(IStrategy):
         open_rate = trade.open_rate
         _current_profit = current_profit / leverage
 
+        if after_fill:
+            filled_orders = trade.select_filled_orders()
+            count_of_orders = len(filled_orders)
+        
+            if count_of_orders > 1 and _current_profit < 0.05:
+                return stoploss_from_absolute(open_rate*(1+factor*0.025), current_rate, is_short, leverage)
+
         if _current_profit < 0:
             return None
 
-        if _current_profit > 0.30:
+        if _current_profit > 0.25:
             return (_current_profit / 2) * leverage
 
-        if _current_profit > 0.25:
-            return stoploss_from_absolute(open_rate*(1+factor*0.15), current_rate, is_short, leverage)
-
         if _current_profit > 0.18:
-            return stoploss_from_absolute(open_rate*(1+factor*0.08), current_rate, is_short, leverage)
+            return stoploss_from_absolute(open_rate*(1+factor*0.1), current_rate, is_short, leverage)
         
         if _current_profit > 0.10:
             return stoploss_from_absolute(open_rate*(1+factor*0.05), current_rate, is_short, leverage)
 
-        if _current_profit > 0.06:
-            return stoploss_from_absolute(open_rate*(1+factor*0.01), current_rate, is_short, leverage)
+        if _current_profit > 0.05:
+            return stoploss_from_absolute(open_rate*(1+factor*0.025), current_rate, is_short, leverage)
 
-        # if _current_profit > 0.02:
-        #     return stoploss_from_absolute(open_rate*(1+factor*0.001), current_rate, is_short, leverage)
+        if _current_profit > 0.03:
+            return stoploss_from_absolute(open_rate*(1+factor*0.015), current_rate, is_short, leverage)
+        
+        if (current_time - timedelta(hours=4)) > trade.open_date_utc:
+            if 0.0075 < _current_profit < 0.015:
+                # 持仓时间已经不短了，并且方向曾经有对过。后面如果方向不对了，就不等到最大止损再出局，只到一部分损失就提前止损
+                return stoploss_from_absolute(open_rate*(1-factor*0.03), current_rate, is_short, leverage)
         
         return None
 
@@ -172,6 +188,9 @@ class StakePositionManager(IStrategy):
             logger.info(f'Adjusting {trade.pair} addition stake:{addition_stake:.5f} to around min_stake:{min_stake:.5f} at {current_time}')
             addition_amount = math.ceil(min_stake / current_rate)
             addition_stake = addition_amount * current_rate
+            
+        if addition_amount <= 0:
+            return None
         
         new_open_rate = (trade.amount * trade.open_rate + addition_stake) / (trade.amount + addition_amount)
         
@@ -182,9 +201,9 @@ class StakePositionManager(IStrategy):
         atr = last_candle['atr']
 
         addition_signal = False
-        if is_short and last_candle['enter_short'] == 1 and new_open_profit > (0.1 + 0.05 * count_of_orders):
+        if is_short and last_candle['enter_short'] == 1 and new_open_profit > 0.065 * (count_of_orders):
             addition_signal = True
-        elif not is_short and last_candle['enter_long'] == 1 and new_open_profit > (0.1 + 0.05 * count_of_orders):
+        elif not is_short and last_candle['enter_long'] == 1 and new_open_profit > 0.065 * (count_of_orders):
             addition_signal = True
 
         if addition_signal:
@@ -205,6 +224,20 @@ class StakePositionManager(IStrategy):
                     f'proposed:{proposed_stake:.5f}, min_stake:{min_stake:.5f}, max_stake:{max_stake:.5f}, '
                     f'entry_tag:{entry_tag}, current_rate:{current_rate:.5f} at {current_time}')
         return stake_amount
+    
+    @property
+    def protections(self): # type: ignore
+        return [
+            {
+                "method": "StoplossGuard",
+                "lookback_period_candles": 36,
+                "trade_limit": 2,
+                "stop_duration_candles": 6,
+                "required_profit": 0.0,
+                "only_per_pair": False,
+                "only_per_side": True
+            }
+        ]
 
     def get_last_candle(self, trade: Trade):
         dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
@@ -265,7 +298,7 @@ class StakePositionManager(IStrategy):
 class Dream3V3ManualStrategy(StakePositionManager):
     """Trading strategy implementation"""
     
-    is_long = False
+    is_long = True
     bidirectional = True
     
     # Strategy parameters
@@ -280,6 +313,7 @@ class Dream3V3ManualStrategy(StakePositionManager):
     breakout_period = 4
     
     rumi_multiplier = 150
+    low_atr_pct = 2.5
 
     adx_length = period
     adx_threshold = 32
@@ -309,11 +343,73 @@ class Dream3V3ManualStrategy(StakePositionManager):
         dataframe['rumi_long_slow'] = pta.wma(dataframe['ha_close'], length=self.ema_long_length)
         dataframe['rumi_long'] = pta.sma(dataframe['rumi_fast'] - dataframe['rumi_long_slow'], length=self.ema_length)
         
-        # factor analyze
-        self.factor_analyzer.add_factor(
-            'rsi_long', 0.4,
-            lambda df: (df['rsi'] > self.rsi_long_threshold)
+        # long base
+        self.factor_analyzer.add_factor('long_entry_base', 'close_above_ema_long', 2, 
+            lambda df: (dataframe['ha_close'] > dataframe['ema_long_plus_atr'])
         )
+        self.factor_analyzer.add_factor('long_entry_base', 'close_above_ema', 1, 
+            lambda df: (dataframe['ha_close'] > dataframe['ema'])
+        )
+        self.factor_analyzer.add_factor('long_entry_base', 'ema_mid_up', 1, 
+            lambda df: (self.indicator_up_n_periods_mask(dataframe, 'ema_mid', self.ema_mid_trend))
+        )
+        
+        # long
+        self.factor_analyzer.add_factor('long_entry', 'ema_up', 1, 
+            lambda df: (self.indicator_up_n_periods_mask(dataframe, 'ema', self.ema_trend))
+        )
+        self.factor_analyzer.add_factor('long_entry', 'rumi_up', 1, 
+            lambda df: (self.indicator_up_n_periods_mask(dataframe, 'rumi', self.ema_trend))
+        )
+        self.factor_analyzer.add_factor('long_entry', 'breakout', 1, 
+            lambda df: (dataframe['ha_close'] > dataframe['recent_high'].shift(1))
+        )
+        self.factor_analyzer.add_factor('long_entry', 'ema_above_mid', 1, 
+            lambda df: (dataframe['ema'] > dataframe['ema_mid'])
+        )
+        self.factor_analyzer.add_factor('long_entry', 'rumi_close', 1, 
+            lambda df: (dataframe['rumi'] * self.rumi_multiplier > dataframe['ha_close'])
+        )
+        # self.factor_analyzer.add_factor('long_entry', 'low_atr_pct', 1, 
+        #     lambda df: (dataframe['atr_pct'] < self.low_atr_pct)
+        # )
+        # self.factor_analyzer.add_factor('long_entry', 'rsi', 1, 
+        #     lambda df: (df['rsi'] > self.rsi_long_threshold)
+        # )
+        
+        # short base
+        self.factor_analyzer.add_factor('short_entry_base', 'close_below_ema_long', 2, 
+            lambda df: (dataframe['ha_close'] < dataframe['ema_long_minus_atr'])
+        )
+        self.factor_analyzer.add_factor('short_entry_base', 'close_below_ema', 1, 
+            lambda df: (dataframe['ha_close'] < dataframe['ema'])
+        )
+        self.factor_analyzer.add_factor('short_entry_base', 'ema_mid_up', 1, 
+            lambda df: (self.indicator_down_n_periods_mask(dataframe, 'ema_mid', self.ema_mid_trend))
+        )
+        
+        # short
+        self.factor_analyzer.add_factor('short_entry', 'ema_down', 1, 
+            lambda df: (self.indicator_down_n_periods_mask(dataframe, 'ema', self.ema_trend))
+        )
+        self.factor_analyzer.add_factor('short_entry', 'rumi_down', 1, 
+            lambda df: (self.indicator_down_n_periods_mask(dataframe, 'rumi', self.ema_trend))
+        )
+        self.factor_analyzer.add_factor('short_entry', 'breakout', 1, 
+            lambda df: (dataframe['ha_close'] < dataframe['recent_low'].shift(1))
+        )
+        self.factor_analyzer.add_factor('short_entry', 'ema_below_mid', 1, 
+            lambda df: (dataframe['ema'] < dataframe['ema_mid'])
+        )
+        self.factor_analyzer.add_factor('short_entry', 'rumi_close', 1, 
+            lambda df: (dataframe['rumi'] * -self.rumi_multiplier > dataframe['ha_close'])
+        )
+        # self.factor_analyzer.add_factor('short_entry', 'low_atr_pct', 1, 
+        #     lambda df: (dataframe['atr_pct'] < self.low_atr_pct)
+        # )
+        # self.factor_analyzer.add_factor('short_entry', 'rsi', 1, 
+        #     lambda df: (df['rsi'] < self.rsi_short_threshold)
+        # )
         
         return dataframe
 
@@ -332,50 +428,18 @@ class Dream3V3Strategy(Dream3V3ManualStrategy):
         dataframe = super().populate_entry_trend(dataframe, metadata)
         
         if self.bidirectional or self.is_long:
-            ema_up_mask = self.indicator_up_n_periods_mask(dataframe, 'ema', self.ema_trend)
-            ema_mid_up_mask = self.indicator_up_n_periods_mask(dataframe, 'ema_mid', self.ema_mid_trend)
-            # ema_long_up_mask = self.indicator_up_n_periods_mask(dataframe, 'ema_long', self.ema_long_trend)
-            rumi_up_mask = self.indicator_up_n_periods_mask(dataframe, 'rumi', self.ema_trend)
-        
-            addition_trend_mask = (dataframe['ha_close'] > dataframe['ema_long_plus_atr']) \
-                                    & (dataframe['ha_close'] > dataframe['ema']) \
-                                    & (ema_mid_up_mask)
-                                    
-            dataframe.loc[addition_trend_mask, 'addition'] = 1
-            
             dataframe.loc[
                     (
-                        addition_trend_mask
-                        & (ema_up_mask)
-                        # & (ema_mid_up_mask)
-                        & (rumi_up_mask)
-                        & (dataframe['ema'] > dataframe['ema_mid'])
-                        & (dataframe['ha_close'] > dataframe['recent_high'].shift(1))
-                        & (dataframe['rumi'] * self.rumi_multiplier > dataframe['ha_close'])
+                        (dataframe['long_entry_base_factor_score'] >= 0.9)
+                        & (dataframe['long_entry_factor_score'] >= 0.9)
                     ),
                     ['enter_long', 'enter_tag']] = (1, 'entry_long')
         
         if self.bidirectional or not self.is_long:
-            ema_down_mask = self.indicator_down_n_periods_mask(dataframe, 'ema', self.ema_trend)
-            ema_mid_down_mask = self.indicator_down_n_periods_mask(dataframe, 'ema_mid', self.ema_mid_trend)
-            # ema_long_down_mask = self.indicator_down_n_periods_mask(dataframe, 'ema_long', self.ema_long_trend)
-            rumi_down_mask = self.indicator_down_n_periods_mask(dataframe, 'rumi', self.ema_trend)
-            
-            addition_trend_mask = (dataframe['ha_close'] < dataframe['ema_long_minus_atr']) \
-                        & (dataframe['ha_close'] < dataframe['ema']) \
-                        & (ema_mid_down_mask)
-            
-            dataframe.loc[addition_trend_mask, 'addition'] = 1
-            
             dataframe.loc[
                     (
-                        addition_trend_mask 
-                        & (ema_down_mask) 
-                        # & (ema_mid_down_mask) 
-                        & (rumi_down_mask)
-                        & (dataframe['ema'] < dataframe['ema_mid']) 
-                        & (dataframe['ha_close'] < dataframe['recent_low'].shift(1))
-                        & (dataframe['rumi'] * -self.rumi_multiplier > dataframe['ha_close'])
+                        (dataframe['short_entry_base_factor_score'] >= 0.9)
+                        & (dataframe['short_entry_factor_score'] >= 0.9)
                     ),
                     ['enter_short', 'enter_tag']] = (1, 'entry_short')
             
