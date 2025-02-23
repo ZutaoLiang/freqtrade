@@ -81,7 +81,7 @@ class StakePositionManager(IStrategy):
     trade_leverage = 10
     base_stoploss_pct = 0.075
     stoploss = -base_stoploss_pct * trade_leverage
-    entry_stake_ratio = 0.5
+    entry_stake_ratio = 1
     addition_stake_ratio = 0.75
     addition_profit_step = 0.025
     exit_loss_ratio = -0.2
