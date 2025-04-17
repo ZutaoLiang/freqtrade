@@ -3,6 +3,9 @@ from math import isnan
 import numpy as np
 import pandas_ta as pta
 import pandas as pd
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+
 from pandas import DataFrame
 
 from freqtrade.strategy.interface import IStrategy
@@ -15,16 +18,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class SGFilterEmaV2(IStrategy):
+class SGFilterEmaV3(IStrategy):
     minimal_roi = {"0": 100}
 
-    buy_leverage = IntParameter(1, 3, default=3, space='buy')
+    buy_leverage = IntParameter(1, 3, default=5, space='buy')
 
-    base_stop_loss = 0.1
+    base_stop_loss = 0.15
     stoploss = -base_stop_loss * buy_leverage.value
 
     trailing_stop = True
-    trailing_stop_positive = 0.1 * buy_leverage.value
+    trailing_stop_positive = 0.15 * buy_leverage.value
     trailing_stop_positive_offset = 0
     trailing_only_offset_is_reached = False
 
@@ -38,18 +41,20 @@ class SGFilterEmaV2(IStrategy):
     polyorder = IntParameter(1, 5, default=1, space='fixed')
 
     ema_period = IntParameter(5, 100, default=lookback_period, space='buy')
-    ema_mid_period = IntParameter(5, 100, default=lookback_period * 3, space='buy')
+    ema_mid_period = IntParameter(5, 100, default=lookback_period * 2, space='buy')
 
     startup_candle_count = int(max(window_length.value, ema_mid_period.value) * 1.2)
     
-    up_ratio = DecimalParameter(1.0001, 1.0010, default=1.002, decimals=5, space='buy')
-    down_ratio = DecimalParameter(1.0001, 1.0010, default=1.002, decimals=5, space='buy')
+    up_ratio = DecimalParameter(1.0001, 1.0010, default=1.003, decimals=4, space='buy')
+    down_ratio = DecimalParameter(1.0001, 1.0010, default=1.002, decimals=4, space='buy')
     
     highest_period = lookback_period
     lowest_period = lookback_period
+
+    prev_shift = 1
+    shift_interval = 3
     
     atr_period = ema_mid_period.value
-    risk_ratio = 0.002
 
     def savgol_smooth(self, data):
         smoothed_data = savgol_filter(data, self.window_length.value, self.polyorder.value, mode='nearest')
@@ -66,8 +71,8 @@ class SGFilterEmaV2(IStrategy):
         dataframe['highest'] = dataframe['ohlc4'].rolling(window=self.highest_period).max()
         dataframe['lowest'] = dataframe['ohlc4'].rolling(window=self.lowest_period).min()
         
-        dataframe['prev_diff'] = dataframe['smoothed_ema'] / dataframe['smoothed_ema'].shift(1)
-        dataframe['prev_diff_mid'] = dataframe['smoothed_ema_mid'] / dataframe['smoothed_ema_mid'].shift(1)
+        dataframe['prev_diff'] = dataframe['smoothed_ema'].shift(self.prev_shift) / dataframe['smoothed_ema'].shift(self.shift_interval)
+        dataframe['prev_diff_mid'] = dataframe['smoothed_ema_mid'].shift(self.prev_shift) / dataframe['smoothed_ema_mid'].shift(self.shift_interval)
         
         # dataframe['price_percentile'] = dataframe['ohlc4'].rolling(window=self.lookback_period * 6).apply(
         #     lambda x: percentileofscore(x, x.iloc[-1])
@@ -80,19 +85,17 @@ class SGFilterEmaV2(IStrategy):
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe['smoothed_ema_mid'] > self.up_ratio.value * dataframe['smoothed_ema_mid'].shift(1))
+                (dataframe['smoothed_ema_mid'].shift(self.prev_shift) > self.up_ratio.value * dataframe['smoothed_ema_mid'].shift(self.shift_interval))
                 & (dataframe['smoothed_ema'] > dataframe['smoothed_ema_mid'])
                 & (dataframe['ohlc4'] > dataframe['smoothed_ema'])
-                # & (dataframe['ohlc4'] > dataframe['highest'].shift(1))
              ), 
             'enter_long'] = 1
 
         dataframe.loc[
             (
-                (dataframe['smoothed_ema_mid'] * self.up_ratio.value < dataframe['smoothed_ema_mid'].shift(1))
+                (dataframe['smoothed_ema_mid'].shift(self.prev_shift) * self.up_ratio.value < dataframe['smoothed_ema_mid'].shift(self.shift_interval))
                 & (dataframe['smoothed_ema'] < dataframe['smoothed_ema_mid'])
                 & (dataframe['ohlc4'] < dataframe['smoothed_ema'])
-                # & (dataframe['ohlc4'] < dataframe['lowest'].shift(1))
             ), 
             'enter_short'] = 1
 
@@ -101,7 +104,7 @@ class SGFilterEmaV2(IStrategy):
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe['smoothed_ema_mid'] * self.down_ratio.value < dataframe['smoothed_ema_mid'].shift(1))
+                (dataframe['smoothed_ema_mid'].shift(self.prev_shift) * self.down_ratio.value < dataframe['smoothed_ema_mid'].shift(self.shift_interval))
                 | (dataframe['smoothed_ema'] < dataframe['smoothed_ema_mid'])
                 | (dataframe['ohlc4'] < dataframe['smoothed_ema_mid'])
             ), 
@@ -109,56 +112,15 @@ class SGFilterEmaV2(IStrategy):
 
         dataframe.loc[
             (
-                (dataframe['smoothed_ema_mid'] > self.down_ratio.value * dataframe['smoothed_ema_mid'].shift(1))
+                (dataframe['smoothed_ema_mid'].shift(self.prev_shift) > self.down_ratio.value * dataframe['smoothed_ema_mid'].shift(self.shift_interval))
                 | (dataframe['smoothed_ema'] > dataframe['smoothed_ema_mid'])
                 | (dataframe['ohlc4'] > dataframe['smoothed_ema_mid'])
             ), 
             'exit_short'] = 1
 
+        logger.info(f'{metadata["pair"]}\n{dataframe.tail(3*self.lookback_period)[["date", "close", "ohlc4", "smoothed_ema", "smoothed_ema_mid", "prev_diff_mid", "enter_long", "exit_long", "enter_short", "exit_short"]]}')
         return dataframe
     
-    # def custom_stake_amount(
-    #     self,
-    #     pair: str,
-    #     current_time: datetime,
-    #     current_rate: float,
-    #     proposed_stake: float,
-    #     min_stake: Optional[float],
-    #     max_stake: float,
-    #     leverage: float,
-    #     entry_tag: Optional[str],
-    #     side: str,
-    #     **kwargs,
-    # ) -> float:
-    #     stake_amount = proposed_stake
-    #     if self.wallets is None or self.risk_ratio <= 0:
-    #         return stake_amount
-
-    #     dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
-    #     if dataframe is None or dataframe.empty:
-    #         return stake_amount
-        
-    #     last_candle = dataframe.loc[dataframe['date'] <= current_time]
-    #     if last_candle.empty:
-    #         return stake_amount
-        
-    #     last_candle = last_candle.iloc[-1]
-    #     atr = last_candle['atr'] # 实际策略运行过程中当前K线可能不完整，对应计算的ATR可能不正确，这里采用倒数第二根K线的计算值
-    #     if isnan(atr):
-    #         return stake_amount
-        
-    #     balance = self.wallets.get_total(self.stake_currency)
-    #     risk_amount = (self.risk_ratio * balance / atr) * current_rate
-        
-    #     stake_amount = risk_amount
-    #     # stake_amount = min(max_stake, stake_amount)
-    #     # if min_stake is not None:
-    #     #     stake_amount = max(min_stake, stake_amount)
-            
-    #     logger.info(f'Custom stake amount:{stake_amount} for {pair}, proposed stake:{proposed_stake}, atr:{atr}, current_rate:{current_rate}, balance:{balance}, ' \
-    #                 f'risk_amount:{risk_amount}, min_stake:{min_stake}, max_stake:{max_stake}, laverage:{leverage}')
-    #     return stake_amount
- 
     def custom_exit(self, pair: str, trade: 'Trade', current_time: datetime, current_rate: float, current_profit: float, 
                     **kwargs,) -> Optional[Union[str, bool]]:
         # if current_time >= trade.open_date + timedelta(minutes=30) and current_profit < 0.01:

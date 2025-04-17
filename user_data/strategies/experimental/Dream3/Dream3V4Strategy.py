@@ -78,16 +78,16 @@ class StakePositionManager(IStrategy):
 
     # 自定义变量，可微调
     timeframe = '5m'
-    trade_leverage = 10
-    base_stoploss_pct = 0.075
+    trade_leverage = 7
+    base_stoploss_pct = 0.12
     stoploss = -base_stoploss_pct * trade_leverage
     entry_stake_ratio = 1
-    addition_stake_ratio = 0.75
-    addition_profit_step = 0.025
+    addition_stake_ratio = 0.5
+    addition_profit_step = 0.02
     exit_loss_ratio = -0.2
     atr_length = 15
     atr_entry_stoploss_multiplier = 5               # 进场时基于open_rate的止损ATR倍数
-    atr_entry_base_multiplier = 3.0                 # 进场时的价格ATR倍数，即当前价格超过成本价的这个ATR倍数进场
+    atr_entry_base_multiplier = 2.5                 # 进场时的价格ATR倍数，即当前价格超过成本价的这个ATR倍数进场
     atr_addition_base_multiplier = 2.5              # 加仓时的价格ATR倍数，即当前价格超过成本价的这个ATR倍数加仓
     atr_addition_stoploss_base_multiplier = 0.25    # 加仓后的价格ATR止损倍数，即加仓后不足成本价的这个ATR倍数止损
 
@@ -105,7 +105,7 @@ class StakePositionManager(IStrategy):
         leverage = trade.leverage
         _current_profit = current_profit / leverage
         
-        if (current_time - timedelta(hours=18)) > trade.open_date_utc and 0.018 < _current_profit < 0.025:
+        if (current_time - timedelta(hours=24)) > trade.open_date_utc and 0.015 < _current_profit < 0.025:
             filled_orders = trade.select_filled_orders()
             count_of_orders = len(filled_orders)
             if count_of_orders < 3:
@@ -143,17 +143,17 @@ class StakePositionManager(IStrategy):
         #     if not is_short and current_rate > last_addition_price * (1+0.01):
         #         return stoploss_from_absolute(last_addition_price*(1-factor*0.005), current_rate, is_short, leverage)
 
-        if _current_profit < 0:
-            if _current_profit < -0.02:
-                last_candle = self.get_last_candle(trade)
-                if is_short:
-                    if last_candle['enter_long'] == 1:
-                        return 0.04 * leverage
-                else:
-                    if last_candle['enter_short'] == 1:
-                        return 0.04 * leverage
+        # if _current_profit < 0:
+        #     if _current_profit < -0.02:
+        #         last_candle = self.get_last_candle(trade)
+        #         if is_short:
+        #             if last_candle['enter_long'] == 1:
+        #                 return 0.04 * leverage
+        #         else:
+        #             if last_candle['enter_short'] == 1:
+        #                 return 0.04 * leverage
             
-            return None
+        #     return None
 
         # if _current_profit > 0.25:
         #     return (_current_profit / 2) * leverage
@@ -176,10 +176,10 @@ class StakePositionManager(IStrategy):
         if _current_profit > 0.03:
             return stoploss_from_absolute(open_rate*(1+factor*0.015), current_rate, is_short, leverage)
         
-        if (current_time - timedelta(hours=4)) > trade.open_date_utc:
-            if 0.01 < _current_profit < 0.015:
-                # 持仓时间已经不短了，并且方向曾经有对过。后面如果方向不对了，就不等到最大止损再出局，只到一部分损失就提前止损
-                return stoploss_from_absolute(open_rate*(1-factor*0.03), current_rate, is_short, leverage)
+        # if (current_time - timedelta(hours=4)) > trade.open_date_utc:
+        #     if 0.01 < _current_profit < 0.015:
+        #         # 持仓时间已经不短了，并且方向曾经有对过。后面如果方向不对了，就不等到最大止损再出局，只到一部分损失就提前止损
+        #         return stoploss_from_absolute(open_rate*(1-factor*0.03), current_rate, is_short, leverage)
         
         return None
 
@@ -354,7 +354,7 @@ class Dream3V4ManualStrategy(StakePositionManager):
     
     breakout_period = 4
     
-    rumi_multiplier = 150
+    rumi_multiplier = 200
     low_atr_pct = 2.5
 
     adx_length = period
