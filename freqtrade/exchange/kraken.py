@@ -12,7 +12,7 @@ from freqtrade.enums import MarginMode, TradingMode
 from freqtrade.exceptions import DDosProtection, OperationalException, TemporaryError
 from freqtrade.exchange import Exchange
 from freqtrade.exchange.common import retrier
-from freqtrade.exchange.exchange_types import CcxtBalances, FtHas, Tickers
+from freqtrade.exchange.exchange_types import CcxtBalances, FtHas
 
 
 logger = logging.getLogger(__name__)
@@ -49,18 +49,6 @@ class Kraken(Exchange):
 
         return parent_check and market.get("darkpool", False) is False
 
-    def get_tickers(
-        self,
-        symbols: list[str] | None = None,
-        *,
-        cached: bool = False,
-        market_type: TradingMode | None = None,
-    ) -> Tickers:
-        # Only fetch tickers for current stake currency
-        # Otherwise the request for kraken becomes too large.
-        symbols = list(self.get_markets(quote_currencies=[self._config["stake_currency"]]))
-        return super().get_tickers(symbols=symbols, cached=cached, market_type=market_type)
-
     def consolidate_balances(self, balances: CcxtBalances) -> CcxtBalances:
         """
         Consolidate balances for the same currency.
@@ -69,7 +57,7 @@ class Kraken(Exchange):
         consolidated: CcxtBalances = {}
         for currency, balance in balances.items():
             base_currency = currency[:-2] if currency.endswith(".F") else currency
-            base_currency = self._api.commonCurrencies.get(base_currency, base_currency)
+
             if base_currency in consolidated:
                 consolidated[base_currency]["free"] += balance["free"]
                 consolidated[base_currency]["used"] += balance["used"]

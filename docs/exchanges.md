@@ -363,6 +363,29 @@ Hyperliquid handles deposits and withdrawals on the Arbitrum One chain, a Layer 
     * Create a different software wallet, only transfer the funds you want to trade with to that wallet, and use that wallet to trade on Hyperliquid.
     * If you have funds you don't want to use for trading (after making a profit for example), transfer them back to your hardware wallet.
 
+### Historic Hyperliquid data
+
+The Hyperliquid API does not provide historic data beyond the single call to fetch current data, so downloading data is not possible, as the downloaded data would not constitute proper historic data.
+
+## Bitvavo
+
+If your account is required to use an operatorId, you can set it in the configuration file as follows:
+
+``` json
+"exchange": {
+        "name": "bitvavo",
+        "key": "",
+        "secret": "",
+        "ccxt_config": {
+            "options": {
+                "operatorId": "123567"
+            }
+        },
+   }
+```
+
+Bitvavo expects the `operatorId` to be an integer.
+
 ## All exchanges
 
 Should you experience constant errors with Nonce (like `InvalidNonce`), it is best to regenerate the API keys. Resetting Nonce is difficult and it's usually easier to regenerate the API keys.

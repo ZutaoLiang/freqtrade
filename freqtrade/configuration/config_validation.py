@@ -6,7 +6,7 @@ from typing import Any
 from jsonschema import Draft4Validator, validators
 from jsonschema.exceptions import ValidationError, best_match
 
-from freqtrade.configuration.config_schema import (
+from freqtrade.config_schema.config_schema import (
     CONF_SCHEMA,
     SCHEMA_BACKTEST_REQUIRED,
     SCHEMA_BACKTEST_REQUIRED_FINAL,
@@ -104,7 +104,7 @@ def _validate_unlimited_amount(conf: dict[str, Any]) -> None:
     """
     if (
         not conf.get("edge", {}).get("enabled")
-        and conf.get("max_open_trades") == float("inf")
+        and (conf.get("max_open_trades") == float("inf") or conf.get("max_open_trades") == -1)
         and conf.get("stake_amount") == UNLIMITED_STAKE_AMOUNT
     ):
         raise ConfigurationError("`max_open_trades` and `stake_amount` cannot both be unlimited.")
@@ -361,7 +361,7 @@ def _validate_freqai_include_timeframes(conf: dict[str, Any], preliminary: bool)
         # Ensure that the base timeframe is included in the include_timeframes list
         if not preliminary and main_tf not in freqai_include_timeframes:
             feature_parameters = conf.get("freqai", {}).get("feature_parameters", {})
-            include_timeframes = [main_tf] + freqai_include_timeframes
+            include_timeframes = [main_tf, *freqai_include_timeframes]
             conf.get("freqai", {}).get("feature_parameters", {}).update(
                 {**feature_parameters, "include_timeframes": include_timeframes}
             )

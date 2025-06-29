@@ -102,7 +102,9 @@ def text_table_tags(
         [
             *(
                 (
-                    (t["key"] if isinstance(t["key"], list) else [t["key"], ""])
+                    list(t["key"])
+                    if isinstance(t["key"], list | tuple)
+                    else [t["key"], ""]
                     if is_list
                     else [t["key"]]
                 )
@@ -368,8 +370,18 @@ def text_table_add_metrics(strat_results: dict) -> None:
                 f"{strat_results['winning_days']} / "
                 f"{strat_results['draw_days']} / {strat_results['losing_days']}",
             ),
-            ("Avg. Duration Winners", f"{strat_results['winner_holding_avg']}"),
-            ("Avg. Duration Loser", f"{strat_results['loser_holding_avg']}"),
+            (
+                "Min/Max/Avg. Duration Winners",
+                f"{strat_results.get('winner_holding_min', 'N/A')} / "
+                f"{strat_results.get('winner_holding_max', 'N/A')} / "
+                f"{strat_results.get('winner_holding_avg', 'N/A')}",
+            ),
+            (
+                "Min/Max/Avg. Duration Losers",
+                f"{strat_results.get('loser_holding_min', 'N/A')} / "
+                f"{strat_results.get('loser_holding_max', 'N/A')} / "
+                f"{strat_results.get('loser_holding_avg', 'N/A')}",
+            ),
             (
                 "Max Consecutive Wins / Loss",
                 (

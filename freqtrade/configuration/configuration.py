@@ -135,7 +135,7 @@ class Configuration:
                 {"verbosity": safe_value_fallback(self.args, "verbosity", default_value=0)}
             )
 
-        if "logfile" in self.args and self.args["logfile"]:
+        if self.args.get("logfile"):
             config.update({"logfile": self.args["logfile"]})
 
         if "print_colorized" in self.args and not self.args["print_colorized"]:
@@ -187,7 +187,7 @@ class Configuration:
             logger.warning("`force_entry_enable` RPC message enabled.")
 
         # Support for sd_notify
-        if "sd_notify" in self.args and self.args["sd_notify"]:
+        if self.args.get("sd_notify"):
             config["internals"].update({"sd_notify": True})
 
     def _process_datadir_options(self, config: Config) -> None:
@@ -196,14 +196,14 @@ class Configuration:
         --user-data, --datadir
         """
         # Check exchange parameter here - otherwise `datadir` might be wrong.
-        if "exchange" in self.args and self.args["exchange"]:
+        if self.args.get("exchange"):
             config["exchange"]["name"] = self.args["exchange"]
             logger.info(f"Using exchange {config['exchange']['name']}")
 
         if "pair_whitelist" not in config["exchange"]:
             config["exchange"]["pair_whitelist"] = []
 
-        if "user_data_dir" in self.args and self.args["user_data_dir"]:
+        if self.args.get("user_data_dir"):
             config.update({"user_data_dir": self.args["user_data_dir"]})
         elif "user_data_dir" not in config:
             # Default to cwd/user_data (legacy option ...)
@@ -251,7 +251,7 @@ class Configuration:
             logstring="Parameter --enable-protections detected, enabling Protections. ...",
         )
 
-        if "max_open_trades" in self.args and self.args["max_open_trades"]:
+        if self.args.get("max_open_trades"):
             config.update({"max_open_trades": self.args["max_open_trades"]})
             logger.info(
                 "Parameter --max-open-trades detected, overriding max_open_trades to: %s ...",
@@ -314,7 +314,7 @@ class Configuration:
         self._args_to_config_loop(config, configurations)
 
         # Edge section:
-        if "stoploss_range" in self.args and self.args["stoploss_range"]:
+        if self.args.get("stoploss_range"):
             txt_range = ast.literal_eval(self.args["stoploss_range"])
             config["edge"].update({"stoploss_range_min": txt_range[0]})
             config["edge"].update({"stoploss_range_max": txt_range[1]})
@@ -334,6 +334,19 @@ class Configuration:
             ("print_all", "Parameter --print-all detected ..."),
         ]
         self._args_to_config_loop(config, configurations)
+        es_epochs = self.args.get("early_stop", 0)
+        if es_epochs > 0:
+            if es_epochs < 20:
+                logger.warning(
+                    f"Early stop epochs {es_epochs} lower than 20. It will be replaced with 20."
+                )
+                config.update({"early_stop": 20})
+            else:
+                config.update({"early_stop": self.args["early_stop"]})
+            logger.info(
+                f"Parameter --early-stop detected ... Will early stop hyperopt if no improvement "
+                f"after {config.get('early_stop')} epochs ..."
+            )
 
         configurations = [
             ("print_json", "Parameter --print-json detected ..."),
@@ -493,7 +506,7 @@ class Configuration:
             config["exchange"]["pair_whitelist"] = config["pairs"]
             return
 
-        if "pairs_file" in self.args and self.args["pairs_file"]:
+        if self.args.get("pairs_file"):
             pairs_file = Path(self.args["pairs_file"])
             logger.info(f'Reading pairs file "{pairs_file}".')
             # Download pairs from the pairs file if no config is specified
@@ -505,7 +518,7 @@ class Configuration:
                 config["pairs"].sort()
             return
 
-        if "config" in self.args and self.args["config"]:
+        if self.args.get("config"):
             logger.info("Using pairlist from configuration.")
             config["pairs"] = config.get("exchange", {}).get("pair_whitelist")
         else:
