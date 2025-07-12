@@ -118,7 +118,7 @@ class TrendV6(IStrategy):
         for i in range(2, days):
             indicator_down_mask = indicator_down_mask & (dataframe[f'{indicator}'].shift(i-1) < dataframe[f'{indicator}'].shift(i))
         return indicator_down_mask
- 
+
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['enter_long'] = 0
         dataframe['enter_short'] = 0
@@ -242,9 +242,12 @@ class TrendV6(IStrategy):
         if max_profit > 0.1 * leverage:
             profit_decay_exit = "profit_decay_slow"
             step = round(open_hours / 24)
+        elif max_profit > 0.05 * leverage:
+            profit_decay_exit = "profit_decay_mid"
+            step = round(open_hours / 8)
         else:
             profit_decay_exit = "profit_decay_fast"
-            step = round(open_hours / 8)
+            step = round(open_hours / 3)
         
         if step > 1 and current_profit < (max_profit / step):
             return profit_decay_exit
