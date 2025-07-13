@@ -27,7 +27,7 @@ class TrendV7(IStrategy):
     enable_profit_decay = False
     enable_negative_exit = False
 
-    base_stop_loss = 0.1
+    base_stop_loss = 0.08
     stoploss = -base_stop_loss * trade_leverage.value
 
     base_trailing_stop = 0.12
@@ -54,10 +54,12 @@ class TrendV7(IStrategy):
     ema_short_len = IntParameter(5, 100, default=lookback_period, space='buy')
     ema_mid_len = IntParameter(5, 100, default=lookback_period * 3, space='buy')
     ema_long_len = IntParameter(5, 100, default=lookback_period * 6, space='buy')
+    ema_week_len = IntParameter(5, 100, default=lookback_period * 4 * 3, space='buy')
 
-    startup_candle_count = int(max(window_length.value, ema_long_len.value) * 1.2)
+    startup_candle_count = int(max(window_length.value, ema_week_len.value) * 1.2)
 
     atr_period = 21
+    rsi_period = 14
     cci_period = 21
     cci_threshold = 80
     
@@ -87,6 +89,7 @@ class TrendV7(IStrategy):
         dataframe['ema_short'] = pta.ema(close=dataframe['ha_close'], length=self.ema_short_len.value, talib=False)
         dataframe['ema_mid'] = pta.ema(close=dataframe['ha_close'], length=self.ema_mid_len.value, talib=False)
         dataframe['ema_long'] = pta.ema(close=dataframe['ha_close'], length=self.ema_long_len.value, talib=False)
+        dataframe['ema_week'] = pta.ema(close=dataframe['ha_close'], length=self.ema_week_len.value, talib=False)
         
         # atr
         dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_period)
@@ -98,11 +101,15 @@ class TrendV7(IStrategy):
         
         # volume
         dataframe['obv'] = pta.obv(close=dataframe['ha_close'], volume=dataframe['volume'])
+        dataframe['obv_mid_ma'] = pta.sma(close=dataframe['obv'], length=self.volume_mid)
         # dataframe['ad'] = pta.ad(high=dataframe['ha_high'], low=dataframe['ha_low'], close=dataframe['ha_close'], volume=dataframe['volume'])
         # dataframe['adosc'] = pta.adosc(high=dataframe['ha_high'], low=dataframe['ha_low'], close=dataframe['ha_close'], volume=dataframe['volume'])
         # dataframe['pvol'] = pta.pvol(close=dataframe['ha_close'], volume=dataframe['volume'])
         dataframe['volume_short_mean'] = dataframe['volume'].rolling(self.volume_short).mean()
         dataframe['volume_mid_mean'] = dataframe['volume'].rolling(self.volume_mid).mean()
+        
+        # rsi
+        # dataframe['rsi'] = pta.rsi(close=dataframe['ha_close'], length=self.rsi_period)
         
         # cci
         dataframe['cci'] = pta.cci(high=dataframe['ha_high'], low=dataframe['ha_low'], close=dataframe['ha_close'], length=self.cci_period)
@@ -129,13 +136,27 @@ class TrendV7(IStrategy):
             (
                 (dataframe['ema_short'] > dataframe['ema_mid'])
                 & (dataframe['ha_close'] > dataframe['ema_short'])
+                & (dataframe['ema_short'] > dataframe['ema_week'])
+                & (self.indicator_up_n_periods_mask(dataframe, 'ema_short', self.trend_length))
+                & (self.indicator_up_n_periods_mask(dataframe, 'ema_mid', self.trend_length))
+                & (self.indicator_up_n_periods_mask(dataframe, 'ema_long', self.trend_length))
+                & (self.indicator_up_n_periods_mask(dataframe, 'ema_week', self.trend_length))
+                # & (dataframe['rsi'] < 90)
                 & (dataframe['cci'] > self.cci_threshold)
-                & (dataframe['volume_short_mean'] > self.volume_ratio * dataframe['volume_mid_mean'])
+                & (
+                    (dataframe['volume_short_mean'] > self.volume_ratio * dataframe['volume_mid_mean'])
+                    |
+                    (dataframe['volume_mid_mean'] > self.volume_ratio * dataframe['volume_mid_mean'].shift(self.volume_mid))
+                )
+                & (self.indicator_up_n_periods_mask(dataframe, 'volume_mid_mean', self.trend_length))
+                & (dataframe['obv'] > dataframe['obv_mid_ma'])
                 & (self.indicator_up_n_periods_mask(dataframe, 'obv', self.trend_length))
-                & (dataframe['ao'] > 0)
+                & (self.indicator_up_n_periods_mask(dataframe, 'obv_mid_ma', self.trend_length))
+                & (
+                    (dataframe['ao'] > 0) | (dataframe['ac'] > 0)
+                )
                 & (self.indicator_up_n_periods_mask(dataframe, 'ao', self.trend_length))
-                & (dataframe['ac'] > 0)
-                & (self.indicator_up_n_periods_mask(dataframe, 'ac', self.trend_length))
+                # & (self.indicator_up_n_periods_mask(dataframe, 'ac', self.trend_length))
             ), 
             ['enter_long', 'enter_tag']] = (1, 'entry_long')
 
@@ -143,13 +164,27 @@ class TrendV7(IStrategy):
             (
                 (dataframe['ema_short'] < dataframe['ema_mid'])
                 & (dataframe['ha_close'] < dataframe['ema_short'])
+                & (dataframe['ema_short'] < dataframe['ema_week'])
+                & (self.indicator_down_n_periods_mask(dataframe, 'ema_short', self.trend_length))
+                & (self.indicator_down_n_periods_mask(dataframe, 'ema_mid', self.trend_length))
+                & (self.indicator_down_n_periods_mask(dataframe, 'ema_long', self.trend_length))
+                & (self.indicator_down_n_periods_mask(dataframe, 'ema_week', self.trend_length))
+                # & (dataframe['rsi'] < 70)
                 & (dataframe['cci'] < -self.cci_threshold)
-                & (dataframe['volume_short_mean'] > self.volume_ratio * dataframe['volume_mid_mean'])
+                & (
+                    (dataframe['volume_short_mean'] > self.volume_ratio * dataframe['volume_mid_mean'])
+                    |
+                    (dataframe['volume_mid_mean'] > self.volume_ratio * dataframe['volume_mid_mean'].shift(self.volume_mid))
+                )
+                & (self.indicator_up_n_periods_mask(dataframe, 'volume_mid_mean', self.trend_length))
+                & (dataframe['obv'] < dataframe['obv_mid_ma'])
                 & (self.indicator_down_n_periods_mask(dataframe, 'obv', self.trend_length))
-                & (dataframe['ao'] < 0)
+                & (self.indicator_down_n_periods_mask(dataframe, 'obv_mid_ma', self.trend_length))
+                & (
+                    (dataframe['ao'] < 0) | (dataframe['ac'] < 0)
+                )
                 & (self.indicator_down_n_periods_mask(dataframe, 'ao', self.trend_length))
-                & (dataframe['ac'] < 0)
-                & (self.indicator_down_n_periods_mask(dataframe, 'ac', self.trend_length))
+                # & (self.indicator_down_n_periods_mask(dataframe, 'ac', self.trend_length))
             ), 
             ['enter_short', 'enter_tag']] = (1, 'entry_short')
 
@@ -256,7 +291,7 @@ class TrendV7(IStrategy):
                 return profit_decay_exit
         
         if self.enable_negative_exit:
-            if open_hours >= 12:
+            if open_hours >= 24:
                 df, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
                 if df is None or df.empty:
                     return None
