@@ -271,12 +271,15 @@ class Trend5mV9(IStrategy):
         else:
             max_profit = (trade.max_rate - open_rate) / open_rate
 
-        if max_profit > 0.2:
-            if current_profit < 0.6 * max_profit:
-                return "large_drawdown_60"
-        elif max_profit > 0.1:
-            if current_profit < 0.7 * max_profit:
-                return "large_drawdown_70"
+        # if max_profit > 0.3:
+        #     if current_profit < 0.7 * max_profit:
+        #         return "large_drawdown_70"
+        # elif max_profit > 0.2:
+        #     if current_profit < 0.65 * max_profit:
+        #         return "large_drawdown_65"
+        # elif max_profit > 0.1:
+        #     if current_profit < 0.6 * max_profit:
+        #         return "large_drawdown_60"
         
         open_hours = round((current_time - trade.open_date_utc).total_seconds() / 3600)
         
