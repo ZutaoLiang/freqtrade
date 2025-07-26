@@ -255,8 +255,8 @@ class VolumeTrend5mV1(IStrategy):
         else:
             max_profit = (trade.max_rate - open_rate) / open_rate
 
-        open_hours = round((current_time - trade.open_date_utc).total_seconds() / 3600)
-        if open_hours > 6:
+        open_hours = round((current_time - trade.open_date_utc).total_seconds() / 3600, 1)
+        if open_hours > 4:
             if max_profit < 0.05 and 0 < _current_profit < 0.4 * max_profit:
                 return "longtime_low_profit_40"
         
