@@ -6,6 +6,9 @@ pd.set_option('display.width', None)
 
 from pandas import DataFrame
 
+from sklearn.linear_model import LinearRegression
+from scipy.signal import savgol_filter
+
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 # from freqtrade.strategy.strategy_helper import stoploss_from_absolute, stoploss_from_open
 from freqtrade.strategy.interface import IStrategy
@@ -46,6 +49,8 @@ class VolumeTrend5mV2(IStrategy):
     addition_stake_ratio = 0.8
     addition_min_profit = 0.1
     addition_profit_step = 0.08
+    
+    dynamic_entry_by_signal_score = True
 
     lookback_period = 12
     
@@ -116,7 +121,198 @@ class VolumeTrend5mV2(IStrategy):
         # cci
         dataframe['cci'] = pta.cci(high=dataframe['ha_high'], low=dataframe['ha_low'], close=dataframe['ha_close'], length=self.cci_period)
         
+        dataframe['ha_close_ma'] = pta.ema(close=dataframe['ha_close'], length=5, talib=False)
+        dataframe['smooth_close'] = savgol_filter(dataframe['ha_close_ma'], window_length=15, polyorder=1)
+        
+        peaks, troughs = self.find_peaks_and_troughs(dataframe['smooth_close'])
+
+        filtered_peaks, filtered_troughs = self.filter_extremes(peaks, troughs, dataframe['smooth_close'], dataframe.index, distance_threshold=5, ratio_threshold=0.005)
+
+        dataframe['peak'] = np.nan
+        dataframe.loc[filtered_peaks, 'peak'] = dataframe.loc[filtered_peaks, 'smooth_close']
+        dataframe['trough'] = np.nan
+        dataframe.loc[filtered_troughs, 'trough'] = dataframe.loc[filtered_troughs, 'smooth_close']
+
+        fit_results = self.fit_linear_regression(dataframe, filtered_peaks, filtered_troughs)
+        dataframe = pd.merge(dataframe, fit_results, left_index=True, right_index=True)
+
+        if self.dynamic_entry_by_signal_score:
+            dataframe = self.calc_signal_score(dataframe)
         return dataframe
+
+    def confirm_trade_entry(
+        self,
+        pair: str,
+        order_type: str,
+        amount: float,
+        rate: float,
+        time_in_force: str,
+        current_time: datetime,
+        entry_tag: str | None,
+        side: str,
+        **kwargs,
+    ) -> bool:
+        if not self.dynamic_entry_by_signal_score:
+            return True
+        
+        open_trades = len(Trade.get_open_trades())
+        max_trades = self.config.get('max_open_trades')
+        
+        if open_trades >= max_trades:
+            return False
+        
+        signals = {}
+        for whitelist_pair in self.dp.current_whitelist():
+            try:
+                dataframe, _ = self.dp.get_analyzed_dataframe(whitelist_pair, self.timeframe)
+                if dataframe is None or dataframe.empty:
+                    continue
+                    
+                last_candle = dataframe.iloc[-1].squeeze()
+                
+                if last_candle.get('enter_long', False) or last_candle.get('enter_short', False):
+                    signals[whitelist_pair] = round(float(last_candle.get('signal_score', 0)), 2)
+                    
+            except Exception as e:
+                self.logger.warning(f"Error getting signals for {whitelist_pair}: {e}")
+                continue
+            
+        if not signals:
+            return True
+        
+        sorted_signals = sorted(signals.items(), key=lambda x: x[1], reverse=True)
+        top_signals = sorted_signals[:(max_trades - open_trades)]
+        top_pairs = [item[0] for item in top_signals]
+        
+        if pair in top_pairs:
+            logger.info(f"Pair {pair}(score:{signals.get(pair)}) is in top {len(top_pairs)} signal score ranking: {top_signals}")
+            return True
+        else:
+            logger.info(f"Current pair {pair}(score:{signals.get(pair)}) not in top {len(top_pairs)} signal score ranking: {top_signals}, skip entry")
+            return False
+
+    def calc_signal_score(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        score = pd.Series(0.0, index=dataframe.index)
+        score += (dataframe['volume_short_mean'] / dataframe['volume_mid_mean'])
+        score += (dataframe['segment_length'] / 10).clip(upper=self.volume_ratio/2)
+        score += (dataframe['slope'].abs() / 0.001).clip(upper=self.volume_ratio/2)
+        
+        dataframe['signal_score'] = score
+        return dataframe
+
+    def find_peaks_and_troughs(self, series: pd.Series) -> tuple:
+        peaks = series[(series.shift(1) < series) & (series.shift(-1) < series)].index
+        troughs = series[(series.shift(1) > series) & (series.shift(-1) > series)].index
+        return peaks, troughs
+
+    def filter_extremes(self, peaks: pd.Index, troughs: pd.Index, series: pd.Series, index: pd.Index, distance_threshold: int, ratio_threshold: float) -> tuple:
+        filtered_peaks = []
+        filtered_troughs = []
+
+        points = sorted(list(peaks) + list(troughs))
+        last_point_index = None
+        last_point_type = None
+        last_point_value = None
+
+        for i in range(len(points)):
+            current_point = points[i]
+            current_point_value = series[current_point]
+
+            if last_point_index is not None:
+                distance = i - last_point_index
+                if distance >= distance_threshold:
+                    if last_point_type == 'peak':
+                        filtered_peaks.append(last_point)
+                    else:
+                        filtered_troughs.append(last_point)
+
+                    last_point_index = i
+                    last_point_type = 'peak' if current_point in peaks else 'trough'
+                    last_point = current_point
+                    last_point_value = current_point_value
+                else:
+                    if last_point_type == 'peak':
+                        if abs(last_point_value / current_point_value - 1) <= ratio_threshold:
+                            continue
+                    else:
+                        if abs(current_point_value / last_point_value - 1) <= ratio_threshold:
+                            continue
+
+                    if last_point_type == 'peak':
+                        filtered_peaks.append(last_point)
+                    else:
+                        filtered_troughs.append(last_point)
+
+                    last_point_index = i
+                    last_point_type = 'peak' if current_point in peaks else 'trough'
+                    last_point = current_point
+                    last_point_value = current_point_value
+            else:
+                last_point_index = i
+                last_point_type = 'peak' if current_point in peaks else 'trough'
+                last_point = current_point
+                last_point_value = current_point_value
+
+        if last_point_type == 'peak':
+            filtered_peaks.append(last_point)
+        else:
+            filtered_troughs.append(last_point)
+
+        return filtered_peaks, filtered_troughs
+
+    def fit_linear_regression(self, dataframe: pd.DataFrame, peaks: list, troughs: list) -> pd.DataFrame:
+        slopes = [None] * len(dataframe)
+        intercepts = [None] * len(dataframe)
+        fitted_lines = [None] * len(dataframe)
+        segment_lengths = [None] * len(dataframe)
+
+        control_points = sorted(set(peaks + troughs))
+
+        for i in range(len(control_points) - 1):
+            start_index = control_points[i]
+            end_index = min(control_points[i + 1], len(dataframe))
+            segment = dataframe.loc[start_index:end_index]
+
+            x = np.array(segment.index).reshape(-1, 1)
+            y = segment['smooth_close'].values
+
+            model = LinearRegression().fit(x, y)
+            slope = model.coef_[0]
+            intercept = model.intercept_
+
+            for j in range(start_index, end_index):
+                slopes[j] = slope
+                intercepts[j] = intercept
+                fitted_lines[j] = slope * j + intercept
+                segment_lengths[j] = j - start_index
+
+        if len(control_points) > 0:
+            last_start_index = control_points[-1]
+            last_end_index = len(dataframe)
+
+            if last_start_index < len(dataframe) - 1:
+                segment = dataframe.loc[last_start_index:last_end_index]
+
+                x = np.array(segment.index).reshape(-1, 1)
+                y = segment['smooth_close'].values
+
+                model = LinearRegression().fit(x, y)
+                slope = model.coef_[0]
+                intercept = model.intercept_
+
+                for j in range(last_start_index, last_end_index):
+                    slopes[j] = slope
+                    intercepts[j] = intercept
+                    fitted_lines[j] = slope * j + intercept
+                    segment_lengths[j] = j - last_start_index
+
+        fit_results = pd.DataFrame({
+            'fitted_line': fitted_lines,
+            'slope': slopes,
+            'segment_length': segment_lengths
+        })
+
+        return fit_results
     
     def indicator_up_n_periods_mask(self, dataframe: DataFrame, indicator: str, days: int):
         indicator_up_mask = (dataframe[f'{indicator}'] > dataframe[f'{indicator}'].shift(1))
