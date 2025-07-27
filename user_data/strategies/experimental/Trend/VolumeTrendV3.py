@@ -50,7 +50,7 @@ class VolumeTrendV3(IStrategy):
     addition_min_profit = 0.1
     addition_profit_step = 0.08
     
-    dynamic_entry_by_signal_score = True
+    dynamic_entry_by_signal_score = False
 
     lookback_period = 12
     
@@ -336,6 +336,7 @@ class VolumeTrendV3(IStrategy):
                 & (dataframe['ha_close'] > dataframe['ha_close'].shift(1))
                 & (dataframe['ha_close'] > dataframe['ha_open'])
                 & (dataframe['volume_short_mean'] > self.volume_ratio * dataframe['volume_mid_mean'])
+                & (dataframe['slope'] > 0)
                 
                 # & (dataframe['ema_short'] > dataframe['ema_long'])
                 # & (dataframe['ema_mid'] > dataframe['ema_week'])
@@ -353,6 +354,7 @@ class VolumeTrendV3(IStrategy):
                 & (dataframe['ha_close'] < dataframe['ha_close'].shift(1))
                 & (dataframe['ha_close'] < dataframe['ha_open'])
                 & (dataframe['volume_short_mean'] > self.volume_ratio * dataframe['volume_mid_mean'])
+                & (dataframe['slope'] < 0)
                 
                 # & (dataframe['ema_short'] < dataframe['ema_long'])
                 # & (dataframe['ema_mid'] < dataframe['ema_week'])
