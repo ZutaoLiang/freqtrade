@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class VolumeTrendTrailingV4(IStrategy):
     timeframe = '15m'
-    trade_leverage = IntParameter(1, 10, default=5, space='buy')
+    trade_leverage = IntParameter(1, 10, default=10, space='buy')
     
     minimal_roi = {"0": 100}
     
