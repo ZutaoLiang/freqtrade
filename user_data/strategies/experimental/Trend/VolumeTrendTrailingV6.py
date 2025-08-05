@@ -30,7 +30,7 @@ class VolumeTrendTrailingV6(IStrategy):
     enable_profit_decay = False
     enable_negative_exit = False
 
-    base_stop_loss = 0.08
+    base_stop_loss = 0.07
     stoploss = -base_stop_loss * trade_leverage.value
 
     base_trailing_stop = 0.045
@@ -45,6 +45,7 @@ class VolumeTrendTrailingV6(IStrategy):
     # use_custom_stoploss = True
 
     can_short = True
+    process_only_new_candles = True
     position_adjustment_enable = True
     addition_stake_ratio = 0.8
     addition_min_profit = 0.08
@@ -69,9 +70,9 @@ class VolumeTrendTrailingV6(IStrategy):
     cci_threshold = 100
     
     volume_short = 1
-    volume_mid = 30
+    volume_mid = 20
     # volume_long = ema_week_len.value
-    volume_ratio = 3
+    volume_ratio = 2.5
     
     trend_length = 3
     
@@ -339,7 +340,7 @@ class VolumeTrendTrailingV6(IStrategy):
                 # & (dataframe['slope'] > 0)
                 
                 & (dataframe['ema_short'] > dataframe['ema_mid'])
-                & (dataframe['ema_mid'] > dataframe['ema_long'])
+                # & (dataframe['ema_mid'] > dataframe['ema_long'])
                 # & (dataframe['ema_mid'] > dataframe['ema_long'])
                 # & (dataframe['ema_mid'] > dataframe['ema_week'])
                 # & (dataframe['ema_long'] > dataframe['ema_week'])
@@ -360,7 +361,7 @@ class VolumeTrendTrailingV6(IStrategy):
                 # & (dataframe['slope'] < 0)
                 
                 & (dataframe['ema_short'] < dataframe['ema_mid'])
-                & (dataframe['ema_mid'] < dataframe['ema_long'])
+                # & (dataframe['ema_mid'] < dataframe['ema_long'])
                 # & (dataframe['ema_mid'] < dataframe['ema_long'])
                 # & (dataframe['ema_mid'] < dataframe['ema_week'])
                 # & (dataframe['ema_long'] < dataframe['ema_week'])
@@ -506,9 +507,9 @@ class VolumeTrendTrailingV6(IStrategy):
         _current_profit = current_profit / leverage
         
         if trade.is_short:
-            max_profit = (open_rate - trade.min_rate) / open_rate
+            max_profit = (open_rate - trade.min_rate) / open_rate - 0.001
         else:
-            max_profit = (trade.max_rate - open_rate) / open_rate
+            max_profit = (trade.max_rate - open_rate) / open_rate - 0.001
             
         count_of_orders = len(trade.select_filled_orders())
         if count_of_orders > 1:
@@ -523,12 +524,18 @@ class VolumeTrendTrailingV6(IStrategy):
         #     if _current_profit < 0.7 * max_profit:
         #         return "addition_drawdown"
         
+        open_hours = round((current_time - trade.open_date_utc).total_seconds() / 3600, 1)
+        
         dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
         last_candle = dataframe.iloc[-1].squeeze()
-        if (last_candle['exit_long_trend'] == 1 or last_candle['exit_short_trend'] == 1) and max_profit > 0.01 and _current_profit > 0.6 * max_profit:
-            return 'exit_trend'
+        if (last_candle['exit_long_trend'] == 1 or last_candle['exit_short_trend'] == 1):
+            if open_hours < 4:
+                if max_profit > 0.01 and _current_profit > (0.5 * max_profit):
+                    return "exit_trend"
+            else:
+                if max_profit > 0.005 and _current_profit > (0.6 * max_profit):
+                    return "exit_trend_long_time"
 
-        open_hours = round((current_time - trade.open_date_utc).total_seconds() / 3600, 1)
         if open_hours > 4:
             if max_profit < 0.05 and 0.005 < _current_profit < 0.5 * max_profit:
                 return "longtime_low_profit_40"
