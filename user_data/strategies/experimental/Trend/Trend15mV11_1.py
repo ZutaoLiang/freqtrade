@@ -43,9 +43,9 @@ class Trend15mV11_1(IStrategy):
 
     can_short = True
     position_adjustment_enable = True
-    addition_stake_ratio = 0.6
-    addition_min_profit = 0.08
-    addition_profit_step = 0.08
+    addition_stake_ratio = 0.8
+    addition_min_profit = 0.06
+    addition_profit_step = 0.02
 
     lookback_period = 12
     
@@ -269,17 +269,24 @@ class Trend15mV11_1(IStrategy):
         
         count_of_orders = len(trade.select_filled_orders())
         if count_of_orders > 1:
-            if _current_profit < 0.02:
-                return "addition_drawdown"
+            if count_of_orders > 8:
+                if _current_profit < 0.06:
+                    return "addition_drawdown_1"
+            if count_of_orders > 4:
+                if _current_profit < 0.03:
+                    return "addition_drawdown_1"
+            else:
+                if _current_profit < 0.02:
+                    return "addition_drawdown_2"
     
         if trade.is_short:
             max_profit = (open_rate - trade.min_rate) / open_rate
         else:
             max_profit = (trade.max_rate - open_rate) / open_rate
 
-        open_hours = round((current_time - trade.open_date_utc).total_seconds() / 3600)
-        if open_hours > 6:
-            if max_profit < 0.05 and 0 < _current_profit < 0.4 * max_profit:
+        open_hours = round((current_time - trade.open_date_utc).total_seconds() / 3600, 1)
+        if open_hours > 3:
+            if max_profit < 0.05 and 0.001 < _current_profit < 0.4 * max_profit:
                 return "longtime_low_profit_40"
         
         return None
@@ -358,7 +365,7 @@ class Trend15mV11_1(IStrategy):
         new_open_rate = (trade.amount * trade.open_rate + addition_stake) / (trade.amount + addition_amount)
         new_open_profit = factor * (current_rate / new_open_rate - 1)
         
-        enough_profit = new_open_profit > self.addition_min_profit
+        enough_profit = new_open_profit > (self.addition_min_profit + 0.01 * (count_of_orders - 1))
         last_entry_price = entry_side_orders[-1].average
         
         # dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
@@ -376,8 +383,8 @@ class Trend15mV11_1(IStrategy):
                 logger.info(f'Position addition #{count_of_orders+1} for {trade.pair} with estimated new_profit:{new_open_profit*leverage:.2%} and stake amount {addition_stake:.5f}, '
                             f'current_profit:{current_profit:.2%}, current_rate:{current_rate:.5f} at {current_time}')
                 return (addition_stake / leverage, f'entry-addition')
-            else:
-                logger.warning(f'Skip position addition for {trade.pair} with estimated new_profit:{new_open_profit*leverage:.2%} and stake amount {addition_stake:.5f} is out of range'
-                            f'({min_stake:.2f}-{max_stake:.2f}), current_profit:{current_profit:.2%}, current_rate:{current_rate:.5f} at {current_time}')
+            # else:
+            #     logger.warning(f'Skip position addition for {trade.pair} with estimated new_profit:{new_open_profit*leverage:.2%} and stake amount {addition_stake:.5f} is out of range'
+            #                 f'({min_stake:.2f}-{max_stake:.2f}), current_profit:{current_profit:.2%}, current_rate:{current_rate:.5f} at {current_time}')
         
         return None
