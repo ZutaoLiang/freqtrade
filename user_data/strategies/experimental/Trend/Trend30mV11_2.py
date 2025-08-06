@@ -17,8 +17,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Trend15mV11_2(IStrategy):
-    timeframe = '15m'
+class Trend30mV11_2(IStrategy):
+    timeframe = '30m'
     trade_leverage = IntParameter(1, 10, default=5, space='buy')
     
     minimal_roi = {"0": 100}
@@ -45,7 +45,7 @@ class Trend15mV11_2(IStrategy):
     position_adjustment_enable = True
     addition_stake_ratio = 0.8
     addition_min_profit = 0.07
-    addition_profit_step = 0.02
+    addition_profit_step = 0.015
 
     lookback_period = 12
     
@@ -270,14 +270,20 @@ class Trend15mV11_2(IStrategy):
         count_of_orders = len(trade.select_filled_orders())
         if count_of_orders > 1:
             if count_of_orders > 8:
+                rate_change_pct = 0.45
+                if trade.is_short and current_rate > trade.min_rate * (1 + rate_change_pct):
+                    return "large_price_change"
+                elif not trade.is_short and current_rate < trade.max_rate * (1 - rate_change_pct):
+                    return "large_price_change"
+                
                 if _current_profit < 0.06:
                     return "addition_drawdown_1"
             if count_of_orders > 4:
                 if _current_profit < 0.03:
-                    return "addition_drawdown_1"
+                    return "addition_drawdown_2"
             else:
                 if _current_profit < 0.02:
-                    return "addition_drawdown_2"
+                    return "addition_drawdown_3"
     
         if trade.is_short:
             max_profit = (open_rate - trade.min_rate) / open_rate
