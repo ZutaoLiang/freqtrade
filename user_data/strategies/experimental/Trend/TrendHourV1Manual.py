@@ -17,7 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class TrendHourV1(IStrategy):
+class TrendHourV1Manual(IStrategy):
     timeframe = '1h'
     trade_leverage = IntParameter(1, 10, default=5, space='buy')
     
@@ -148,7 +148,7 @@ class TrendHourV1(IStrategy):
                 & (self.indicator_up_n_periods_mask(dataframe, 'obv', self.trend_length))
                 & (self.indicator_up_n_periods_mask(dataframe, 'obv_mid_ma', self.trend_length))
             ), 
-            ['enter_long', 'enter_tag']] = (1, 'entry_long')
+            'long_signal'] = 1
 
         dataframe.loc[
             (
@@ -167,7 +167,7 @@ class TrendHourV1(IStrategy):
                 & (self.indicator_down_n_periods_mask(dataframe, 'obv', self.trend_length))
                 & (self.indicator_down_n_periods_mask(dataframe, 'obv_mid_ma', self.trend_length))
             ), 
-            ['enter_short', 'enter_tag']] = (1, 'entry_short')
+            'short_signal'] = 1
 
         return dataframe
 
