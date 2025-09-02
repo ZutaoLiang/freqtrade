@@ -6,7 +6,6 @@ pd.set_option('display.width', None)
 
 from pandas import DataFrame
 
-from sklearn.linear_model import LinearRegression
 from scipy.signal import savgol_filter
 
 import freqtrade.vendor.qtpylib.indicators as qtpylib
@@ -127,7 +126,7 @@ class StrongTrendV1(IStrategy):
         
         peaks, troughs = self.find_peaks_and_troughs(dataframe['smooth_close'])
 
-        filtered_peaks, filtered_troughs = self.filter_extremes(peaks, troughs, dataframe['smooth_close'], dataframe.index, distance_threshold=5, ratio_threshold=0.005)
+        filtered_peaks, filtered_troughs = self.filter_extremes(peaks, troughs, dataframe['smooth_close'], dataframe.index, distance_threshold=5, ratio_threshold=0.01)
 
         dataframe['peak'] = np.nan
         dataframe.loc[filtered_peaks, 'peak'] = dataframe.loc[filtered_peaks, 'smooth_close']
@@ -263,6 +262,7 @@ class StrongTrendV1(IStrategy):
 
     def fit_linear_regression(self, dataframe: pd.DataFrame, peaks: list, troughs: list) -> pd.DataFrame:
         slopes = [None] * len(dataframe)
+        relative_slopes = [None] * len(dataframe)
         intercepts = [None] * len(dataframe)
         fitted_lines = [None] * len(dataframe)
         segment_lengths = [None] * len(dataframe)
@@ -271,18 +271,17 @@ class StrongTrendV1(IStrategy):
 
         for i in range(len(control_points) - 1):
             start_index = control_points[i]
-            end_index = min(control_points[i + 1], len(dataframe))
+            end_index = min(control_points[i + 1] + 1, len(dataframe))
             segment = dataframe.loc[start_index:end_index]
 
             x = np.array(segment.index).reshape(-1, 1)
             y = segment['smooth_close'].values
 
-            model = LinearRegression().fit(x, y)
-            slope = model.coef_[0]
-            intercept = model.intercept_
+            slope, intercept = np.polyfit(x.flatten(), y, 1)
 
-            for j in range(start_index, end_index):
+            for j in range(start_index, min(end_index+1, len(dataframe))):
                 slopes[j] = slope
+                relative_slopes[j] = slope / np.mean(y)
                 intercepts[j] = intercept
                 fitted_lines[j] = slope * j + intercept
                 segment_lengths[j] = j - start_index
@@ -296,13 +295,11 @@ class StrongTrendV1(IStrategy):
 
                 x = np.array(segment.index).reshape(-1, 1)
                 y = segment['smooth_close'].values
+                slope, intercept = np.polyfit(x.flatten(), y, 1)
 
-                model = LinearRegression().fit(x, y)
-                slope = model.coef_[0]
-                intercept = model.intercept_
-
-                for j in range(last_start_index, last_end_index):
+                for j in range(last_start_index, min(last_end_index+1, len(dataframe))):
                     slopes[j] = slope
+                    relative_slopes[j] = slope / np.mean(y)
                     intercepts[j] = intercept
                     fitted_lines[j] = slope * j + intercept
                     segment_lengths[j] = j - last_start_index
@@ -310,6 +307,7 @@ class StrongTrendV1(IStrategy):
         fit_results = pd.DataFrame({
             'fitted_line': fitted_lines,
             'slope': slopes,
+            'relative_slope': relative_slopes,
             'segment_length': segment_lengths
         })
 
@@ -337,7 +335,7 @@ class StrongTrendV1(IStrategy):
                 & (dataframe['ha_close'] > dataframe['ha_close'].shift(1))
                 & (dataframe['ha_close'] > dataframe['ha_open'])
                 & (dataframe['volume_short_mean'] > self.volume_ratio * dataframe['volume_mid_mean'])
-                & (dataframe['slope'] > 0.001)
+                & (dataframe['relative_slope'] > 0.005)
                 & (dataframe['segment_length'] > 3)
                 
                 # & (dataframe['ema_short'] > dataframe['ema_mid'])
@@ -359,7 +357,7 @@ class StrongTrendV1(IStrategy):
                 & (dataframe['ha_close'] < dataframe['ha_close'].shift(1))
                 & (dataframe['ha_close'] < dataframe['ha_open'])
                 & (dataframe['volume_short_mean'] > self.volume_ratio * dataframe['volume_mid_mean'])
-                & (dataframe['slope'] < -0.001)
+                & (dataframe['relative_slope'] < -0.005)
                 & (dataframe['segment_length'] > 3)
                 
                 & (dataframe['ema_short'] < dataframe['ema_mid'])
