@@ -536,9 +536,9 @@ class StrongTrendV1(IStrategy):
         #         if max_profit > 0.005 and _current_profit > (0.6 * max_profit):
         #             return "exit_trend_long_time"
 
-        # if open_hours > 4:
-        #     if max_profit < 0.05 and 0.005 < _current_profit < 0.5 * max_profit:
-        #         return "longtime_low_profit_40"
+        if open_hours > 4:
+            if max_profit < 0.05 and 0.005 < _current_profit < 0.5 * max_profit:
+                return "longtime_low_profit_40"
         
         # if max_profit > 0.1 and 0.5 * max_profit < _current_profit < 0.7 * max_profit:
         #     return "10_drawdown"
