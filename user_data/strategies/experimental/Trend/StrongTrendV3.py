@@ -272,7 +272,7 @@ class StrongTrendV3(IStrategy):
 
         if last_point_type == 'peak':
             filtered_peaks.append(last_point)
-        else:
+        elif last_point_type == 'trough':
             filtered_troughs.append(last_point)
 
         return filtered_peaks, filtered_troughs
