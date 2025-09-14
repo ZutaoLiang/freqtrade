@@ -93,8 +93,11 @@ class StrongTrendV8(IStrategy):
         self.profit_info_log = self.get_config("profit_info_log", False)
         
         self.cooldown_candles = self.get_config("cooldown_candles", 1)
-        self.max_drawdown_lookback_period = self.get_config("max_drawdown_lookback_period", 720)
-        self.max_drawdown_stop_duration = self.get_config("max_drawdown_stop_duration", 360)
+        self.stoploss_guard_lookback_period_candles = self.get_config("stoploss_guard_lookback_period_candles", 8)
+        self.stoploss_guard_trade_limit = self.get_config("stoploss_guard_trade_limit", 4)
+        self.stoploss_guard_stop_duration_candles = self.get_config("stoploss_guard_stop_duration_candles", 2)
+        self.max_drawdown_lookback_period = self.get_config("max_drawdown_lookback_period", 0)
+        self.max_drawdown_stop_duration = self.get_config("max_drawdown_stop_duration", 60)
         self.max_allowed_drawdown = self.get_config("max_allowed_drawdown", 0.3)
         
     def get_config(self, key: str, default):
@@ -350,18 +353,35 @@ class StrongTrendV8(IStrategy):
 
     @property
     def protections(self): # type: ignore
-        return [
+        protections = [
             {
                 "method": "CooldownPeriod",
                 "stop_duration_candles": self.cooldown_candles,
-            },
-            {
-                "method": "MaxDrawdown",
-                "lookback_period": self.max_drawdown_lookback_period,
-                "stop_duration": self.max_drawdown_stop_duration,
-                "max_allowed_drawdown": self.max_allowed_drawdown,
             }
         ]
+        
+        if self.stoploss_guard_lookback_period_candles > 0:
+            protections.append(
+                {
+                    "method": "StoplossGuard",
+                    "lookback_period_candles": self.stoploss_guard_lookback_period_candles,
+                    "trade_limit": self.stoploss_guard_trade_limit,
+                    "stop_duration_candles": self.stoploss_guard_stop_duration_candles,
+                    "only_per_pair": False
+                }
+            )
+        
+        if self.max_drawdown_lookback_period > 0:
+            protections.append(
+                {
+                    "method": "MaxDrawdown",
+                    "lookback_period": self.max_drawdown_lookback_period,
+                    "stop_duration": self.max_drawdown_stop_duration,
+                    "max_allowed_drawdown": self.max_allowed_drawdown,
+                }
+            )
+        
+        return protections
 
     def leverage(self, pair: str, current_time: datetime, current_rate: float,
                  proposed_leverage: float, max_leverage: float, entry_tag: Optional[str],
