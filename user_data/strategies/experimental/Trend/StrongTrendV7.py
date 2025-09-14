@@ -86,6 +86,7 @@ class StrongTrendV7(IStrategy):
         self.long_time_low_profit_higher_max_ratio = self.get_config("long_time_low_profit_higher_max_ratio", 0.5)
         self.long_time_hours = self.get_config("long_time_hours", 18)
         self.long_time_hours_min_profit = self.get_config("long_time_hours_min_profit", 0.005)
+        self.long_time_hours_max_profit = self.get_config("long_time_hours_max_profit", 0.015)
         
         self.relative_slope_threshold = self.get_config("relative_slope_threshold", 0.004)
         self.slope_length = self.get_config("slope_length", 4)
@@ -485,7 +486,7 @@ class StrongTrendV7(IStrategy):
                     return "longtime_low_profit"
                 
             if self.long_time_hours > 0 and open_hours > self.long_time_hours:
-                if _current_profit > self.long_time_hours_min_profit:
+                if self.long_time_hours_min_profit < _current_profit < self.long_time_hours_max_profit:
                     return "longtime"
         
         return None
