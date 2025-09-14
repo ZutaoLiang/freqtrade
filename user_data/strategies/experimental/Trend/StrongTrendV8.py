@@ -115,15 +115,19 @@ class StrongTrendV8(IStrategy):
         df['ha_close'] = df_ref['close']
         return df
     
+    def calc_ma(self, close, length: int):
+        ma = pta.ema(close=close, length=length, talib=False)
+        return ma.ffill() if ma is not None else ma
+    
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         # haikinashi
         dataframe = self.calculate_ha(dataframe)
         
         # ema
-        dataframe['ema_short'] = pta.ema(close=dataframe['ha_close'], length=self.ema_short_len.value, talib=False).ffill()
-        dataframe['ema_mid'] = pta.ema(close=dataframe['ha_close'], length=self.ema_mid_len.value, talib=False).ffill()
-        dataframe['ema_long'] = pta.ema(close=dataframe['ha_close'], length=self.ema_long_len.value, talib=False).ffill()
-        dataframe['ema_week'] = pta.ema(close=dataframe['ha_close'], length=self.ema_week_len.value, talib=False).ffill()
+        dataframe['ema_short'] = self.calc_ma(close=dataframe['ha_close'], length=self.ema_short_len.value)
+        dataframe['ema_mid'] = self.calc_ma(close=dataframe['ha_close'], length=self.ema_mid_len.value)
+        dataframe['ema_long'] = self.calc_ma(close=dataframe['ha_close'], length=self.ema_long_len.value)
+        dataframe['ema_week'] = self.calc_ma(close=dataframe['ha_close'], length=self.ema_week_len.value)
         
         # atr
         dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_period)
