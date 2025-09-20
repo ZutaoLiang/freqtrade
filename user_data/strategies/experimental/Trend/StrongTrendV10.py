@@ -432,7 +432,7 @@ class StrongTrendV10(IStrategy):
         **kwargs,
     ) -> str | bool | None:
         if not self.backtesting_mode:
-            trades = Trade.get_trades_proxy(is_open=False)
+            trades = Trade.get_trades(Trade.is_open.is_(False)).all()
             latest_trades = trades[-5:]
             logger.warning(f'Latest trades:{latest_trades}')
         
