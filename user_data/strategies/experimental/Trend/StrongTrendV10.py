@@ -458,6 +458,7 @@ class StrongTrendV10(IStrategy):
             try:
                 logger.warning(f'{pair} custom_exit')
                 closed_trades = Trade.get_trades_proxy(is_open=False)
+                closed_trades.sort(key=lambda x: x.close_date, reverse=True)
                 latest_closed_trades = closed_trades[-self.custom_stake_lookback_trades:]
                 
                 latest_closed_profit = 0
