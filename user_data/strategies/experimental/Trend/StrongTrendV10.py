@@ -432,9 +432,13 @@ class StrongTrendV10(IStrategy):
         **kwargs,
     ) -> str | bool | None:
         if not self.backtesting_mode:
-            trades = Trade.get_trades(Trade.is_open.is_(False)).all()
-            latest_trades = trades[-5:]
-            logger.warning(f'Latest trades:{latest_trades}')
+            try:
+                logger.warning(f'{pair} custom_exit')
+                trades = Trade.get_trades(Trade.is_open.is_(False)).all()
+                latest_trades = trades[-5:]
+                logger.warning(f'Latest trades:{latest_trades}')
+            except Exception as e:
+                logger.warning(f'{pair} custom_exit error:{e}')
         
         open_rate = trade.open_rate
         leverage = trade.leverage
