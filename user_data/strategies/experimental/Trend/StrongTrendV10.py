@@ -425,7 +425,7 @@ class StrongTrendV10(IStrategy):
         
         try:
             closed_trades = Trade.get_trades_proxy(is_open=False)
-
+            closed_trades.sort(key=lambda x: x.close_date)
             latest_closed_trades = closed_trades[-self.custom_stake_lookback_trades:]
             
             latest_closed_profit = 0
@@ -454,20 +454,20 @@ class StrongTrendV10(IStrategy):
         current_profit: float,
         **kwargs,
     ) -> str | bool | None:
-        if not self.backtesting_mode:
-            try:
-                logger.warning(f'{pair} custom_exit')
-                closed_trades = Trade.get_trades_proxy(is_open=False)
-                closed_trades.sort(key=lambda x: x.close_date, reverse=True)
-                latest_closed_trades = closed_trades[-self.custom_stake_lookback_trades:]
+        # if not self.backtesting_mode:
+        #     try:
+        #         logger.warning(f'{pair} custom_exit')
+        #         closed_trades = Trade.get_trades_proxy(is_open=False)
+        #         closed_trades.sort(key=lambda x: x.close_date)
+        #         latest_closed_trades = closed_trades[-self.custom_stake_lookback_trades:]
                 
-                latest_closed_profit = 0
-                for closed_trade in latest_closed_trades:
-                    latest_closed_profit += closed_trade.close_profit_abs
+        #         latest_closed_profit = 0
+        #         for closed_trade in latest_closed_trades:
+        #             latest_closed_profit += closed_trade.close_profit_abs
                 
-                logger.warning(f'Latest closed profit:{latest_closed_profit:.2f}, trades:{latest_closed_trades}')
-            except Exception as e:
-                logger.warning(f'{pair} custom_exit error:{e}')
+        #         logger.warning(f'Latest closed profit:{latest_closed_profit:.2f}, trades:{latest_closed_trades}')
+        #     except Exception as e:
+        #         logger.warning(f'{pair} custom_exit error:{e}')
         
         open_rate = trade.open_rate
         leverage = trade.leverage
