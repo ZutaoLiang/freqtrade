@@ -69,6 +69,10 @@ class StrongTrendV10(IStrategy):
         
         self.trend_length = self.get_config("trend_length", 3)
         
+        self.custom_stake_lookback_trades = self.get_config("custom_stake_lookback_trades", 3)
+        self.custom_stake_profit_threshold = self.get_config("custom_stake_profit_threshold", -0.01)
+        self.custom_stake_ratio_when_low_closed_profit = self.get_config("custom_stake_ratio_when_low_closed_profit", 0.5)
+        
         self.addition_stake_ratio = self.get_config("addition_stake_ratio", 0.8)
         self.addition_min_profit = self.get_config("addition_min_profit", 0.08)
         self.addition_min_profit_step = self.get_config("addition_min_profit_step", 0.025)
@@ -418,8 +422,27 @@ class StrongTrendV10(IStrategy):
         **kwargs,
     ) -> float:
         stake_amount = proposed_stake
-        trades = Trade.get_trades_proxy(is_open=False)
-        logger.warning(f'{pair} custom_stake_amount: {stake_amount}, trades:{trades}')
+        
+        try:
+            closed_trades = Trade.get_trades_proxy(is_open=False)
+
+            latest_closed_trades = closed_trades[-self.custom_stake_lookback_trades:]
+            
+            latest_closed_profit = 0
+            for closed_trade in latest_closed_trades:
+                latest_closed_profit += closed_trade.close_profit_abs
+            
+            if latest_closed_profit < self.custom_stake_profit_threshold:
+                stake_amount = stake_amount * self.custom_stake_ratio_when_low_closed_profit
+                logger.warning(f'Set {pair} stake amount to:{stake_amount:.2f}(ratio:{self.custom_stake_ratio_when_low_closed_profit}). '
+                            f'Latest closed total profit:{latest_closed_profit:.2f} < {self.custom_stake_profit_threshold:.2f}. '
+                            f'Trades:{latest_closed_trades}')
+            else:
+                logger.info(f'Use proposed stake:{stake_amount} for {pair}. '
+                            f'Latest closed total profit:{latest_closed_profit:.2f} > {self.custom_stake_profit_threshold:.2f}. ')
+        except Exception as e:
+            logger.warning(f'{pair} custom_stake_amount error:{e}')
+        
         return stake_amount
     
     def custom_exit(
@@ -434,9 +457,14 @@ class StrongTrendV10(IStrategy):
         if not self.backtesting_mode:
             try:
                 logger.warning(f'{pair} custom_exit')
-                trades = Trade.get_trades(Trade.is_open.is_(False)).all()
-                latest_trades = trades[-5:]
-                logger.warning(f'Latest trades:{latest_trades}')
+                closed_trades = Trade.get_trades_proxy(is_open=False)
+                latest_closed_trades = closed_trades[-self.custom_stake_lookback_trades:]
+                
+                latest_closed_profit = 0
+                for closed_trade in latest_closed_trades:
+                    latest_closed_profit += closed_trade.close_profit_abs
+                
+                logger.warning(f'Latest closed profit:{latest_closed_profit:.2f}, trades:{latest_closed_trades}')
             except Exception as e:
                 logger.warning(f'{pair} custom_exit error:{e}')
         
