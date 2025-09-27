@@ -570,7 +570,7 @@ class TrendingV2(IStrategy):
         if not self.position_adjustment_enable:
             return None
         
-        has_open_orders = any(order.status == "open" and not order.ft_is_open for order in trade.orders)
+        has_open_orders = any(order.status == "open" and not order.ft_is_open and not order.ft_order_side == 'stoploss' for order in trade.orders)
         if has_open_orders:
             logger.info(f'There are open orders for {trade.pair}, skip position adjustment.')
             return None
