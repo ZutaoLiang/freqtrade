@@ -328,22 +328,41 @@ class TrendingV2(IStrategy):
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['exit_long'] = 0
         dataframe['exit_short'] = 0
-        dataframe['exit_long_trend'] = 0
-        dataframe['exit_short_trend'] = 0
         
         if dataframe.empty:
             return dataframe
         
         try:
             if self.enable_ema_exit:
-                dataframe.loc[(dataframe['ha_close'] <= dataframe['ema_pct_exit_long']), ['exit_long', 'exit_tag']] = (1, 'ema_pct_exit_long')
-                dataframe.loc[(dataframe['ha_close'] >= dataframe['ema_pct_exit_short']), ['exit_short', 'exit_tag']] = (1, 'ema_pct_exit_short')
-
-                dataframe.loc[(dataframe['ha_close'] <= dataframe['ema_atr_exit_long']), ['exit_long', 'exit_tag']] = (1, 'ema_atr_exit_long')
-                dataframe.loc[(dataframe['ha_close'] >= dataframe['ema_atr_exit_short']), ['exit_short', 'exit_tag']] = (1, 'ema_atr_exit_short')
+                dataframe.loc[(
+                    (dataframe['exit_long'] == 0)
+                    & (dataframe['ha_close'] <= dataframe['ema_pct_exit_long'])
+                ), ['exit_long', 'exit_tag']] = (1, 'ema_pct_exit_long')
                 
-                dataframe.loc[(dataframe['ha_close'] <= dataframe['chandelier_exit_long']), ['exit_long', 'exit_tag']] = (1, 'chandelier_exit_long')
-                dataframe.loc[(dataframe['ha_close'] >= dataframe['chandelier_exit_short']), ['exit_short', 'exit_tag']] = (1, 'chandelier_exit_short')
+                dataframe.loc[(
+                    (dataframe['exit_short'] == 0)
+                    & (dataframe['ha_close'] >= dataframe['ema_pct_exit_short'])
+                ), ['exit_short', 'exit_tag']] = (1, 'ema_pct_exit_short')
+
+                dataframe.loc[(
+                    (dataframe['exit_long'] == 0)
+                    & (dataframe['ha_close'] <= dataframe['ema_atr_exit_long'])
+                ), ['exit_long', 'exit_tag']] = (1, 'ema_atr_exit_long')
+                
+                dataframe.loc[(
+                    (dataframe['exit_short'] == 0)
+                    & (dataframe['ha_close'] >= dataframe['ema_atr_exit_short'])
+                ), ['exit_short', 'exit_tag']] = (1, 'ema_atr_exit_short')
+                
+                dataframe.loc[(
+                    (dataframe['exit_long'] == 0)
+                    & (dataframe['ha_close'] <= dataframe['chandelier_exit_long'])
+                ), ['exit_long', 'exit_tag']] = (1, 'chandelier_exit_long')
+                
+                dataframe.loc[(
+                    (dataframe['exit_short'] == 0)
+                    & (dataframe['ha_close'] >= dataframe['chandelier_exit_short'])
+                ), ['exit_short', 'exit_tag']] = (1, 'chandelier_exit_short')
             
             return dataframe
         except Exception as e:
