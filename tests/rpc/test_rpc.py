@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import ANY, MagicMock, PropertyMock
 
 import pytest
@@ -347,7 +347,7 @@ def test__rpc_timeunit_profit(
         assert day["starting_balance"] in (pytest.approx(1062.37), pytest.approx(1066.46))
         assert day["fiat_value"] in (0.0,)
     # ensure first day is current date
-    assert str(days["data"][0]["date"]) == str(datetime.now(timezone.utc).date())
+    assert str(days["data"][0]["date"]) == str(datetime.now(UTC).date())
 
     # Try invalid data
     with pytest.raises(RPCException, match=r".*must be an integer greater than 0*"):
@@ -393,7 +393,7 @@ def test_rpc_delete_trade(mocker, default_conf, fee, markets, caplog, is_short):
     freqtradebot.strategy.order_types["stoploss_on_exchange"] = True
     create_mock_trades(fee, is_short)
     rpc = RPC(freqtradebot)
-    with pytest.raises(RPCException, match="invalid argument"):
+    with pytest.raises(RPCException, match=r"Trade with id '200' not found\."):
         rpc._rpc_delete("200")
 
     trades = Trade.session.scalars(select(Trade)).all()
@@ -1204,7 +1204,7 @@ def test_rpc_force_entry(mocker, default_conf, ticker, fee, limit_buy_order_open
     patch_get_signal(freqtradebot)
     rpc = RPC(freqtradebot)
     pair = "ETH/BTC"
-    with pytest.raises(RPCException, match="Maximum number of trades is reached."):
+    with pytest.raises(RPCException, match=r"Maximum number of trades is reached\."):
         rpc._rpc_force_entry(pair, None)
     freqtradebot.config["max_open_trades"] = 5
 
@@ -1286,7 +1286,7 @@ def test_rpc_force_entry_wrong_mode(mocker, default_conf) -> None:
     patch_get_signal(freqtradebot)
     rpc = RPC(freqtradebot)
     pair = "ETH/BTC"
-    with pytest.raises(RPCException, match="Can't go short on Spot markets."):
+    with pytest.raises(RPCException, match=r"Can't go short on Spot markets\."):
         rpc._rpc_force_entry(pair, None, order_side=SignalDirection.SHORT)
 
 
@@ -1296,9 +1296,9 @@ def test_rpc_add_and_delete_lock(mocker, default_conf):
     rpc = RPC(freqtradebot)
     pair = "ETH/BTC"
 
-    rpc._rpc_add_lock(pair, datetime.now(timezone.utc) + timedelta(minutes=4), "", "*")
-    rpc._rpc_add_lock(pair, datetime.now(timezone.utc) + timedelta(minutes=5), "", "*")
-    rpc._rpc_add_lock(pair, datetime.now(timezone.utc) + timedelta(minutes=10), "", "*")
+    rpc._rpc_add_lock(pair, datetime.now(UTC) + timedelta(minutes=4), "", "*")
+    rpc._rpc_add_lock(pair, datetime.now(UTC) + timedelta(minutes=5), "", "*")
+    rpc._rpc_add_lock(pair, datetime.now(UTC) + timedelta(minutes=10), "", "*")
 
     locks = rpc._rpc_locks()
     assert locks["lock_count"] == 3

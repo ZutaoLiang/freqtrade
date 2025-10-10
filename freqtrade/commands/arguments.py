@@ -49,11 +49,13 @@ ARGS_BACKTEST = [
     *ARGS_COMMON_OPTIMIZE,
     "position_stacking",
     "enable_protections",
+    "enable_dynamic_pairlist",
     "dry_run_wallet",
     "timeframe_detail",
     "strategy_list",
     "export",
     "exportfilename",
+    "exportdirectory",
     "backtest_breakdown",
     "backtest_cache",
     "freqai_backtest_live_models",
@@ -94,9 +96,14 @@ ARGS_LIST_FREQAIMODELS = ["freqaimodel_path", "print_one_column"]
 
 ARGS_LIST_HYPEROPTS = ["hyperopt_path", "print_one_column"]
 
-ARGS_BACKTEST_SHOW = ["exportfilename", "backtest_show_pair_list", "backtest_breakdown"]
+ARGS_BACKTEST_SHOW = [
+    "exportfilename",
+    "exportdirectory",
+    "backtest_show_pair_list",
+    "backtest_breakdown",
+]
 
-ARGS_LIST_EXCHANGES = ["print_one_column", "list_exchanges_all"]
+ARGS_LIST_EXCHANGES = ["print_one_column", "list_exchanges_all", "trading_mode", "dex_exchanges"]
 
 ARGS_LIST_TIMEFRAMES = ["exchange", "print_one_column"]
 
@@ -158,6 +165,7 @@ ARGS_DOWNLOAD_DATA = [
     "days",
     "new_pairs_days",
     "include_inactive",
+    "no_parallel_download",
     "timerange",
     "download_trades",
     "convert_trades",
@@ -233,6 +241,7 @@ ARGS_HYPEROPT_SHOW = [
 
 ARGS_ANALYZE_ENTRIES_EXITS = [
     "exportfilename",
+    "exportdirectory",
     "analysis_groups",
     "enter_reason_list",
     "exit_reason_list",
@@ -252,30 +261,37 @@ ARGS_LOOKAHEAD_ANALYSIS = [
     a
     for a in ARGS_BACKTEST
     if a not in ("position_stacking", "backtest_cache", "backtest_breakdown", "backtest_notes")
-] + ["minimum_trade_amount", "targeted_trade_amount", "lookahead_analysis_exportfilename"]
+] + [
+    "minimum_trade_amount",
+    "targeted_trade_amount",
+    "lookahead_analysis_exportfilename",
+    "lookahead_allow_limit_orders",
+]
 
 ARGS_RECURSIVE_ANALYSIS = ["timeframe", "timerange", "dataformat_ohlcv", "pairs", "startup_candle"]
 
 # Command level configs - keep at the bottom of the above definitions
 NO_CONF_REQURIED = [
+    "backtest-filter",
+    "backtesting-show",
     "convert-data",
     "convert-trade-data",
     "download-data",
-    "list-timeframes",
+    "hyperopt-list",
+    "hyperopt-show",
+    "list-data",
+    "list-freqaimodels",
+    "list-hyperoptloss",
     "list-markets",
     "list-pairs",
     "list-strategies",
-    "list-freqaimodels",
-    "list-hyperoptloss",
-    "list-data",
-    "hyperopt-list",
-    "hyperopt-show",
-    "backtest-filter",
+    "list-timeframes",
     "plot-dataframe",
     "plot-profit",
     "show-trades",
-    "trades-to-ohlcv",
+    "install-ui",
     "strategy-updater",
+    "trades-to-ohlcv",
 ]
 
 NO_CONF_ALLOWED = ["create-userdir", "list-exchanges", "new-strategy"]
@@ -311,8 +327,6 @@ class Arguments:
         # (see https://bugs.python.org/issue16399)
         # Allow no-config for certain commands (like downloading / plotting)
         if "config" in parsed_arg and parsed_arg.config is None:
-            conf_required = "command" in parsed_arg and parsed_arg.command in NO_CONF_REQURIED
-
             if "user_data_dir" in parsed_arg and parsed_arg.user_data_dir is not None:
                 user_dir = parsed_arg.user_data_dir
             else:
@@ -325,7 +339,9 @@ class Arguments:
             else:
                 # Else use "config.json".
                 cfgfile = Path.cwd() / DEFAULT_CONFIG
-                if cfgfile.is_file() or not conf_required:
+                conf_optional = "command" in parsed_arg and parsed_arg.command in NO_CONF_REQURIED
+                if cfgfile.is_file() or not conf_optional:
+                    # Only inject config if the file exists, or if the config is required
                     parsed_arg.config = [DEFAULT_CONFIG]
 
         return parsed_arg

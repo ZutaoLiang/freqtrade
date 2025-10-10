@@ -54,7 +54,7 @@ class StrategyResolver(IResolver):
         strategy.ft_load_params_from_file()
         # Set attributes
         # Check if we need to override configuration
-        #             (Attribute name,                    default,     subkey)
+        # (Attribute name, default, subkey)
         attributes = [
             ("minimal_roi", {"0": 10.0}),
             ("timeframe", None),
@@ -87,7 +87,7 @@ class StrategyResolver(IResolver):
         # Loop this list again to have output combined
         for attribute, _ in attributes:
             if attribute in config:
-                logger.info("Strategy using %s: %s", attribute, config[attribute])
+                logger.info(f"Strategy using {attribute}: {config[attribute]}")
 
         StrategyResolver._normalize_attributes(strategy)
 
@@ -109,9 +109,8 @@ class StrategyResolver(IResolver):
             # Ensure Properties are not overwritten
             setattr(strategy, attribute, config[attribute])
             logger.info(
-                "Override strategy '%s' with value in config file: %s.",
-                attribute,
-                config[attribute],
+                f"Override strategy '{attribute}' with value from the configuration: "
+                f"{config[attribute]}.",
             )
         elif hasattr(strategy, attribute):
             val = getattr(strategy, attribute)

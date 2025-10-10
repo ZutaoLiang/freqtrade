@@ -9,7 +9,7 @@ import logging
 import signal
 from collections.abc import Coroutine, Generator
 from copy import deepcopy
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from math import floor, isnan
 from threading import Lock
 from typing import Any, Literal, TypeGuard, TypeVar
@@ -73,6 +73,7 @@ from freqtrade.exchange.exchange_types import (
     CcxtOrder,
     CcxtPosition,
     FtHas,
+    FundingRate,
     OHLCVResponse,
     OrderBook,
     Ticker,
@@ -137,6 +138,8 @@ class Exchange:
         "ohlcv_has_history": True,  # Some exchanges (Kraken) don't provide history via ohlcv
         "ohlcv_partial_candle": True,
         "ohlcv_require_since": False,
+        "download_data_parallel_quick": True,
+        "always_require_api_keys": False,  # purge API keys for Dry-run. Must default to false.
         # Check https://github.com/ccxt/ccxt/issues/10767 for removal of ohlcv_volume_currency
         "ohlcv_volume_currency": "base",  # "base" or "quote"
         "tickers_have_quoteVolume": True,
@@ -163,12 +166,14 @@ class Exchange:
         "proxy_coin_mapping": {},  # Mapping for proxy coins
         # Expected to be in the format {"fetchOHLCV": True} or {"fetchOHLCV": False}
         "ws_enabled": False,  # Set to true for exchanges with tested websocket support
+        "has_delisting": False,  # Set to true for exchanges that have delisting pair checks
     }
     _ft_has: FtHas = {}
     _ft_has_futures: FtHas = {}
 
     _supported_trading_mode_margin_pairs: list[tuple[TradingMode, MarginMode]] = [
-        # TradingMode.SPOT always supported and not required in this list
+        # Non-defined exchanges only support spot mode.
+        (TradingMode.SPOT, MarginMode.NONE),
     ]
 
     def __init__(
@@ -197,7 +202,26 @@ class Exchange:
         self.loop = self._init_async_loop()
         self._config: Config = {}
 
+        # Leverage properties
+        self.trading_mode: TradingMode = TradingMode(
+            config.get("trading_mode", self._supported_trading_mode_margin_pairs[0][0])
+        )
+        self.margin_mode: MarginMode = MarginMode(
+            MarginMode(config.get("margin_mode"))
+            if config.get("margin_mode")
+            else self._supported_trading_mode_margin_pairs[0][1]
+        )
+        config["trading_mode"] = self.trading_mode
+        config["margin_mode"] = self.margin_mode
+        config["candle_type_def"] = CandleType.get_default(self.trading_mode)
         self._config.update(config)
+        self.liquidation_buffer = config.get("liquidation_buffer", 0.05)
+
+        exchange_conf: ExchangeConfig = exchange_config if exchange_config else config["exchange"]
+
+        # Deep merge ft_has with default ft_has options
+        # Must be called before ft_has is used.
+        self.build_ft_has(exchange_conf)
 
         # Holds last candle refreshed time of each pair
         self._pairs_last_refresh_time: dict[PairWithTimeframe, int] = {}
@@ -227,32 +251,16 @@ class Exchange:
         if config["dry_run"]:
             logger.info("Instance is running with dry_run enabled")
         logger.info(f"Using CCXT {ccxt.__version__}")
-        exchange_conf: dict[str, Any] = exchange_config if exchange_config else config["exchange"]
-        remove_exchange_credentials(exchange_conf, config.get("dry_run", False))
-        self.log_responses = exchange_conf.get("log_responses", False)
 
-        # Leverage properties
-        self.trading_mode: TradingMode = config.get("trading_mode", TradingMode.SPOT)
-        self.margin_mode: MarginMode = (
-            MarginMode(config.get("margin_mode")) if config.get("margin_mode") else MarginMode.NONE
+        # Don't remove exchange credentials for dry-run or if always_require_api_keys is set
+        remove_exchange_credentials(
+            exchange_conf,
+            not self._ft_has["always_require_api_keys"] and config.get("dry_run", False),
         )
-        self.liquidation_buffer = config.get("liquidation_buffer", 0.05)
-
-        # Deep merge ft_has with default ft_has options
-        self._ft_has = deep_merge_dicts(self._ft_has, deepcopy(self._ft_has_default))
-        if self.trading_mode == TradingMode.FUTURES:
-            self._ft_has = deep_merge_dicts(self._ft_has_futures, self._ft_has)
-        if exchange_conf.get("_ft_has_params"):
-            self._ft_has = deep_merge_dicts(exchange_conf.get("_ft_has_params"), self._ft_has)
-            logger.info("Overriding exchange._ft_has with config params, result: %s", self._ft_has)
+        self.log_responses = exchange_conf.get("log_responses", False)
 
         # Assign this directly for easy access
         self._ohlcv_partial_candle = self._ft_has["ohlcv_partial_candle"]
-
-        self._max_trades_limit = self._ft_has["trades_limit"]
-
-        self._trades_pagination = self._ft_has["trades_pagination"]
-        self._trades_pagination_arg = self._ft_has["trades_pagination_arg"]
 
         # Initialize ccxt objects
         ccxt_config = self._ccxt_config
@@ -289,10 +297,6 @@ class Exchange:
             # Initial markets load
             self.reload_markets(True, load_leverage_tiers=False)
             self.validate_config(config)
-            self._startup_candle_count: int = config.get("startup_candle_count", 0)
-            self.required_candle_call_count = self.validate_required_startup_candles(
-                self._startup_candle_count, config.get("timeframe", "")
-            )
 
         if self.trading_mode != TradingMode.SPOT and load_leverage_tiers:
             self.fill_leverage_tiers()
@@ -331,6 +335,12 @@ class Exchange:
         asyncio.set_event_loop(loop)
         return loop
 
+    def _set_startup_candle_count(self, config: Config) -> None:
+        self._startup_candle_count: int = config.get("startup_candle_count", 0)
+        self.required_candle_call_count = self.validate_required_startup_candles(
+            self._startup_candle_count, config.get("timeframe", "")
+        )
+
     def validate_config(self, config: Config) -> None:
         # Check if timeframe is available
         self.validate_timeframes(config.get("timeframe"))
@@ -344,6 +354,8 @@ class Exchange:
         self.validate_pricing(config["entry_pricing"])
         self.validate_orderflow(config["exchange"])
         self.validate_freqai(config)
+
+        self._set_startup_candle_count(config)
 
     def _init_ccxt(
         self, exchange_config: dict[str, Any], sync: bool, ccxt_kwargs: dict[str, Any]
@@ -657,7 +669,7 @@ class Exchange:
             if isinstance(markets, Exception):
                 raise markets
             return None
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             logger.warning("Could not load markets. Reason: %s", e)
             raise TemporaryError from e
 
@@ -681,12 +693,13 @@ class Exchange:
             # Reload async markets, then assign them to sync api
             retrier(self._load_async_markets, retries=retries)(reload=True)
             self._markets = self._api_async.markets
-            self._api.set_markets(self._api_async.markets, self._api_async.currencies)
+            self._api.set_markets_from_exchange(self._api_async)
             # Assign options array, as it contains some temporary information from the exchange.
+            # TODO: investigate with ccxt if it's safe to remove `.options`
             self._api.options = self._api_async.options
             if self._exchange_ws:
                 # Set markets to avoid reloading on websocket api
-                self._ws_async.set_markets(self._api.markets, self._api.currencies)
+                self._ws_async.set_markets_from_exchange(self._api_async)
                 self._ws_async.options = self._api.options
             self._last_markets_refresh = dt_ts()
 
@@ -880,6 +893,32 @@ class Exchange:
             raise ConfigurationError(
                 f"Freqtrade does not support '{mm_value}' '{trading_mode}' on {self.name}."
             )
+
+    @classmethod
+    def combine_ft_has(cls, include_futures: bool) -> FtHas:
+        """
+        Combine all ft_has options from the class hierarchy.
+        Child classes override parent classes.
+        Doesn't apply overrides from the configuration.
+        """
+        _ft_has = deep_merge_dicts(cls._ft_has, deepcopy(cls._ft_has_default))
+
+        if include_futures:
+            _ft_has = deep_merge_dicts(cls._ft_has_futures, _ft_has)
+        return _ft_has
+
+    def build_ft_has(self, exchange_conf: ExchangeConfig) -> None:
+        """
+        Deep merge ft_has with default ft_has options
+        and with exchange_conf._ft_has_params if available.
+        This is called on initialization of the exchange object.
+        It must be called before ft_has is used.
+        """
+        self._ft_has = self.combine_ft_has(include_futures=self.trading_mode == TradingMode.FUTURES)
+
+        if exchange_conf.get("_ft_has_params"):
+            self._ft_has = deep_merge_dicts(exchange_conf.get("_ft_has_params"), self._ft_has)
+            logger.info("Overriding exchange._ft_has with config params, result: %s", self._ft_has)
 
     def get_option(self, param: str, default: Any | None = None) -> Any:
         """
@@ -1978,6 +2017,30 @@ class Exchange:
         except ccxt.BaseError as e:
             raise OperationalException(e) from e
 
+    @retrier
+    def fetch_funding_rate(self, pair: str) -> FundingRate:
+        """
+        Get current Funding rate from exchange.
+        On Futures markets, this is the interest rate for holding a position.
+        Won't work for non-futures markets
+        """
+        try:
+            if pair not in self.markets or self.markets[pair].get("active", False) is False:
+                raise ExchangeError(f"Pair {pair} not available")
+            return self._api.fetch_funding_rate(pair)
+        except ccxt.NotSupported as e:
+            raise OperationalException(
+                f"Exchange {self._api.name} does not support fetching funding rate. Message: {e}"
+            ) from e
+        except ccxt.DDoSProtection as e:
+            raise DDosProtection(e) from e
+        except (ccxt.OperationFailed, ccxt.ExchangeError) as e:
+            raise TemporaryError(
+                f"Could not get funding rate due to {e.__class__.__name__}. Message: {e}"
+            ) from e
+        except ccxt.BaseError as e:
+            raise OperationalException(e) from e
+
     @staticmethod
     def get_next_limit_in_list(
         limit: int,
@@ -2208,7 +2271,7 @@ class Exchange:
             _params = params if params else {}
             my_trades = self._api.fetch_my_trades(
                 pair,
-                int((since.replace(tzinfo=timezone.utc).timestamp() - 5) * 1000),
+                int((since.replace(tzinfo=UTC).timestamp() - 5) * 1000),
                 params=_params,
             )
             matched_trades = [trade for trade in my_trades if trade["order"] == order_id]
@@ -2433,7 +2496,14 @@ class Exchange:
                         data.extend(new_data)
         # Sort data again after extending the result - above calls return in "async order"
         data = sorted(data, key=lambda x: x[0])
-        return pair, timeframe, candle_type, data, self._ohlcv_partial_candle
+        return (
+            pair,
+            timeframe,
+            candle_type,
+            data,
+            # funding_rates are always complete, so never need to be dropped.
+            self._ohlcv_partial_candle if candle_type != CandleType.FUNDING_RATE else False,
+        )
 
     def _try_build_from_websocket(
         self, pair: str, timeframe: str, candle_type: CandleType
@@ -2543,14 +2613,24 @@ class Exchange:
         input_coroutines: list[Coroutine[Any, Any, OHLCVResponse]] = []
         cached_pairs = []
         for pair, timeframe, candle_type in set(pair_list):
-            if timeframe not in self.timeframes and candle_type in (
+            invalid_funding = (
+                candle_type == CandleType.FUNDING_RATE
+                and timeframe != self.get_option("funding_fee_timeframe")
+            )
+            invalid_timeframe = timeframe not in self.timeframes and candle_type in (
                 CandleType.SPOT,
                 CandleType.FUTURES,
-            ):
+            )
+            if invalid_timeframe or invalid_funding:
+                timeframes_ = (
+                    ", ".join(self.timeframes)
+                    if candle_type != CandleType.FUNDING_RATE
+                    else self.get_option("funding_fee_timeframe")
+                )
                 logger.warning(
-                    f"Cannot download ({pair}, {timeframe}) combination as this timeframe is "
-                    f"not available on {self.name}. Available timeframes are "
-                    f"{', '.join(self.timeframes)}."
+                    f"Cannot download ({pair}, {timeframe}, {candle_type}) combination as this "
+                    f"timeframe is not available on {self.name}. Available timeframes are "
+                    f"{timeframes_}."
                 )
                 continue
 
@@ -2584,10 +2664,12 @@ class Exchange:
         if ticks and cache:
             idx = -2 if drop_incomplete and len(ticks) > 1 else -1
             self._pairs_last_refresh_time[(pair, timeframe, c_type)] = ticks[idx][0]
-        # keeping parsed dataframe in cache
+        has_cache = cache and (pair, timeframe, c_type) in self._klines
+        # in case of existing cache, fill_missing happens after concatenation
         ohlcv_df = ohlcv_to_dataframe(
-            ticks, timeframe, pair=pair, fill_missing=True, drop_incomplete=drop_incomplete
+            ticks, timeframe, pair=pair, fill_missing=not has_cache, drop_incomplete=drop_incomplete
         )
+        # keeping parsed dataframe in cache
         if cache:
             if (pair, timeframe, c_type) in self._klines:
                 old = self._klines[(pair, timeframe, c_type)]
@@ -2731,7 +2813,7 @@ class Exchange:
                 timeframe, candle_type=candle_type, since_ms=since_ms
             )
 
-            if candle_type and candle_type != CandleType.SPOT:
+            if candle_type and candle_type not in (CandleType.SPOT, CandleType.FUTURES):
                 params.update({"price": candle_type.value})
             if candle_type != CandleType.FUNDING_RATE:
                 data = await self._api_async.fetch_ohlcv(
@@ -2746,8 +2828,6 @@ class Exchange:
                     since_ms=since_ms,
                 )
             # Some exchanges sort OHLCV in ASC order and others in DESC.
-            # Ex: Bittrex returns the list of OHLCV in ASC order (oldest first, newest last)
-            # while GDAX returns the list of OHLCV in DESC order (newest first, oldest last)
             # Only sort if necessary to save computing time
             try:
                 if data and data[0][0] > data[-1][0]:
@@ -2756,7 +2836,14 @@ class Exchange:
                 logger.exception("Error loading %s. Result was %s.", pair, data)
                 return pair, timeframe, candle_type, [], self._ohlcv_partial_candle
             logger.debug("Done fetching pair %s, %s interval %s...", pair, candle_type, timeframe)
-            return pair, timeframe, candle_type, data, self._ohlcv_partial_candle
+            return (
+                pair,
+                timeframe,
+                candle_type,
+                data,
+                # funding_rates are always complete, so never need to be dropped.
+                self._ohlcv_partial_candle if candle_type != CandleType.FUNDING_RATE else False,
+            )
 
         except ccxt.NotSupported as e:
             raise OperationalException(
@@ -2995,7 +3082,7 @@ class Exchange:
         returns: List of dicts containing trades, the next iteration value (new "since" or trade_id)
         """
         try:
-            trades_limit = self._max_trades_limit
+            trades_limit = self._ft_has["trades_limit"]
             # fetch trades asynchronously
             if params:
                 logger.debug("Fetching trades for pair %s, params: %s ", pair, params)
@@ -3039,7 +3126,7 @@ class Exchange:
         """
         if not trades:
             return None
-        if self._trades_pagination == "id":
+        if self._ft_has["trades_pagination"] == "id":
             return trades[-1].get("id")
         else:
             return trades[-1].get("timestamp")
@@ -3057,7 +3144,7 @@ class Exchange:
     ) -> tuple[str, list[list]]:
         """
         Asynchronously gets trade history using fetch_trades
-        use this when exchange uses id-based iteration (check `self._trades_pagination`)
+        use this when exchange uses id-based iteration (check `self._ft_has["trades_pagination"]`)
         :param pair: Pair to fetch trade data for
         :param since: Since as integer timestamp in milliseconds
         :param until: Until as integer timestamp in milliseconds
@@ -3083,7 +3170,7 @@ class Exchange:
         while True:
             try:
                 t, from_id_next = await self._async_fetch_trades(
-                    pair, params={self._trades_pagination_arg: from_id}
+                    pair, params={self._ft_has["trades_pagination_arg"]: from_id}
                 )
                 if t:
                     trades.extend(t[x])
@@ -3111,7 +3198,7 @@ class Exchange:
     ) -> tuple[str, list[list]]:
         """
         Asynchronously gets trade history using fetch_trades,
-        when the exchange uses time-based iteration (check `self._trades_pagination`)
+        when the exchange uses time-based iteration (check `self._ft_has["trades_pagination"]`)
         :param pair: Pair to fetch trade data for
         :param since: Since as integer timestamp in milliseconds
         :param until: Until as integer timestamp in milliseconds
@@ -3165,9 +3252,9 @@ class Exchange:
             until = ccxt.Exchange.milliseconds()
             logger.debug(f"Exchange milliseconds: {until}")
 
-        if self._trades_pagination == "time":
+        if self._ft_has["trades_pagination"] == "time":
             return await self._async_get_trade_history_time(pair=pair, since=since, until=until)
-        elif self._trades_pagination == "id":
+        elif self._ft_has["trades_pagination"] == "id":
             return await self._async_get_trade_history_id(
                 pair=pair, since=since, until=until, from_id=from_id
             )
@@ -3204,7 +3291,7 @@ class Exchange:
             for sig in [signal.SIGINT, signal.SIGTERM]:
                 try:
                     self.loop.add_signal_handler(sig, task.cancel)
-                except NotImplementedError:
+                except (NotImplementedError, RuntimeError):
                     # Not all platforms implement signals (e.g. windows)
                     pass
             return self.loop.run_until_complete(task)
@@ -3335,7 +3422,7 @@ class Exchange:
         if not filename.parent.is_dir():
             filename.parent.mkdir(parents=True)
         data = {
-            "updated": datetime.now(timezone.utc),
+            "updated": datetime.now(UTC),
             "data": tiers,
         }
         file_dump_json(filename, data)
@@ -3357,7 +3444,7 @@ class Exchange:
                 updated = tiers.get("updated")
                 if updated:
                     updated_dt = parser.parse(updated)
-                    if updated_dt < datetime.now(timezone.utc) - cache_time:
+                    if updated_dt < datetime.now(UTC) - cache_time:
                         logger.info("Cached leverage tiers are outdated. Will update.")
                         return None
                 return tiers.get("data")
@@ -3416,17 +3503,26 @@ class Exchange:
             # Find the appropriate tier based on stake_amount
             prior_max_lev = None
             for tier in pair_tiers:
+                # Adjust notional by leverage to do a proper comparison
                 min_stake = tier["minNotional"] / (prior_max_lev or tier["maxLeverage"])
                 max_stake = tier["maxNotional"] / tier["maxLeverage"]
                 prior_max_lev = tier["maxLeverage"]
-                # Adjust notional by leverage to do a proper comparison
                 if min_stake <= stake_amount <= max_stake:
+                    return tier["maxLeverage"]
+                if stake_amount < min_stake and stake_amount <= max_stake:
+                    # TODO: Remove this warning eventually
+                    # Code could be simplified by removing the check for min-stake in the above
+                    # condition, making this branch unnecessary.
+                    logger.warning(
+                        f"Fallback to next higher leverage tier for {pair}, stake: {stake_amount}, "
+                        f"min_stake: {min_stake}."
+                    )
                     return tier["maxLeverage"]
 
             #     else:  # if on the last tier
             if stake_amount > max_stake:
                 # If stake is > than max tradeable amount
-                raise InvalidOrderException(f"Amount {stake_amount} too high for {pair}")
+                raise InvalidOrderException(f"Stake amount {stake_amount} too high for {pair}")
 
             raise OperationalException(
                 f"Looped through all tiers without finding a max leverage for {pair}. "
@@ -3572,7 +3668,7 @@ class Exchange:
         mark_price_type = CandleType.from_string(self._ft_has["mark_ohlcv_price"])
 
         if not close_date:
-            close_date = datetime.now(timezone.utc)
+            close_date = datetime.now(UTC)
         since_ms = dt_ts(timeframe_to_prev_date(timeframe, open_date))
 
         mark_comb: PairWithTimeframe = (pair, timeframe, mark_price_type)
@@ -3829,3 +3925,14 @@ class Exchange:
             # describes the min amt for a tier, and the lowest tier will always go down to 0
         else:
             raise ExchangeError(f"Cannot get maintenance ratio using {self.name}")
+
+    def check_delisting_time(self, pair: str) -> datetime | None:
+        """
+        Check if the pair gonna be delisted.
+        This function should be overridden by the exchange class if the exchange
+        provides such information.
+        By default, it returns None.
+        :param pair: Market symbol
+        :return: Datetime if the pair gonna be delisted, None otherwise
+        """
+        return None

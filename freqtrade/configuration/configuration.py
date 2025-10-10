@@ -87,9 +87,6 @@ class Configuration:
         if "internals" not in config:
             config["internals"] = {}
 
-        if "pairlists" not in config:
-            config["pairlists"] = []
-
         # Keep a copy of the original configuration file
         config["original_config"] = deepcopy(config)
 
@@ -215,13 +212,31 @@ class Configuration:
         config.update({"datadir": create_datadir(config, self.args.get("datadir"))})
         logger.info("Using data directory: %s ...", config.get("datadir"))
 
+        self._args_to_config(
+            config, argname="exportdirectory", logstring="Using {} as backtest directory ..."
+        )
+
         if self.args.get("exportfilename"):
             self._args_to_config(
                 config, argname="exportfilename", logstring="Storing backtest results to {} ..."
             )
             config["exportfilename"] = Path(config["exportfilename"])
-        else:
-            config["exportfilename"] = config["user_data_dir"] / "backtest_results"
+            if config.get("exportdirectory") and Path(config["exportdirectory"]).is_dir():
+                logger.warning(
+                    "DEPRECATED: Using `--export-filename` with directories is deprecated, "
+                    "use `--backtest-directory` instead."
+                )
+                if config.get("exportdirectory") is None:
+                    # Fallback - assign export-directory directly.
+                    config["exportdirectory"] = config["exportfilename"]
+        if not config.get("exportdirectory"):
+            config["exportdirectory"] = config["user_data_dir"] / "backtest_results"
+        if not config.get("exportfilename"):
+            config["exportfilename"] = None
+        if config.get("exportfilename"):
+            # ensure exportfilename is a Path object
+            config["exportfilename"] = Path(config["exportfilename"])
+        config["exportdirectory"] = Path(config["exportdirectory"])
 
         if self.args.get("show_sensitive"):
             logger.warning(
@@ -247,7 +262,13 @@ class Configuration:
         self._args_to_config(
             config,
             argname="enable_protections",
-            logstring="Parameter --enable-protections detected, enabling Protections. ...",
+            logstring="Parameter --enable-protections detected, enabling Protections ...",
+        )
+
+        self._args_to_config(
+            config,
+            argname="enable_dynamic_pairlist",
+            logstring="Parameter --enable-dynamic-pairlist detected, enabling dynamic pairlist ...",
         )
 
         if self.args.get("max_open_trades"):
@@ -303,7 +324,6 @@ class Configuration:
                 "recursive_strategy_search",
                 "Recursively searching for a strategy in the strategies folder.",
             ),
-            ("timeframe", "Overriding timeframe with Command line argument"),
             ("export", "Parameter --export detected: {} ..."),
             ("backtest_breakdown", "Parameter --breakdown detected ..."),
             ("backtest_cache", "Parameter --cache={} detected ..."),
@@ -382,6 +402,7 @@ class Configuration:
             ("timeframes", "timeframes --timeframes: {}"),
             ("days", "Detected --days: {}"),
             ("include_inactive", "Detected --include-inactive-pairs: {}"),
+            ("no_parallel_download", "Detected --no-parallel-download: {}"),
             ("download_trades", "Detected --dl-trades: {}"),
             ("convert_trades", "Detected --convert: {} - Converting Trade data to OHCV {}"),
             ("dataformat_ohlcv", 'Using "{}" to store OHLCV data.'),
@@ -397,6 +418,9 @@ class Configuration:
         self._args_to_config(
             config, argname="trading_mode", logstring="Detected --trading-mode: {}"
         )
+        # TODO: The following 3 lines (candle_type_def, trading_mode, margin_mode) are actually
+        # set in the exchange class. They're however necessary as fallback to avoid
+        # random errors in commands that don't initialize an exchange.
         config["candle_type_def"] = CandleType.get_default(
             config.get("trading_mode", "spot") or "spot"
         )
