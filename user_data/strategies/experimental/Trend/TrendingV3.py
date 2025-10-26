@@ -123,6 +123,12 @@ class TrendingV3(IStrategy):
         
         self.atr_period = self.get_config("atr_period", 21)
         
+        self.adx_length = self.get_config("adx_length", 15)
+        self.adx_threshold = self.get_config("adx_threshold", 10)
+        self.bb_threshold = self.get_config("bb_threshold", 10)
+        self.bb_length = self.get_config("bb_length", 15)
+        self.bb_std = self.get_config("bb_std", 2.0)
+        
         self.volume_short_length = self.get_config("volume_short", 2)
         self.volume_mid_length = self.get_config("volume_mid", 20)
         self.volume_ratio = self.get_config("volume_ratio", 1.25)
@@ -203,6 +209,16 @@ class TrendingV3(IStrategy):
             # haikinashi
             dataframe = self.calculate_ha(dataframe)
             
+            adx_len = 15
+            dataframe['adx'] = pta.adx(high=dataframe['ha_high'], low=dataframe['ha_low'], close=dataframe['ha_close'], length=adx_len)[f'ADX_{adx_len}']
+            
+            bbands_df = pta.bbands(close=dataframe['ha_close'], length=self.adx_length, std=self.bb_std, mamode='sma')
+            dataframe['bb_bandwidth'] = bbands_df[f'BBB_{self.adx_length}_{self.bb_std}']
+            dataframe['bb_percent'] = bbands_df[f'BBP_{self.adx_length}_{self.bb_std}']
+            dataframe['bb_upper'] = bbands_df[f'BBU_{self.adx_length}_{self.bb_std}']
+            dataframe['bb_lower'] = bbands_df[f'BBL_{self.adx_length}_{self.bb_std}']
+            dataframe['bb_mid'] = bbands_df[f'BBM_{self.adx_length}_{self.bb_std}']
+                        
             # atr
             dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_period)
             dataframe['natr'] = pta.natr(high=dataframe['ha_high'], low=dataframe['ha_low'], close=dataframe['ha_close'], length=self.atr_period)
@@ -249,6 +265,7 @@ class TrendingV3(IStrategy):
             
             return dataframe
         except Exception as e:
+            logger.error(f"Error in {self.__class__.__name__}::populate_indicators: {e}")
             return dataframe
         
     def indicator_up_n_periods_mask(self, dataframe: DataFrame, indicator: str, days: int):
@@ -279,6 +296,8 @@ class TrendingV3(IStrategy):
                 & (dataframe['volume_short_mean'] >= self.volume_ratio * dataframe['volume_mid_mean']) \
                 & (self.indicator_up_n_periods_mask(dataframe, 'ema', self.trend_length)) \
                 & (dataframe['ema_slope_smooth'] >= self.ema_slope_threshold) \
+                & (dataframe['bb_bandwidth'] > self.bb_threshold) \
+                & (dataframe['adx'] > self.adx_threshold) \
             
             if self.ema_short_length > 0:
                 enter_long_mask = enter_long_mask \
@@ -304,6 +323,8 @@ class TrendingV3(IStrategy):
                 & (dataframe['volume_short_mean'] >= self.volume_ratio * dataframe['volume_mid_mean']) \
                 & (self.indicator_down_n_periods_mask(dataframe, 'ema', self.trend_length)) \
                 & (dataframe['ema_slope_smooth'] <= -self.ema_slope_threshold) \
+                & (dataframe['bb_bandwidth'] > self.bb_threshold) \
+                & (dataframe['adx'] > self.adx_threshold) \
                     
             if self.ema_short_length > 0:
                 enter_short_mask = enter_short_mask \
