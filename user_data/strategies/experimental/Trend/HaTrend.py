@@ -154,6 +154,7 @@ class HaTrend(IStrategy):
         self.profit_drawdown_ratio = [float(s) for s in drawdown_ratio_list]
         
         self.fee = self.get_config("fee", 0.0005)
+        self.min_exit_profit = self.get_config("min_exit_profit", 0.01)
         
         # self.long_time_low_profit_enabled = self.get_config("long_time_low_profit_enabled", False)
         # self.long_time_low_profit_when_full_trades = self.get_config("long_time_low_profit_when_full_trades", True)
@@ -533,7 +534,7 @@ class HaTrend(IStrategy):
                     break
         
         dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
-        if _current_profit > self.fee:
+        if _current_profit > self.min_exit_profit:
             consecutive_exit_count = self.consecutive_exit_count
             
             if len(dataframe) >= consecutive_exit_count:
