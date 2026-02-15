@@ -54,7 +54,7 @@ class TrendFollowingV1(IStrategy):
         
         self.atr_period = self.get_config("atr_period", 21)
         
-        self.position_adjustment_enable = self.get_config("position_adjustment_enable", True)
+        self.position_adjustment_enable = self.get_config("position_adjustment_enable", False)
         self.addition_stake_ratio = self.get_config("addition_stake_ratio", 0.8)
         self.addition_min_profit = self.get_config("addition_min_profit", 0.2)
         self.addition_min_profit_step = self.get_config("addition_min_profit_step", 0.05)
