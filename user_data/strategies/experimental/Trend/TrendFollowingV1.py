@@ -50,10 +50,16 @@ class TrendFollowingV1(IStrategy):
         self.ma_mid_length = self.get_config("ma_mid_length", 0)
         self.ma_long_length = self.get_config("ma_long_length", 0)
 
-        self.startup_candle_count = int(max(self.ma_mid_length, self.ma_long_length) * 1.2)
+        self.startup_candle_count = int(max(self.ma_mid_length, self.ma_long_length) * 1)
         
-        self.atr_period = self.get_config("atr_period", 21)    
-
+        self.atr_period = self.get_config("atr_period", 21)
+        
+        self.position_adjustment_enable = self.get_config("position_adjustment_enable", True)
+        self.addition_stake_ratio = self.get_config("addition_stake_ratio", 0.8)
+        self.addition_min_profit = self.get_config("addition_min_profit", 0.2)
+        self.addition_min_profit_step = self.get_config("addition_min_profit_step", 0.05)
+        self.addition_profit_step = self.get_config("addition_profit_step", 0.05)
+ 
         self.cooldown_candles = self.get_config("cooldown_candles", 1)
         self.stoploss_guard_lookback_period_candles = self.get_config("stoploss_guard_lookback_period_candles", 0)  # 0 is disabled
         self.stoploss_guard_trade_limit = self.get_config("stoploss_guard_trade_limit", 4)
@@ -119,7 +125,6 @@ class TrendFollowingV1(IStrategy):
                 & (dataframe['ma_short'] > dataframe['ma_mid']) \
                 & (dataframe['ma_short'].shift(3) < dataframe['ma_mid']).shift(3) \
                 & (self.indicator_up_n_periods_mask(dataframe, 'ma_short', self.trend_length))
-                # & qtpylib.crossed_above(dataframe['ma_short'], dataframe['ma_mid']) \
            
             dataframe.loc[enter_long_mask, ['enter_long', 'enter_tag']] = (1, 'entry_long')
 
@@ -128,8 +133,7 @@ class TrendFollowingV1(IStrategy):
                 & (dataframe['ha_close'] <= dataframe['ma_mid']) \
                 & (dataframe['ma_short'] <= dataframe['ma_mid']) \
                 & (dataframe['ma_short'].shift(3) >= dataframe['ma_mid']).shift(3) \
-                & (self.indicator_down_n_periods_mask(dataframe, 'ma_short', self.trend_length)) 
-                # & qtpylib.crossed_above(dataframe['ma_mid', dataframe['ma_short']]) 
+                & (self.indicator_down_n_periods_mask(dataframe, 'ma_short', self.trend_length))
                     
             dataframe.loc[enter_short_mask, ['enter_short', 'enter_tag']] = (1, 'entry_short')                    
             return dataframe
@@ -189,13 +193,101 @@ class TrendFollowingV1(IStrategy):
                 stop_rate_atr = open_rate - (self.atr_stop_loss_multiplier * atr)
                 stop_rate_abs = open_rate * (1 - self.base_stop_loss)
                 stop_rate = max(stop_rate_atr, stop_rate_abs)
-            logger.info(f'Set {trade.pair} after fill #{count_of_orders} stoploss rate to:{stop_rate:.6f}'
-                        f'(stop_rate_atr:{stop_rate_atr:.6f}, stop_rate_abs:{stop_rate_abs:.6f}), '
-                        f'[new_open_rate:{open_rate:.6f}](stop/open dist:{abs(stop_rate/open_rate-1):.2%}, atr:{atr:.6f}, natr:{natr:.2%})'
-                        f'current_rate:{current_rate:.6f}, '
-                        f'current_profit:{current_profit:.2%}(without leverage:{_current_profit:.2%}) at {current_time}')
+            
+            if count_of_orders == 1:
+                logger.info(f'Set {trade.pair} after fill #{count_of_orders} stoploss rate to:{stop_rate:.6f}'
+                            f'(stop_rate_atr:{stop_rate_atr:.6f}, stop_rate_abs:{stop_rate_abs:.6f}), '
+                            f'[new_open_rate:{open_rate:.6f}](stop/open dist:{abs(stop_rate/open_rate-1):.2%}, atr:{atr:.6f}, natr:{natr:.2%})'
+                            f'current_rate:{current_rate:.6f}, '
+                            f'current_profit:{current_profit:.2%}(without leverage:{_current_profit:.2%}) at {current_time}')
+            else:
+                logger.info(f'Set {trade.pair} after fill #{count_of_orders} stoploss rate to:{stop_rate:.6f}'
+                            f'(stop_rate_atr:{stop_rate_atr:.6f}, stop_rate_abs:{stop_rate_abs:.6f}), '
+                            f'[new_open_rate:{open_rate:.6f}](stop/open dist:{abs(stop_rate/open_rate-1):.2%}, atr:{atr:.6f}, natr:{natr:.2%})'
+                            f'current_rate:{current_rate:.6f}, '
+                            f'current_profit:{current_profit:.2%}(without leverage:{_current_profit:.2%}) at {current_time}')
             return stoploss_from_absolute(stop_rate, current_rate, is_short, leverage)
  
+        return None
+ 
+    def adjust_trade_position(
+        self,
+        trade: Trade,
+        current_time: datetime,
+        current_rate: float,
+        current_profit: float,
+        min_stake: float | None,
+        max_stake: float,
+        current_entry_rate: float,
+        current_exit_rate: float,
+        current_entry_profit: float,
+        current_exit_profit: float,
+        **kwargs,
+    ) -> float | None | tuple[float | None, str | None]:
+        if not self.position_adjustment_enable:
+            return None
+        
+        has_open_orders = any(order.status == "open" and not order.ft_is_open and not order.ft_order_side == 'stoploss' for order in trade.orders)
+        if has_open_orders:
+            logger.info(f'There are open orders for {trade.pair}, skip position adjustment.')
+            return None
+        
+        filled_orders = trade.select_filled_orders()
+        count_of_orders = len(filled_orders)
+        if count_of_orders == 0:
+            logger.info(f'No filled orders for {trade.pair}, skip position adjustment.')
+            return None
+        
+        entry_side_orders = [order for order in filled_orders \
+            if order.ft_order_side == trade.entry_side and ('entry' in order.ft_order_tag)]
+        count_of_orders = len(entry_side_orders)
+        if count_of_orders == 0:
+            logger.info(f'No entry orders for {trade.pair}, skip position adjustment.')
+            return None
+         
+        leverage = trade.leverage
+        _current_profit = current_profit / leverage
+        
+        first_entry_order = entry_side_orders[0]
+        first_stake_amount = first_entry_order.stake_amount * leverage
+        
+        addition_stake = first_stake_amount * self.addition_stake_ratio
+        addition_amount = round(addition_stake / current_rate, 2)
+        if addition_amount <= 0:
+            logger.info(f'Addition amount for {trade.pair} is zero, skip position adjustment.')
+            return None
+        
+        addition_stake = addition_amount * current_rate
+        
+        is_short = trade.is_short
+        factor = -1 if is_short else 1
+        
+        new_open_rate = (trade.amount * trade.open_rate + addition_stake) / (trade.amount + addition_amount)
+        new_open_profit = factor * (current_rate / new_open_rate - 1)
+        
+        enough_profit = new_open_profit > (self.addition_min_profit + self.addition_min_profit_step * (count_of_orders-1))
+        last_entry_price = entry_side_orders[-1].average
+        
+        addition_signal = False
+        if enough_profit:
+            if is_short: # and last_candle['enter_short'] == 1
+                addition_signal = current_rate < last_entry_price * (1 + factor * self.addition_profit_step)
+            elif not is_short: # and last_candle['enter_long'] == 1
+                addition_signal = current_rate > last_entry_price * (1 + factor * self.addition_profit_step)
+
+        if addition_signal:
+            if min_stake <= addition_stake <= max_stake:
+                logger.warning(f'Position addition #{count_of_orders+1} for {trade.pair} with estimated new_profit:{new_open_profit*leverage:.2%}'
+                               f'(without leverage:{new_open_profit:.2%}) and stake amount {addition_stake:.5f}, '
+                               f'current_profit:{current_profit:.2%}, current_rate:{current_rate:.5f}, '
+                               f'open_rate:{trade.open_rate:.5f} at {current_time}')
+                return (addition_stake / leverage, f'entry-addition')
+            else:
+                logger.warning(f'Skip position addition for {trade.pair} with estimated new_profit:{new_open_profit*leverage:.2%}'
+                               f'(without leverage:{new_open_profit:.2%}) and stake amount {addition_stake:.5f} is out of range'
+                               f'({min_stake:.2f}-{max_stake:.2f}), current_profit:{current_profit:.2%}, current_rate:{current_rate:.5f}, '
+                               f'open_rate:{trade.open_rate:.5f} at {current_time}')
+        
         return None
  
     def get_last_candle(self, trade: Trade):
