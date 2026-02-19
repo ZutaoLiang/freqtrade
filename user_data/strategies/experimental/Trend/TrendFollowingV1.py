@@ -33,9 +33,12 @@ class TrendFollowingV1(IStrategy):
         self.trade_leverage = self.get_config("trade_leverage", 3)
         
         self.trailing_stop = self.get_config("trailing_stop", True)
-        self.trailing_stop_positive = self.get_config("base_trailing_stop", 0.12) * self.trade_leverage
-        self.trailing_stop_positive_offset = self.get_config("base_trailing_stop_offset", 0.3) * self.trade_leverage
-        self.trailing_only_offset_is_reached = self.get_config("trailing_only_offset_is_reached", True)
+        if not self.trailing_stop:
+            self.custom_trailing_stop = self.get_config("custom_trailing_stop", False)
+        else:
+            self.trailing_stop_positive = self.get_config("base_trailing_stop", 0.12) * self.trade_leverage
+            self.trailing_stop_positive_offset = self.get_config("base_trailing_stop_offset", 0.3) * self.trade_leverage
+            self.trailing_only_offset_is_reached = self.get_config("trailing_only_offset_is_reached", True)
 
         self.base_stop_loss = self.get_config("base_stop_loss", 0.07)
         self.stoploss = - float(self.base_stop_loss * self.trade_leverage)
@@ -49,6 +52,8 @@ class TrendFollowingV1(IStrategy):
         self.ma_short_length = self.get_config("ma_short_length", 0)
         self.ma_mid_length = self.get_config("ma_mid_length", 0)
         self.ma_long_length = self.get_config("ma_long_length", 0)
+        
+        self.crossover_lookback_length = self.get_config("crossover_lookback_length", 8)
 
         self.startup_candle_count = int(max(self.ma_mid_length, self.ma_long_length) * 1)
         
@@ -59,6 +64,13 @@ class TrendFollowingV1(IStrategy):
         self.addition_min_profit = self.get_config("addition_min_profit", 0.2)
         self.addition_min_profit_step = self.get_config("addition_min_profit_step", 0.05)
         self.addition_profit_step = self.get_config("addition_profit_step", 0.05)
+        
+        self.fee = self.get_config("fee", 0.0005)
+ 
+        self.long_time_low_profit_minutes = self.get_config("long_time_low_profit_minutes", 0)
+        self.long_time_low_profit_max = self.get_config("long_time_low_profit_max", 0.05)
+        self.long_time_low_profit_lower_bound = self.get_config("long_time_low_profit_lower_bound", 0.003)
+        self.long_time_low_profit_upper_bound = self.get_config("long_time_low_profit_upper_bound", 0.02)
  
         self.cooldown_candles = self.get_config("cooldown_candles", 1)
         self.stoploss_guard_lookback_period_candles = self.get_config("stoploss_guard_lookback_period_candles", 0)  # 0 is disabled
@@ -105,11 +117,19 @@ class TrendFollowingV1(IStrategy):
             # atr
             dataframe['atr'] = pta.atr(dataframe['ha_high'], dataframe['ha_low'], dataframe['ha_close'], length=self.atr_period)
             dataframe['natr'] = pta.natr(high=dataframe['ha_high'], low=dataframe['ha_low'], close=dataframe['ha_close'], length=self.atr_period, talib=False, scalar=1.0)
+
+            # vwap
+            ema_close = pta.ema(close=(dataframe['ha_close'] + dataframe['ha_high'] + dataframe['ha_low']) / 3, length=3)
+            dataframe['vwap'] = self.rolling_vwap(high=ema_close, low=ema_close, close=ema_close, volume=dataframe['volume'])
             
             return dataframe
         except Exception as e:
             logger.error(f"Error in {self.__class__.__name__}::populate_indicators: {e}")
             return dataframe
+
+    def rolling_vwap(self, high, low, close, volume, window=21):
+        tp = (high + low + close) / 3
+        return (tp * volume).rolling(window).sum() / volume.rolling(window).sum()
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['enter_long'] = 0
@@ -119,23 +139,50 @@ class TrendFollowingV1(IStrategy):
             return dataframe
         
         try:
+            dataframe['crossover_long'] = 0
+            dataframe.loc[(
+                (dataframe['ma_short'] > dataframe['ma_mid'])
+                & (
+                    (dataframe['ma_short'].shift(1) < dataframe['ma_mid'].shift(1)) |
+                    (dataframe['ma_short'].shift(2) < dataframe['ma_mid'].shift(2)) |
+                    (dataframe['ma_short'].shift(3) < dataframe['ma_mid'].shift(3))
+                )), 'crossover_long'] = 1
+            
+            recent_crossover_long_mask = (dataframe['crossover_long'].rolling(window=self.crossover_lookback_length, min_periods=1).sum() > 0)
+
             enter_long_mask = \
-                (dataframe['ha_close'] >= dataframe['ma_short']) \
+                (dataframe['ha_close'] >= dataframe['ha_open']) \
+                & (dataframe['ha_close'] >= dataframe['ma_short']) \
                 & (dataframe['ha_close'] >= dataframe['ma_mid']) \
+                & (recent_crossover_long_mask) \
                 & (dataframe['ma_short'] > dataframe['ma_mid']) \
-                & (dataframe['ma_short'].shift(3) < dataframe['ma_mid']).shift(3) \
-                & (self.indicator_up_n_periods_mask(dataframe, 'ma_short', self.trend_length))
+                & (self.indicator_up_n_periods_mask(dataframe, 'ma_short', self.trend_length)) \
+                & (self.indicator_up_n_periods_mask(dataframe, 'ma_mid', self.trend_length))
            
             dataframe.loc[enter_long_mask, ['enter_long', 'enter_tag']] = (1, 'entry_long')
+            
+            dataframe['crossover_short'] = 0
+            dataframe.loc[(
+                (dataframe['ma_short'] < dataframe['ma_mid'])
+                & (
+                    (dataframe['ma_short'].shift(1) > dataframe['ma_mid'].shift(1)) |
+                    (dataframe['ma_short'].shift(2) > dataframe['ma_mid'].shift(2)) |
+                    (dataframe['ma_short'].shift(3) > dataframe['ma_mid'].shift(3))
+                )), 'crossover_short'] = 1
+            
+            recent_crossover_short_mask = (dataframe['crossover_short'].rolling(window=self.crossover_lookback_length, min_periods=1).sum() > 0)
 
             enter_short_mask = \
-                (dataframe['ha_close'] <= dataframe['ma_short']) \
+                (dataframe['ha_close'] <= dataframe['ha_open']) \
+                & (dataframe['ha_close'] <= dataframe['ma_short']) \
                 & (dataframe['ha_close'] <= dataframe['ma_mid']) \
+                & (recent_crossover_short_mask) \
                 & (dataframe['ma_short'] <= dataframe['ma_mid']) \
-                & (dataframe['ma_short'].shift(3) >= dataframe['ma_mid']).shift(3) \
-                & (self.indicator_down_n_periods_mask(dataframe, 'ma_short', self.trend_length))
-                    
-            dataframe.loc[enter_short_mask, ['enter_short', 'enter_tag']] = (1, 'entry_short')                    
+                & (self.indicator_down_n_periods_mask(dataframe, 'ma_short', self.trend_length)) \
+                & (self.indicator_down_n_periods_mask(dataframe, 'ma_mid', self.trend_length))
+            
+            dataframe.loc[enter_short_mask, ['enter_short', 'enter_tag']] = (1, 'entry_short')
+                          
             return dataframe
         except Exception as e:
             logger.error(f"Error in {self.__class__.__name__}::populate_entry_trend: {e}")
@@ -207,7 +254,68 @@ class TrendFollowingV1(IStrategy):
                             f'current_rate:{current_rate:.6f}, '
                             f'current_profit:{current_profit:.2%}(without leverage:{_current_profit:.2%}) at {current_time}')
             return stoploss_from_absolute(stop_rate, current_rate, is_short, leverage)
+        
+        if self.custom_trailing_stop:
+            if _current_profit > self.get_config("base_trailing_stop_offset", 0.3):
+                return self.get_config("base_trailing_stop", 0.12) * leverage
  
+        return None
+
+    def custom_exit(
+        self,
+        pair: str,
+        trade: Trade,
+        current_time: datetime,
+        current_rate: float,
+        current_profit: float,
+        **kwargs,
+    ) -> str | bool | None:
+        open_rate = trade.open_rate
+        leverage = trade.leverage
+        _current_profit = current_profit / leverage
+        # stake_amount = trade.amount * trade.open_rate
+        
+        # open_profit_abs = _current_profit * stake_amount
+        # realized_profit_abs = trade.realized_profit if trade.realized_profit else 0
+        # total_profit_abs = realized_profit_abs + open_profit_abs
+        
+        # max_profit_abs = trade.get_custom_data(self.MAX_PROFIT_ABS)
+        # if max_profit_abs is None:
+        #     max_profit_abs = total_profit_abs
+        #     trade.set_custom_data(self.MAX_PROFIT_ABS, max_profit_abs)
+        # elif total_profit_abs > max_profit_abs:
+        #     logger.warning(f'{trade.pair} reach new max profit: from {max_profit_abs:.4f} to {total_profit_abs:.4f}, current_rate:{current_rate:.5f} at {current_time}')
+        #     max_profit_abs = total_profit_abs
+        #     trade.set_custom_data(self.MAX_PROFIT_ABS, max_profit_abs)
+        
+        # if self.profit_info_log:
+        #     logger.info(f'{trade.pair} total profit:{total_profit_abs:.4f}(open:{open_profit_abs:.4f}, close:{realized_profit_abs:.4f}), current_rate:{current_rate:.5f}, open_rate:{trade.open_rate:.5f}, current_profit:{current_profit:.2%}, stake_amount:{stake_amount:.4f} at {current_time}')
+
+        # if self.profit_drawdown_enabled:
+        #     for _, (activation, drawdown_ratio) in enumerate(zip(self.profit_drawdown_activation, self.profit_drawdown_ratio)):
+        #         if max_profit_abs > activation * self.stake_amount:
+        #             drawdown_profit_threshold = max_profit_abs * (1 - drawdown_ratio)
+        #             if total_profit_abs < drawdown_profit_threshold:
+        #                 exit_reason = f'Profit drawdown'
+        #                 logger.warning(f'{exit_reason} for {pair}: total profit {total_profit_abs:.4f} < {drawdown_profit_threshold:.4f}'
+        #                                 f'(max_profit_abs:{max_profit_abs:.4f} * 1-drawdown:{drawdown_ratio:.2%}), '
+        #                                 f'current_rate:{current_rate:.5f}, open_rate:{trade.open_rate:.5f} at {current_time}')
+        #                 return exit_reason
+                    
+        #             break
+
+        # count_of_orders = len(trade.select_filled_orders())
+        if self.long_time_low_profit_minutes > 0:
+            if trade.is_short:
+                max_profit = (open_rate - trade.min_rate) / open_rate - 2 * self.fee
+            else:
+                max_profit = (trade.max_rate - open_rate) / open_rate - 2 * self.fee
+                
+            open_minutes = round((current_time - trade.open_date_utc).total_seconds() / 60, 1)
+            if open_minutes > self.long_time_low_profit_minutes:
+                if max_profit < self.long_time_low_profit_max and self.long_time_low_profit_lower_bound < _current_profit < self.long_time_low_profit_upper_bound:
+                    return "longtime_low_profit"
+        
         return None
  
     def adjust_trade_position(
