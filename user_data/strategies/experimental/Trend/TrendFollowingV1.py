@@ -71,7 +71,10 @@ class TrendFollowingV1(IStrategy):
         self.long_time_low_profit_max = self.get_config("long_time_low_profit_max", 0.05)
         self.long_time_low_profit_lower_bound = self.get_config("long_time_low_profit_lower_bound", 0.003)
         self.long_time_low_profit_upper_bound = self.get_config("long_time_low_profit_upper_bound", 0.02)
- 
+        
+        self.long_time_stoploss_minutes = self.get_config("long_time_stoploss_minutes", 0)
+        self.long_time_stoploss_profit = self.get_config("long_time_stoploss_profit", 0.03)
+        
         self.cooldown_candles = self.get_config("cooldown_candles", 1)
         self.stoploss_guard_lookback_period_candles = self.get_config("stoploss_guard_lookback_period_candles", 0)  # 0 is disabled
         self.stoploss_guard_trade_limit = self.get_config("stoploss_guard_trade_limit", 4)
@@ -259,6 +262,11 @@ class TrendFollowingV1(IStrategy):
             if _current_profit > self.get_config("base_trailing_stop_offset", 0.3):
                 return self.get_config("base_trailing_stop", 0.12) * leverage
  
+        if self.long_time_stoploss_minutes > 0:
+            open_minutes = round((current_time - trade.open_date_utc).total_seconds() / 60, 1)
+            if open_minutes > self.long_time_stoploss_minutes and _current_profit > (self.long_time_stoploss_profit + 0.005):
+                    return stoploss_from_open(self.long_time_stoploss_profit * leverage, current_profit, is_short, leverage)
+
         return None
 
     def custom_exit(
