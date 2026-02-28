@@ -708,7 +708,8 @@ class Exchange:
             # Reload async markets, then assign them to sync api
             retrier(self._load_async_markets, retries=retries)(reload=True)
             self._markets = self._api_async.markets
-            self._api.set_markets_from_exchange(self._api_async)
+            if hasattr(self._api, "set_markets_from_exchange"):
+                self._api.set_markets_from_exchange(self._api_async)
             # Assign options array, as it contains some temporary information from the exchange.
             # ccxt does not implicitly copy options over in set_markets_from_exchange
             self._api.options = self._api_async.options
