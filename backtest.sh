@@ -1,11 +1,15 @@
 timeframe=$1
 timerange=$2
 strategy=$3
+config="user_data/config/config-$strategy.json"
 
-echo "Backtesting $strategy on timeframe:$timeframe in timerange:$timerange"
+if [ ! -f "$config" ]; then
+    config="config.json"
+fi
 
-# whitelist=$(cat config.json | tr -d '\n' | grep -oP '(?<="pair_whitelist": \[)[^\]]*' | tr -d '"' | tr ',' ' ')
-# ./run.sh download-data --timeframe $timeframe --timerange $timerange --pairs $whitelist
+echo "Backtesting $strategy on timeframe:$timeframe in timerange:[$timerange] with config:$config"
 
-./run.sh backtesting --timeframe $timeframe --timerange $timerange -s $strategy --enable-protections --cache none
+# ./download-backtest-data.sh $timeframe $timerange $strategy
+
+./run.sh backtesting --timeframe $timeframe --timerange $timerange -s $strategy -c $config --enable-protections --cache none
 
