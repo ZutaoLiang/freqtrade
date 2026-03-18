@@ -408,7 +408,7 @@ class LongShortV2(IStrategy):
             logger.info(f'Total portfolio profit reached take profit:{total_profit_abs:.2f} >= {self.portfolio_take_profit_amount:.2f}, exiting portfolio at {current_time}')
             return
             
-        if self.portfolio_trailing_stop_activation > 0 and total_profit_abs >= self.portfolio_trailing_stop_activation:
+        if self.portfolio_trailing_stop_activation > 0 and self.portfolio_max_profit >= self.portfolio_trailing_stop_activation:
             trailing_stop_threshold = self.portfolio_max_profit * (1 - self.portfolio_trailing_stop_drawback_ratio)
             if total_profit_abs <= trailing_stop_threshold:
                 self.is_portfolio_exit = True
