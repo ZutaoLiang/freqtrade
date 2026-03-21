@@ -1,0 +1,125 @@
+def feature_market_structure(dataframe):
+    
+    # ADX：趋势强度（最重要）
+    # ADX > 25 趋势市，ADX < 20 震荡市
+    dataframe['f_adx'] = ta.ADX(
+        dataframe['high'], dataframe['low'], dataframe['close'], 14
+    ) / 100
+    dataframe['f_adx_slope'] = dataframe['f_adx'].diff(6)
+    
+    # 高低点结构：判断是否形成更高高点/更高低点
+    rolling_high = dataframe['high'].rolling(24).max()
+    rolling_low = dataframe['low'].rolling(24).min()
+    prev_high = dataframe['high'].rolling(24).max().shift(24)
+    prev_low = dataframe['low'].rolling(24).min().shift(24)
+    
+    dataframe['f_hh'] = (rolling_high > prev_high).astype(int)  # 更高高点
+    dataframe['f_hl'] = (rolling_low > prev_low).astype(int)    # 更高低点
+    dataframe['f_market_structure'] = dataframe['f_hh'] + dataframe['f_hl']
+    # 2=上升结构 0=下降结构 1=混乱结构
+    
+    # 价格位置：当前价在过去N根K线的百分位
+    dataframe['f_price_percentile_48'] = (
+        dataframe['close'].rolling(48).rank() / 48
+    )
+    dataframe['f_price_percentile_168'] = (
+        dataframe['close'].rolling(168).rank() / 168
+    )
+    
+    return dataframe
+
+def feature_support_resistance(dataframe):
+    
+    # 与近期高低点的距离（归一化）
+    high_24 = dataframe['high'].rolling(24).max()
+    low_24 = dataframe['low'].rolling(24).min()
+    high_168 = dataframe['high'].rolling(168).max()
+    low_168 = dataframe['low'].rolling(168).min()
+    
+    dataframe['f_dist_to_high_24'] = (high_24 - dataframe['close']) / dataframe['close']
+    dataframe['f_dist_to_low_24'] = (dataframe['close'] - low_24) / dataframe['close']
+    dataframe['f_dist_to_high_168'] = (high_168 - dataframe['close']) / dataframe['close']
+    dataframe['f_dist_to_low_168'] = (dataframe['close'] - low_168) / dataframe['close']
+    
+    # 当前K线在近期区间的位置（0=底部 1=顶部）
+    dataframe['f_range_position_24'] = (
+        (dataframe['close'] - low_24) / (high_24 - low_24 + 1e-9)
+    )
+    
+    return dataframe
+
+def feature_candle_pattern(dataframe):
+    
+    # 实体大小（相对于波动范围）
+    body = abs(dataframe['close'] - dataframe['open'])
+    total_range = dataframe['high'] - dataframe['low'] + 1e-9
+    dataframe['f_body_ratio'] = body / total_range
+    
+    # 方向（阳线/阴线）
+    dataframe['f_candle_dir'] = (
+        (dataframe['close'] > dataframe['open']).astype(int) * 2 - 1
+    )  # 1=阳线 -1=阴线
+    
+    # 上下影线比例
+    upper_wick = dataframe['high'] - dataframe[['close','open']].max(axis=1)
+    lower_wick = dataframe[['close','open']].min(axis=1) - dataframe['low']
+    dataframe['f_upper_wick'] = upper_wick / total_range
+    dataframe['f_lower_wick'] = lower_wick / total_range
+    
+    # 连续N根同向K线（惯性）
+    dataframe['f_consecutive_up'] = (
+        dataframe['f_candle_dir'].rolling(6).sum() / 6
+    )  # 范围 -1 到 1，1表示连续6根阳线
+    
+    # 吞没形态（简化版）
+    prev_body = body.shift(1)
+    dataframe['f_engulfing'] = (
+        (body > prev_body * 1.5) & 
+        (dataframe['f_candle_dir'] != dataframe['f_candle_dir'].shift(1))
+    ).astype(int) * dataframe['f_candle_dir']
+    
+    return dataframe
+
+def feature_time(dataframe):
+    
+    # 小时（加密市场不同时段活跃度差异大）
+    dataframe['f_hour_sin'] = np.sin(2 * np.pi * dataframe.index.hour / 24)
+    dataframe['f_hour_cos'] = np.cos(2 * np.pi * dataframe.index.hour / 24)
+    
+    # 星期（周一开盘、周五收盘效应）
+    dataframe['f_dow_sin'] = np.sin(2 * np.pi * dataframe.index.dayofweek / 7)
+    dataframe['f_dow_cos'] = np.cos(2 * np.pi * dataframe.index.dayofweek / 7)
+    # 用sin/cos编码而不是直接用数字，避免模型认为周日(6)和周一(0)差距很大
+    
+    return dataframe
+
+
+def feature_btc_dominance(dataframe, btc_df):
+    
+    # BTC自身趋势状态
+    btc_ema20 = ta.EMA(btc_df['close'], 20)
+    btc_ema50 = ta.EMA(btc_df['close'], 50)
+    btc_ema200 = ta.EMA(btc_df['close'], 200)
+    
+    btc_alignment = (
+        (btc_ema20 > btc_ema50).astype(int) +
+        (btc_ema50 > btc_ema200).astype(int)
+    ).reindex(dataframe.index, method='ffill')
+    
+    dataframe['f_btc_alignment'] = btc_alignment
+    
+    # BTC短期动量
+    btc_roc = btc_df['close'].pct_change(12).reindex(
+        dataframe.index, method='ffill'
+    )
+    dataframe['f_btc_roc_12'] = btc_roc
+    
+    # 目标币相对BTC的强弱（替代之前的vs ETH）
+    coin_roc = dataframe['close'].pct_change(12)
+    dataframe['f_coin_vs_btc_12'] = coin_roc - btc_roc
+    dataframe['f_coin_vs_btc_24'] = (
+        dataframe['close'].pct_change(24) - 
+        btc_df['close'].pct_change(24).reindex(dataframe.index, method='ffill')
+    )
+    
+    return dataframe            
