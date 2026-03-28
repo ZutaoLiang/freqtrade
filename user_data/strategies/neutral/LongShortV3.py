@@ -14,6 +14,8 @@ import freqtrade.vendor.qtpylib.indicators as qtpylib
 
 from datetime import datetime, timezone, timedelta
 import logging
+import os
+import json
 logger = logging.getLogger(__name__)
 # TODO: remove this
 logging.getLogger('freqtrade.leverage.liquidation_price').setLevel(logging.WARNING)
@@ -98,9 +100,45 @@ class LongShortV3(IStrategy):
         self.max_drawdown_lookback_period = self.get_config("max_drawdown_lookback_period", 0)  # 0 is disabled
         self.max_drawdown_stop_duration = self.get_config("max_drawdown_stop_duration", 60)
         self.max_allowed_drawdown = self.get_config("max_allowed_drawdown", 0.3)
-     
+        
+        self.portfolio_cooldown_minutes = self.get_config("portfolio_cooldown_minutes", 8)
+        self.next_entry_time_file = f"next_entry_time_{self.__class__.__name__}.json"
+
     def get_config(self, key: str, default):
         return self.config.get(key, default)
+
+    def _get_next_entry_time(self) -> datetime | None:
+        try:
+            if os.path.exists(self.next_entry_time_file):
+                with open(self.next_entry_time_file, 'r') as f:
+                    data = json.load(f)
+                    if 'next_entry_time' in data:
+                        return datetime.fromisoformat(data['next_entry_time'])
+        except (FileNotFoundError, json.JSONDecodeError, ValueError) as e:
+            logger.warning(f"Failed to read next entry time file: {e}")
+        return None
+
+    def _set_next_entry_time(self, next_time: datetime) -> None:
+        try:
+            with open(self.next_entry_time_file, 'w') as f:
+                json.dump({'next_entry_time': next_time.isoformat()}, f)
+            logger.debug(f"Set next entry time to {next_time} (file: {self.next_entry_time_file})")
+        except Exception as e:
+            logger.error(f"Failed to write next entry time file: {e}")
+
+    def _is_entry_time_valid(self, current_time: datetime) -> bool:
+        next_entry_time = self._get_next_entry_time()
+        if next_entry_time is None:
+            return True
+            
+        two_cooldown_later = current_time + timedelta(minutes=2 * self.portfolio_cooldown_minutes)
+        if two_cooldown_later < next_entry_time:
+            logger.debug(f"Detected backtesting mode: current_time={current_time}, "
+                        f"two_cooldown_later={two_cooldown_later}, "
+                        f"stored_next_entry_time={next_entry_time}")
+            return True
+            
+        return current_time >= next_entry_time
 
     def informative_pairs(self):
         informative_pairs = [(self.main_pairs[0], self.timeframe)]
@@ -357,8 +395,13 @@ class LongShortV3(IStrategy):
     ) -> bool:
         if self.is_portfolio_exit:
             return False 
+            
+        if not self._is_entry_time_valid(current_time):
+            logger.debug(f"Entry blocked: current time {current_time} is before next allowed entry time")
+            return False
 
         return True
+
     def bot_loop_start(self, current_time: datetime, **kwargs) -> None:
         self.is_portfolio_exit = False
         self.portfolio_exit_reason = ''
@@ -386,12 +429,16 @@ class LongShortV3(IStrategy):
             self.is_portfolio_exit = True
             self.portfolio_exit_reason = 'portfolio_stoploss'
             logger.info(f'Total portfolio profit reached stoploss:{total_profit_abs:.2f} <= {self.portfolio_stoploss_amount:.2f}, exiting portfolio at {current_time}')
+            next_entry_time = current_time + timedelta(minutes=self.portfolio_cooldown_minutes)
+            self._set_next_entry_time(next_entry_time)
             return
         
         if total_profit_abs >= self.portfolio_take_profit_amount:
             self.is_portfolio_exit = True
             self.portfolio_exit_reason = 'portfolio_take_profit'
             logger.info(f'Total portfolio profit reached take profit:{total_profit_abs:.2f} >= {self.portfolio_take_profit_amount:.2f}, exiting portfolio at {current_time}')
+            next_entry_time = current_time + timedelta(minutes=self.portfolio_cooldown_minutes)
+            self._set_next_entry_time(next_entry_time)
             return
             
         if self.portfolio_trailing_stop_activation > 0 and self.portfolio_max_profit >= self.portfolio_trailing_stop_activation:
@@ -401,6 +448,8 @@ class LongShortV3(IStrategy):
                 self.portfolio_exit_reason = 'portfolio_trailing_stop'
                 logger.info(f'Total portfolio profit reached trailing stop, profit:{total_profit_abs:.2f} <= {trailing_stop_threshold:.2f}, '
                             f'max_profit:{self.portfolio_max_profit:.2f}, trailing stop ratio:{self.portfolio_trailing_stop_drawback_ratio:.2%}, exiting portfolio at {current_time}')
+                next_entry_time = current_time + timedelta(minutes=self.portfolio_cooldown_minutes)
+                self._set_next_entry_time(next_entry_time)
                 return
 
     def get_last_candle(self, trade: Trade):
