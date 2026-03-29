@@ -16,6 +16,7 @@ from datetime import datetime, timezone, timedelta
 import logging
 import os
 import json
+from freqtrade.enums import RunMode
 logger = logging.getLogger(__name__)
 # TODO: remove this
 logging.getLogger('freqtrade.leverage.liquidation_price').setLevel(logging.WARNING)
@@ -108,6 +109,9 @@ class LongShortV3(IStrategy):
         return self.config.get(key, default)
 
     def _get_next_entry_time(self) -> datetime | None:
+        if self.config.get("runmode") in (RunMode.BACKTEST, RunMode.HYPEROPT):
+            return None
+            
         try:
             if os.path.exists(self.next_entry_time_file):
                 with open(self.next_entry_time_file, 'r') as f:
@@ -119,21 +123,27 @@ class LongShortV3(IStrategy):
         return None
 
     def _set_next_entry_time(self, next_time: datetime) -> None:
+        if self.config.get("runmode") in (RunMode.BACKTEST, RunMode.HYPEROPT):
+            return
+            
         try:
             with open(self.next_entry_time_file, 'w') as f:
                 json.dump({'next_entry_time': next_time.isoformat()}, f)
-            logger.debug(f"Set next entry time to {next_time} (file: {self.next_entry_time_file})")
+            logger.info(f"Set next entry time to {next_time} (file: {self.next_entry_time_file})")
         except Exception as e:
             logger.error(f"Failed to write next entry time file: {e}")
 
     def _is_entry_time_valid(self, current_time: datetime) -> bool:
+        if self.config.get("runmode") in (RunMode.BACKTEST, RunMode.HYPEROPT):
+            return True
+            
         next_entry_time = self._get_next_entry_time()
         if next_entry_time is None:
             return True
             
         two_cooldown_later = current_time + timedelta(minutes=2 * self.portfolio_cooldown_minutes)
         if two_cooldown_later < next_entry_time:
-            logger.debug(f"Detected backtesting mode: current_time={current_time}, "
+            logger.info(f"Detected backtesting mode: current_time={current_time}, "
                         f"two_cooldown_later={two_cooldown_later}, "
                         f"stored_next_entry_time={next_entry_time}")
             return True
@@ -397,7 +407,7 @@ class LongShortV3(IStrategy):
             return False 
             
         if not self._is_entry_time_valid(current_time):
-            logger.debug(f"Entry blocked: current time {current_time} is before next allowed entry time")
+            logger.info(f"Entry blocked: current time {current_time} is before next allowed entry time")
             return False
 
         return True
