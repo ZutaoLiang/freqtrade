@@ -1,5 +1,6 @@
 from pandas import DataFrame
 import pandas_ta as pta
+import numpy as np
 from datetime import datetime, timedelta
 from typing import Optional, Tuple, Union
 
@@ -206,6 +207,13 @@ class SimpleTrendShortV1(IStrategy):
                             f'current_rate:{current_rate:.6f}, '
                             f'current_profit:{current_profit:.2%}(without leverage:{_current_profit:.2%}) at {current_time}')
             return stoploss_from_absolute(stop_rate, current_rate, is_short, leverage)
+        
+        open_hours = round((current_time - trade.open_date_utc).total_seconds() / 3600, 1)
+        if open_hours >= 8:
+            factor = np.log2(open_hours) / 2
+            relative_stoploss = (0.02 * factor)
+            if _current_profit > relative_stoploss:
+                return stoploss_from_open(relative_stoploss * leverage, current_profit, is_short, leverage)
         
         if self.custom_trailing_stop:
             if _current_profit > self.get_config("base_trailing_stop_offset", 0.3):
