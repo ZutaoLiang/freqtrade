@@ -71,7 +71,7 @@ class LongShortV3(IStrategy):
         self.use_ha_candles = self.get_config("use_ha_candles", False)
         
         self.trend_length = self.get_config("trend_length", 3)
- 
+
         self.ma_short_length = self.get_config("ma_short_length", 0)
         self.ma_mid_length = self.get_config("ma_mid_length", 0)
         self.ma_long_length = self.get_config("ma_long_length", 0)
@@ -85,7 +85,7 @@ class LongShortV3(IStrategy):
         self.analyse_portfolio_spread = self.get_config("analyse_portfolio_spread", False)
         self.spread_avg_window = self.get_config("spread_avg_window", 15)
         self.spread_zscore_threshold = self.get_config("spread_zscore_threshold", 0.5)
- 
+
         self.long_time_low_profit_minutes = self.get_config("long_time_low_profit_minutes", 0)
         self.long_time_low_profit_max = self.get_config("long_time_low_profit_max", 0.05)
         self.long_time_low_profit_lower_bound = self.get_config("long_time_low_profit_lower_bound", 0.003)
@@ -165,7 +165,7 @@ class LongShortV3(IStrategy):
         df['ha_low'] = df_ref['low']
         df['ha_close'] = df_ref['close']
         return df
- 
+
     def calc_ma(self, close, length: int):
         # ma = pta.ema(close=close, length=length, talib=False)
         ma = pta.ema(close=close, length=length, talib=False)
@@ -268,7 +268,7 @@ class LongShortV3(IStrategy):
             else:
                 dataframe.loc[informative_up_mask, ['enter_short', 'enter_tag']] = (1, 'entry_short')
                 dataframe.loc[informative_down_mask, ['enter_long', 'enter_tag']] = (1, 'entry_long')
-                          
+
             return dataframe
         except Exception as e:
             logger.error(f"Error in {self.__class__.__name__}::populate_entry_trend: {e}")
@@ -351,7 +351,7 @@ class LongShortV3(IStrategy):
         if self.custom_trailing_stop:
             if _current_profit > self.get_config("base_trailing_stop_offset", 0.3):
                 return self.get_config("base_trailing_stop", 0.12) * leverage
- 
+
         if self.long_time_stoploss_minutes > 0:
             open_minutes = round((current_time - trade.open_date_utc).total_seconds() / 60, 1)
             if open_minutes > self.long_time_stoploss_minutes and _current_profit > (self.long_time_stoploss_profit + 0.005):
@@ -443,10 +443,17 @@ class LongShortV3(IStrategy):
             self._set_next_entry_time(next_entry_time)
             return
         
-        if total_profit_abs >= self.portfolio_take_profit_amount:
+        trade_0 = open_trades[0]
+        open_hours = round((current_time - trade_0.open_date_utc).total_seconds() / 3600, 1)
+        time_decay = round(open_hours / 72.0, 1)
+        if time_decay < 1:
+            time_decay = 1
+        take_profit = self.portfolio_take_profit_amount / time_decay
+        
+        if total_profit_abs >= take_profit:
             self.is_portfolio_exit = True
             self.portfolio_exit_reason = 'portfolio_take_profit'
-            logger.info(f'Total portfolio profit reached take profit:{total_profit_abs:.2f} >= {self.portfolio_take_profit_amount:.2f}, exiting portfolio at {current_time}')
+            logger.info(f'Total portfolio profit reached take profit:{total_profit_abs:.2f} >= {take_profit:.2f}(time decay factor:{time_decay:.1f}), exiting portfolio at {current_time}')
             next_entry_time = current_time + timedelta(minutes=self.portfolio_cooldown_minutes)
             self._set_next_entry_time(next_entry_time)
             return
@@ -466,7 +473,7 @@ class LongShortV3(IStrategy):
         dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
         last_candle = dataframe.iloc[-1].squeeze()
         return last_candle
- 
+
     def indicator_up_n_periods_mask(self, dataframe: DataFrame, indicator: str, days: int):
         indicator_up_mask = (dataframe[f'{indicator}'] > dataframe[f'{indicator}'].shift(1))
         for i in range(2, days):
@@ -533,25 +540,25 @@ class LongShortV3(IStrategy):
         leverage: float, entry_tag: str | None, side: str, 
         **kwargs,
     ) -> float:
-        if self.enable_dynamic_stake:
-            return self.calc_stake_based_on_atr(pair, current_time, current_rate, proposed_stake, min_stake, max_stake, leverage, entry_tag, side, **kwargs)
-        else:
-            total_stake_amount_per_side = self.total_stake_amount / 2
-            
-            if pair in self.main_pairs:
-                if len(self.main_pairs) == 1:
-                    stake_amount = total_stake_amount_per_side
+        total_stake_amount_per_side = self.total_stake_amount / 2
+        
+        if pair in self.main_pairs:
+            if len(self.main_pairs) == 1:
+                stake_amount = total_stake_amount_per_side
+            else:
+                if pair == self.main_pairs[0]:
+                    stake_amount = (total_stake_amount_per_side / 2)
                 else:
-                    if pair == self.main_pairs[0]:
-                        stake_amount = (total_stake_amount_per_side / 2)
-                    else:
-                        stake_amount = (total_stake_amount_per_side / 2) / (len(self.main_pairs) - 1)
-                # logger.info(f"Fixed stake for main pair {pair}: {stake_amount:.2f} at {current_time}")
+                    stake_amount = (total_stake_amount_per_side / 2) / (len(self.main_pairs) - 1)
+            # logger.info(f"Fixed stake for main pair {pair}: {stake_amount:.2f} at {current_time}")
+        else:
+            if self.enable_dynamic_stake:
+                stake_amount = self.calc_stake_based_on_atr(pair, current_time, current_rate, proposed_stake, min_stake, max_stake, leverage, entry_tag, side, **kwargs)
             else:
                 stake_amount = total_stake_amount_per_side / (len(self.get_pairs()) - len(self.main_pairs))
                 # logger.info(f"Fixed stake for pair {pair}: {stake_amount:.2f} at {current_time}")
-            
-            return stake_amount
+        
+        return stake_amount
         
     def calc_stake_based_on_atr(
         self, pair: str, current_time: datetime, current_rate: float,
@@ -563,7 +570,7 @@ class LongShortV3(IStrategy):
         alt_pairs = [p for p in pairs if p not in self.main_pairs]
         num_alts = len(alt_pairs)
         
-        TOTAL_SHORT_STAKE = proposed_stake * num_alts
+        total_alt_stake = self.total_stake_amount / 2
         
         raw_weights = {}
         total_raw_weight = 0.0
@@ -584,37 +591,25 @@ class LongShortV3(IStrategy):
             total_raw_weight += weight
             
         if total_raw_weight == 0:
-            if pair in self.main_pairs:
-                return TOTAL_SHORT_STAKE
-            else:
-                return TOTAL_SHORT_STAKE / num_alts
-                
-        if pair in self.main_pairs:
-            base_pair_stake = TOTAL_SHORT_STAKE
+            return total_alt_stake / num_alts
+        
+        if pair in raw_weights:
+            normalized_weight = raw_weights[pair] / total_raw_weight
+            
+            alt_stake = total_alt_stake * normalized_weight
             
             if max_stake is not None:
-                base_pair_stake = min(base_pair_stake, max_stake)
+                alt_stake = min(alt_stake, max_stake)
+            if min_stake is not None:
+                alt_stake = max(alt_stake, min_stake)
                 
-            logger.info(f"Dynamic stake for base pair {self.main_pairs}: {base_pair_stake:.2f} at {current_time}")
-            return base_pair_stake
+            if alt_stake * self.trade_leverage < self.min_notional:
+                alt_stake = self.min_notional / self.trade_leverage
+                
+            # logger.info(f"Dynamic stake for {pair}: {alt_stake:.2f} (weight: {normalized_weight:.2%}) at {current_time}")
+            return alt_stake
         else:
-            if pair in raw_weights:
-                normalized_weight = raw_weights[pair] / total_raw_weight
-                
-                alt_stake = TOTAL_SHORT_STAKE * normalized_weight
-                
-                if max_stake is not None:
-                    alt_stake = min(alt_stake, max_stake)
-                if min_stake is not None:
-                    alt_stake = max(alt_stake, min_stake)
-                    
-                if alt_stake * self.trade_leverage < self.min_notional:
-                    alt_stake = self.min_notional / self.trade_leverage
-                    
-                logger.info(f"Dynamic stake for {pair}: {alt_stake:.2f} (weight: {normalized_weight:.2%}) at {current_time}")
-                return alt_stake
-            else:
-                return 0.0
+            return 0.0
     
     def get_pairs(self):
         return self.config['exchange']['pair_whitelist']
