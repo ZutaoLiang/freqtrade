@@ -44,6 +44,7 @@ class LongShortV3(IStrategy):
         self.main_pairs = [s.strip() for s in main_pairs_str]
         
         self.portfolio_take_profit_amount = self.get_config("portfolio_take_profit_amount", 5)
+        self.take_profit_decay_factor = self.get_config("take_profit_decay_factor", 48)
         self.portfolio_stoploss_amount = self.get_config("portfolio_stoploss_amount", -5)
         self.portfolio_exit_only = self.get_config("portfolio_exit_only", False)
         self.enable_dynamic_stake = self.get_config("enable_dynamic_stake", False)
@@ -80,7 +81,7 @@ class LongShortV3(IStrategy):
         
         self.atr_period = self.get_config("atr_period", 21)
         
-        self.fee = self.get_config("fee", 0.0005)
+        self.fee = self.get_config("fee", 0.0005)        
         
         self.analyse_portfolio_spread = self.get_config("analyse_portfolio_spread", False)
         self.spread_avg_window = self.get_config("spread_avg_window", 15)
@@ -445,7 +446,7 @@ class LongShortV3(IStrategy):
         
         trade_0 = open_trades[0]
         open_hours = round((current_time - trade_0.open_date_utc).total_seconds() / 3600, 1)
-        time_decay = round(open_hours / 72.0, 1)
+        time_decay = round(open_hours / self.take_profit_decay_factor, 1)
         if time_decay < 1:
             time_decay = 1
         take_profit = self.portfolio_take_profit_amount / time_decay
