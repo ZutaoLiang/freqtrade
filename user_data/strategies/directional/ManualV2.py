@@ -179,6 +179,11 @@ class ManualV2(IStrategy):
         if not self.use_custom_stoploss:
             return None
         
+        leverage = trade.leverage
+        is_short = trade.is_short
+        open_rate = trade.open_rate
+        _current_profit = current_profit / leverage
+
         if self.custom_trailing_stop:
             if _current_profit > self.get_config("base_trailing_stop_offset", 0.3):
                 return self.get_config("base_trailing_stop", 0.12) * leverage
@@ -190,11 +195,6 @@ class ManualV2(IStrategy):
         
         if self.atr_stop_loss_multiplier <= 0:
             return None
-        
-        leverage = trade.leverage
-        is_short = trade.is_short
-        open_rate = trade.open_rate
-        _current_profit = current_profit / leverage
 
         last_candle = self.get_last_candle(trade)
         atr = last_candle['atr']
