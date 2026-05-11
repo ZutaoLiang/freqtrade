@@ -596,6 +596,10 @@ class LongShortV5(IStrategy):
         if actual_count >= expected_count:
             return
         
+        # Empty positions is normal, no need to notify
+        if actual_count == 0:
+            return
+        
         # Check notification interval
         if self._last_missing_trade_notify_time is not None:
             elapsed = (current_time - self._last_missing_trade_notify_time).total_seconds() / 60
