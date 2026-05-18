@@ -59,10 +59,14 @@ class DirectionalManualV1(IStrategy):
 
         # Custom exit parameters
         self.fee = self.get_config("fee", 0.0005)
-        self.long_time_low_profit_hours = self.get_config("long_time_low_profit_hours", 48)
+        self.long_time_low_profit_hours = self.get_config("long_time_low_profit_hours", 12)
         self.long_time_low_profit_max = self.get_config("long_time_low_profit_max", 0.05)
         self.long_time_low_profit_lower_bound = self.get_config("long_time_low_profit_lower_bound", 0.003)
         self.long_time_low_profit_upper_bound = self.get_config("long_time_low_profit_upper_bound", 0.02)
+
+        self.very_long_time_hours = self.get_config("very_long_time_hours", 24)
+        self.very_long_time_profit_lower = self.get_config("very_long_time_profit_lower", 0.03)
+        self.very_long_time_profit_upper = self.get_config("very_long_time_profit_upper", 0.06)
 
         self.startup_candle_count = max(self.ema_short_length, self.ema_long_length, self.supertrend_length) + 10
 
@@ -168,5 +172,11 @@ class DirectionalManualV1(IStrategy):
             if open_hours > self.long_time_low_profit_hours:
                 if max_profit < self.long_time_low_profit_max and self.long_time_low_profit_lower_bound < _current_profit < self.long_time_low_profit_upper_bound:
                     return "longtime_low_profit"
+
+        if self.very_long_time_hours > 0:
+            open_hours = (current_time - trade.open_date_utc).total_seconds() / 3600
+            if open_hours > self.very_long_time_hours:
+                if self.very_long_time_profit_lower <= _current_profit <= self.very_long_time_profit_upper:
+                    return "very_long_time_low_profit"
 
         return None
