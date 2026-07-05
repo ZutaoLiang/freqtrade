@@ -112,9 +112,15 @@ class LongShortV5(IStrategy):
         self.portfolio_stoploss_amount = self.get_config("portfolio_stoploss_amount", -5)
         self.portfolio_exit_only = self.get_config("portfolio_exit_only", False)
         self.enable_dynamic_stake = self.get_config("enable_dynamic_stake", False)
+        self.allow_long = self.get_config("allow_long", True)
+        self.allow_short = self.get_config("allow_short", True)
         
         self.portfolio_trailing_stop_activation = self.get_config("portfolio_trailing_stop_activation", 0)
         self.portfolio_trailing_stop_drawback_ratio = self.get_config("portfolio_trailing_stop_drawback_ratio", 0.3)
+        self.portfolio_trailing_cooldown_enabled = self.get_config("portfolio_trailing_cooldown_enabled", False)
+        self.portfolio_trailing_cooldown_minutes = self.get_config("portfolio_trailing_cooldown_minutes", 360)
+        self.portfolio_cooldown_minutes = self.get_config("portfolio_cooldown_minutes", 8)
+        self.portfolio_cooldown_enabled = self.get_config("portfolio_cooldown_enabled", False)
         
         self.total_stake_amount = self.get_config("total_stake_amount", 6)
         self.min_notional = self.get_config("min_notional", 20.5)
@@ -134,7 +140,7 @@ class LongShortV5(IStrategy):
         self.atr_stop_loss_multiplier = self.get_config("atr_stop_loss_multiplier", 0)
         
         self.use_ha_candles = self.get_config("use_ha_candles", False)
-        
+
         self.trend_length = self.get_config("trend_length", 3)
 
         self.ma_short_length = self.get_config("ma_short_length", 0)
@@ -167,7 +173,6 @@ class LongShortV5(IStrategy):
         self.max_drawdown_stop_duration = self.get_config("max_drawdown_stop_duration", 60)
         self.max_allowed_drawdown = self.get_config("max_allowed_drawdown", 0.3)
         
-        self.portfolio_cooldown_minutes = self.get_config("portfolio_cooldown_minutes", 8)
         self.next_entry_time_file = f"next_entry_time_{self.__class__.__name__}.json"
 
         # Feishu notification config
@@ -179,6 +184,7 @@ class LongShortV5(IStrategy):
         # Missing trade notification interval (minutes)
         self.missing_trade_notify_interval_minutes = self.get_config("missing_trade_notify_interval_minutes", 5)
         self._last_missing_trade_notify_time: datetime | None = None
+        self._last_portfolio_exit_check_candle: datetime | None = None
 
     def get_config(self, key: str, default):
         return self.config.get(key, default)
@@ -216,14 +222,99 @@ class LongShortV5(IStrategy):
         if next_entry_time is None:
             return True
             
-        two_cooldown_later = current_time + timedelta(minutes=2 * self.portfolio_cooldown_minutes)
+        two_cooldown_later = current_time + timedelta(minutes=2 * self._max_portfolio_cooldown_minutes())
         if two_cooldown_later < next_entry_time:
             logger.info(f"Detected backtesting mode: current_time={current_time}, "
                         f"two_cooldown_later={two_cooldown_later}, "
                         f"stored_next_entry_time={next_entry_time}")
             return True
-            
+
         return current_time >= next_entry_time
+
+    def _max_portfolio_cooldown_minutes(self) -> int:
+        cooldowns = [self.portfolio_cooldown_minutes]
+        if self.portfolio_trailing_cooldown_enabled:
+            cooldowns.append(self.portfolio_trailing_cooldown_minutes)
+        return max(1, int(max(cooldowns)))
+
+    def _normalize_candle_time(self, value) -> datetime | None:
+        if value is None or pd.isna(value):
+            return None
+
+        candle_time = pd.Timestamp(value).to_pydatetime()
+        if candle_time.tzinfo is None:
+            return candle_time.replace(tzinfo=timezone.utc)
+        return candle_time.astimezone(timezone.utc)
+
+    def _latest_analyzed_candle(self, pair: str) -> tuple[datetime, float] | None:
+        try:
+            dataframe, _ = self.dp.get_analyzed_dataframe(pair=pair, timeframe=self.timeframe)
+        except Exception as e:
+            logger.warning(f"Failed to read analyzed dataframe for {pair}: {e}")
+            return None
+
+        if dataframe is None or dataframe.empty:
+            return None
+
+        last_candle = dataframe.iloc[-1].squeeze()
+        candle_time = self._normalize_candle_time(last_candle.get('date'))
+        close = last_candle.get('close')
+        if candle_time is None or pd.isna(close):
+            return None
+        return candle_time, float(close)
+
+    def _portfolio_profit_at_candle_close(
+        self,
+        open_trades: list[Trade],
+        candle_time: datetime,
+    ) -> dict[str, float] | None:
+        profit_by_pair: dict[str, float] = {}
+        for trade in open_trades:
+            candle = self._latest_analyzed_candle(trade.pair)
+            if candle is None:
+                logger.info(f"Skip portfolio exit check: no analyzed candle for {trade.pair}")
+                return None
+
+            trade_candle_time, close = candle
+            if trade_candle_time != candle_time:
+                logger.info(
+                    f"Skip portfolio exit check: {trade.pair} candle {trade_candle_time} "
+                    f"is not synced with main candle {candle_time}"
+                )
+                return None
+
+            profit_by_pair[trade.pair] = trade.calculate_profit(rate=close).profit_abs
+
+        return profit_by_pair
+
+    def _portfolio_profit_for_exit_check(
+        self,
+        current_time: datetime,
+        open_trades: list[Trade],
+    ) -> float | None:
+        if self.config.get("runmode") in (RunMode.BACKTEST, RunMode.HYPEROPT):
+            return sum(self.portfolio_profit_dict.values())
+
+        main_candle = self._latest_analyzed_candle(self.main_pairs[0])
+        if main_candle is None:
+            return None
+
+        candle_time, _ = main_candle
+        if self._last_portfolio_exit_check_candle == candle_time:
+            return None
+
+        profit_by_pair = self._portfolio_profit_at_candle_close(open_trades, candle_time)
+        if profit_by_pair is None:
+            return None
+
+        self._last_portfolio_exit_check_candle = candle_time
+        self.portfolio_profit_dict.update(profit_by_pair)
+        total_profit_abs = sum(profit_by_pair.values())
+        logger.info(
+            f"Portfolio close-candle check at {candle_time}, "
+            f"current_time:{current_time}, total_profit:{total_profit_abs:.2f}"
+        )
+        return total_profit_abs
 
     def informative_pairs(self):
         informative_pairs = [(self.main_pairs[0], self.timeframe)]
@@ -367,11 +458,15 @@ class LongShortV5(IStrategy):
                 informative_down_mask = informative_down_mask & (dataframe['spread_zscore'] < self.spread_zscore_threshold)
             
             if metadata['pair'] in self.main_pairs:
-                dataframe.loc[informative_up_mask, ['enter_long', 'enter_tag']] = (1, 'entry_long')
-                dataframe.loc[informative_down_mask, ['enter_short', 'enter_tag']] = (1, 'entry_short')
+                if self.allow_long:
+                    dataframe.loc[informative_up_mask, ['enter_long', 'enter_tag']] = (1, 'entry_long')
+                if self.allow_short:
+                    dataframe.loc[informative_down_mask, ['enter_short', 'enter_tag']] = (1, 'entry_short')
             else:
-                dataframe.loc[informative_up_mask, ['enter_short', 'enter_tag']] = (1, 'entry_short')
-                dataframe.loc[informative_down_mask, ['enter_long', 'enter_tag']] = (1, 'entry_long')
+                if self.allow_short:
+                    dataframe.loc[informative_up_mask, ['enter_short', 'enter_tag']] = (1, 'entry_short')
+                if self.allow_long:
+                    dataframe.loc[informative_down_mask, ['enter_long', 'enter_tag']] = (1, 'entry_long')
 
             return dataframe
         except Exception as e:
@@ -495,6 +590,20 @@ class LongShortV5(IStrategy):
         
         return None
 
+    def _set_portfolio_exit(self, reason: str, current_time: datetime) -> None:
+        self.is_portfolio_exit = True
+        self.portfolio_exit_reason = reason
+
+        cooldown_minutes: int | None = None
+        if self.portfolio_cooldown_enabled:
+            cooldown_minutes = self.portfolio_cooldown_minutes
+        elif reason == "portfolio_trailing_stop" and self.portfolio_trailing_cooldown_enabled:
+            cooldown_minutes = self.portfolio_trailing_cooldown_minutes
+
+        if cooldown_minutes is not None and cooldown_minutes > 0:
+            next_entry_time = current_time + timedelta(minutes=cooldown_minutes)
+            self._set_next_entry_time(next_entry_time)
+
     def confirm_trade_entry(
         self,
         pair: str,
@@ -534,22 +643,22 @@ class LongShortV5(IStrategy):
             self.portfolio_max_profit = -100000
             return
         
-        total_profit_abs = sum(self.portfolio_profit_dict.values())
+        total_profit_abs = self._portfolio_profit_for_exit_check(current_time, open_trades)
+        if total_profit_abs is None:
+            return
+
         if total_profit_abs > self.portfolio_max_profit:
             self.portfolio_max_profit = total_profit_abs
         
         if total_profit_abs < self.portfolio_min_profit:
             self.portfolio_min_profit = total_profit_abs
             logger.warning(f'Total portfolio profit reached min profit:{total_profit_abs:.2f} at {current_time}')
-            
+
         if total_profit_abs <= self.portfolio_stoploss_amount:
-            self.is_portfolio_exit = True
-            self.portfolio_exit_reason = 'portfolio_stoploss'
+            self._set_portfolio_exit('portfolio_stoploss', current_time)
             logger.info(f'Total portfolio profit reached stoploss:{total_profit_abs:.2f} <= {self.portfolio_stoploss_amount:.2f}, exiting portfolio at {current_time}')
-            next_entry_time = current_time + timedelta(minutes=self.portfolio_cooldown_minutes)
-            self._set_next_entry_time(next_entry_time)
             return
-        
+
         trade_0 = open_trades[0]
         open_hours = round((current_time - trade_0.open_date_utc).total_seconds() / 3600, 1)
         time_decay = round(open_hours / self.take_profit_decay_factor, 1)
@@ -558,22 +667,16 @@ class LongShortV5(IStrategy):
         take_profit = self.portfolio_take_profit_amount / time_decay
         
         if total_profit_abs >= take_profit:
-            self.is_portfolio_exit = True
-            self.portfolio_exit_reason = 'portfolio_take_profit'
+            self._set_portfolio_exit('portfolio_take_profit', current_time)
             logger.info(f'Total portfolio profit reached take profit:{total_profit_abs:.2f} >= {take_profit:.2f}(time decay factor:{time_decay:.1f}), exiting portfolio at {current_time}')
-            next_entry_time = current_time + timedelta(minutes=self.portfolio_cooldown_minutes)
-            self._set_next_entry_time(next_entry_time)
             return
             
         if self.portfolio_trailing_stop_activation > 0 and self.portfolio_max_profit >= self.portfolio_trailing_stop_activation:
             trailing_stop_threshold = self.portfolio_max_profit * (1 - self.portfolio_trailing_stop_drawback_ratio)
             if total_profit_abs <= trailing_stop_threshold:
-                self.is_portfolio_exit = True
-                self.portfolio_exit_reason = 'portfolio_trailing_stop'
+                self._set_portfolio_exit('portfolio_trailing_stop', current_time)
                 logger.info(f'Total portfolio profit reached trailing stop, profit:{total_profit_abs:.2f} <= {trailing_stop_threshold:.2f}, '
                             f'max_profit:{self.portfolio_max_profit:.2f}, trailing stop ratio:{self.portfolio_trailing_stop_drawback_ratio:.2%}, exiting portfolio at {current_time}')
-                next_entry_time = current_time + timedelta(minutes=self.portfolio_cooldown_minutes)
-                self._set_next_entry_time(next_entry_time)
                 return
 
     def _check_and_notify_missing_trades(self, current_time: datetime, open_trades: list) -> None:

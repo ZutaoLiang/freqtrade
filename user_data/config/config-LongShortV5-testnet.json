@@ -1,0 +1,141 @@
+{
+    "$schema": "https://schema.freqtrade.io/schema.json",
+    "strategy": "LongShortV5",
+    "strategy_path": "user_data/strategies/neutral",
+    "max_open_trades": 4,
+    "stake_currency": "USDT",
+    "stake_amount": "unlimited",
+    "tradable_balance_ratio": 0.99,
+    "fiat_display_currency": "USD",
+    "timeframe": "5m",
+    "dry_run": false,
+    "dry_run_wallet": 400,
+    "cancel_open_orders_on_exit": false,
+    "fee": 0.0005,
+    "trading_mode": "futures",
+    "margin_mode": "cross",
+    "trade_leverage": 5,
+    "main_pairs": "ETH/USDT:USDT",
+    "total_stake_amount": 20,
+    "min_notional": 20.5,
+    "portfolio_take_profit_amount": 1,
+    "take_profit_decay_factor": 72,
+    "portfolio_stoploss_amount": -300,
+    "portfolio_exit_only": true,
+    "portfolio_cooldown_minutes": 8,
+    "portfolio_cooldown_enabled": false,
+    "enable_dynamic_stake": true,
+    "portfolio_trailing_stop_activation": 0.5,
+    "portfolio_trailing_stop_drawback_ratio": 0.55,
+    "portfolio_trailing_cooldown_enabled": true,
+    "portfolio_trailing_cooldown_minutes": 360,
+    "allow_long": true,
+    "allow_short": true,
+    "trailing_stop": false,
+    "custom_trailing_stop": false,
+    "base_trailing_stop": 0.12,
+    "base_trailing_stop_offset": 0.15,
+    "base_stop_loss": 1,
+    "use_custom_stoploss": false,
+    "atr_stop_loss_multiplier": 4,
+    "use_ha_candles": false,
+    "trend_length": 6,
+    "ma_short_length": 288,
+    "ma_mid_length": 1152,
+    "ma_long_length": 0,
+    "atr_period": 21,
+    "analyse_portfolio_spread": false,
+    "spread_avg_window": 100,
+    "spread_zscore_threshold": 0.5,
+    "long_time_low_profit_minutes": 0,
+    "long_time_low_profit_max": 0.02,
+    "long_time_low_profit_lower_bound": 0.01,
+    "long_time_low_profit_upper_bound": 0.02,
+    "long_time_stoploss_minutes": 0,
+    "long_time_stoploss_profit": 0.04,
+    "cooldown_candles": 1,
+    "missing_trade_notify_interval_minutes": 5,
+    "unfilledtimeout": {
+        "entry": 3,
+        "exit": 1,
+        "exit_timeout_count": 10,
+        "unit": "minutes"
+    },
+    "entry_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 5,
+        "price_last_balance": 0.0,
+        "check_depth_of_market": {
+            "enabled": false,
+            "bids_to_ask_delta": 1
+        }
+    },
+    "exit_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 5
+    },
+    "order_types": {
+        "entry": "market",
+        "exit": "market",
+        "emergency_exit": "market",
+        "stoploss": "market",
+        "stoploss_on_exchange": false,
+        "stoploss_on_exchange_interval": 60
+    },
+    "exchange": {
+        "name": "binance",
+        "key": "",
+        "secret": "",
+        "ccxt_config": {
+            "sandbox": true,
+            "timeout": 10000,
+            "enableRateLimit": true
+        },
+        "ccxt_async_config": {
+            "sandbox": true,
+            "timeout": 10000,
+            "enableRateLimit": true
+        },
+        "pair_whitelist": [
+            "ETH/USDT:USDT",
+            "LINK/USDT:USDT",
+            "UNI/USDT:USDT",
+            "CAKE/USDT:USDT"
+        ],
+        "pair_blacklist": [
+            "BTC/.*",
+            "USDC/.*"
+        ]
+    },
+    "pairlists": [
+        {
+            "method": "StaticPairList",
+            "mode": "whitelist",
+            "refresh_period": 86400
+        }
+    ],
+    "telegram": {
+        "enabled": false,
+        "token": "",
+        "chat_id": ""
+    },
+    "api_server": {
+        "enabled": false,
+        "listen_ip_address": "127.0.0.1",
+        "listen_port": 18082,
+        "verbosity": "error",
+        "enable_openapi": false,
+        "CORS_origins": [],
+        "username": "freqtrader",
+        "password": "freq123456"
+    },
+    "bot_name": "freqtrade-longshort-v5-testnet",
+    "initial_state": "running",
+    "force_entry_enable": true,
+    "recursive_strategy_search": true,
+    "internals": {
+        "process_throttle_secs": 3
+    }
+}
