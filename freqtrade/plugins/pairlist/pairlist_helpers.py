@@ -21,14 +21,16 @@ def expand_pairlist(
             try:
                 comp = re.compile(pair_wc, re.IGNORECASE)
                 result_partial = [pair for pair in available_pairs if re.fullmatch(comp, pair)]
-                # Add all matching pairs.
-                # If there are no matching pairs (Pair not on exchange) keep it.
-                result += result_partial or [pair_wc]
+                if result_partial:
+                    # Keep exact exchange matches, including symbols containing
+                    # non-ASCII characters.
+                    result += result_partial
+                elif re.fullmatch(r"^[A-Za-z0-9:/-]+$", pair_wc):
+                    # If there is no exchange match, keep syntactically valid
+                    # inactive pairs while dropping unmatched wildcard patterns.
+                    result.append(pair_wc)
             except re.error as err:
                 raise ValueError(f"Wildcard error in {pair_wc}, {err}")
-
-        # Remove wildcard pairs that didn't have a match.
-        result = [element for element in result if re.fullmatch(r"^[A-Za-z0-9:/-]+$", element)]
 
     else:
         for pair_wc in wildcardpl:

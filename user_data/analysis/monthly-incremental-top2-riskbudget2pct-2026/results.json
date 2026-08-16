@@ -1,0 +1,314 @@
+[
+  {
+    "anchor_day": 1,
+    "timerange": "20260201-20260814",
+    "selection": "user_data/analysis/monthly-incremental-top2-2026/selections/offset-01.json",
+    "periods": 31,
+    "mean_pool_size": 10.64516129032258,
+    "minimum_pool_size": 6,
+    "maximum_pool_size": 14,
+    "union_pairs": 80,
+    "trades": 635,
+    "rejected_signals": 0,
+    "profit_abs": 1729.2772112799998,
+    "profit_pct": 345.855442256,
+    "final_balance": 2229.277211280002,
+    "profit_factor": 2.204316830880737,
+    "max_relative_drawdown_pct": 11.353291802333947,
+    "return_over_drawdown": 30.463010048319283,
+    "long_profit_abs": 698.9878570900001,
+    "short_profit_abs": 1030.28935419,
+    "train_profit_abs": 556.54936212,
+    "train_return_pct": 111.30987242399999,
+    "test_profit_abs": 1172.72784916,
+    "test_starting_equity": 1056.5493621199998,
+    "test_continuous_return_pct": 110.99603020978446,
+    "monthly": [
+      {
+        "month": "2026-02",
+        "trades": 71,
+        "profit_abs": 10.260714220000002,
+        "starting_equity": 500.0,
+        "return_pct": 2.0521428440000005
+      },
+      {
+        "month": "2026-03",
+        "trades": 94,
+        "profit_abs": 85.23604942999998,
+        "starting_equity": 510.26071422,
+        "return_pct": 16.70441150075494
+      },
+      {
+        "month": "2026-04",
+        "trades": 108,
+        "profit_abs": 282.64912324,
+        "starting_equity": 595.49676365,
+        "return_pct": 47.46442642400748
+      },
+      {
+        "month": "2026-05",
+        "trades": 107,
+        "profit_abs": 178.40347522999997,
+        "starting_equity": 878.14588689,
+        "return_pct": 20.315926760395733
+      },
+      {
+        "month": "2026-06",
+        "trades": 107,
+        "profit_abs": 567.14974192,
+        "starting_equity": 1056.54936212,
+        "return_pct": 53.67943630972394
+      },
+      {
+        "month": "2026-07",
+        "trades": 106,
+        "profit_abs": 648.194586,
+        "starting_equity": 1623.69910404,
+        "return_pct": 39.920856295799965
+      },
+      {
+        "month": "2026-08",
+        "trades": 42,
+        "profit_abs": -42.61647876000001,
+        "starting_equity": 2271.89369004,
+        "return_pct": -1.8758130693716433
+      }
+    ],
+    "maximum_rss_kib": 482340,
+    "artifact": "user_data/analysis/monthly-incremental-top2-riskbudget2pct-2026/artifacts/offset-01/backtest-result-2026-08-16_23-36-44.zip"
+  },
+  {
+    "anchor_day": 8,
+    "timerange": "20260201-20260814",
+    "selection": "user_data/analysis/monthly-incremental-top2-2026/selections/offset-08.json",
+    "periods": 31,
+    "mean_pool_size": 10.774193548387096,
+    "minimum_pool_size": 7,
+    "maximum_pool_size": 13,
+    "union_pairs": 89,
+    "trades": 665,
+    "rejected_signals": 0,
+    "profit_abs": 731.6433364100001,
+    "profit_pct": 146.32866728200003,
+    "final_balance": 1231.6433364099998,
+    "profit_factor": 1.6448266956823263,
+    "max_relative_drawdown_pct": 20.0341629511315,
+    "return_over_drawdown": 7.303957127579198,
+    "long_profit_abs": 228.46897686999998,
+    "short_profit_abs": 503.17435953999995,
+    "train_profit_abs": 707.14559663,
+    "train_return_pct": 141.429119326,
+    "test_profit_abs": 24.497739779999947,
+    "test_starting_equity": 1207.14559663,
+    "test_continuous_return_pct": 2.0293939561549594,
+    "monthly": [
+      {
+        "month": "2026-02",
+        "trades": 80,
+        "profit_abs": -31.198581020000013,
+        "starting_equity": 500.0,
+        "return_pct": -6.239716204000002
+      },
+      {
+        "month": "2026-03",
+        "trades": 120,
+        "profit_abs": 98.96078360000001,
+        "starting_equity": 468.80141898,
+        "return_pct": 21.10931827282329
+      },
+      {
+        "month": "2026-04",
+        "trades": 101,
+        "profit_abs": 307.5424186999999,
+        "starting_equity": 567.76220258,
+        "return_pct": 54.16746963825334
+      },
+      {
+        "month": "2026-05",
+        "trades": 107,
+        "profit_abs": 331.84097534999995,
+        "starting_equity": 875.30462128,
+        "return_pct": 37.91148444580733
+      },
+      {
+        "month": "2026-06",
+        "trades": 97,
+        "profit_abs": -109.64447518000001,
+        "starting_equity": 1207.14559663,
+        "return_pct": -9.08295366243273
+      },
+      {
+        "month": "2026-07",
+        "trades": 112,
+        "profit_abs": 353.4287113599999,
+        "starting_equity": 1097.50112145,
+        "return_pct": 32.203038744330016
+      },
+      {
+        "month": "2026-08",
+        "trades": 48,
+        "profit_abs": -219.28649639999998,
+        "starting_equity": 1450.9298328099999,
+        "return_pct": -15.113514895155902
+      }
+    ],
+    "maximum_rss_kib": 503816,
+    "artifact": "user_data/analysis/monthly-incremental-top2-riskbudget2pct-2026/artifacts/offset-08/backtest-result-2026-08-16_23-39-07.zip"
+  },
+  {
+    "anchor_day": 15,
+    "timerange": "20260201-20260814",
+    "selection": "user_data/analysis/monthly-incremental-top2-2026/selections/offset-15.json",
+    "periods": 31,
+    "mean_pool_size": 11.03225806451613,
+    "minimum_pool_size": 9,
+    "maximum_pool_size": 13,
+    "union_pairs": 88,
+    "trades": 665,
+    "rejected_signals": 0,
+    "profit_abs": 685.9087738000001,
+    "profit_pct": 137.18175476000002,
+    "final_balance": 1185.9087738000003,
+    "profit_factor": 1.5947181377752966,
+    "max_relative_drawdown_pct": 12.625621099991132,
+    "return_over_drawdown": 10.865347033113196,
+    "long_profit_abs": 467.1723873,
+    "short_profit_abs": 218.73638650000004,
+    "train_profit_abs": 763.7661825200001,
+    "train_return_pct": 152.75323650400003,
+    "test_profit_abs": -77.85740871999997,
+    "test_starting_equity": 1263.7661825200003,
+    "test_continuous_return_pct": -6.160744748268955,
+    "monthly": [
+      {
+        "month": "2026-02",
+        "trades": 83,
+        "profit_abs": 66.31939433000001,
+        "starting_equity": 500.0,
+        "return_pct": 13.263878866
+      },
+      {
+        "month": "2026-03",
+        "trades": 95,
+        "profit_abs": 156.89633874,
+        "starting_equity": 566.31939433,
+        "return_pct": 27.704567477442758
+      },
+      {
+        "month": "2026-04",
+        "trades": 125,
+        "profit_abs": 350.48009730000007,
+        "starting_equity": 723.21573307,
+        "return_pct": 48.46134856776921
+      },
+      {
+        "month": "2026-05",
+        "trades": 112,
+        "profit_abs": 190.07035215,
+        "starting_equity": 1073.69583037,
+        "return_pct": 17.702439254560666
+      },
+      {
+        "month": "2026-06",
+        "trades": 89,
+        "profit_abs": -100.46991837000003,
+        "starting_equity": 1263.76618252,
+        "return_pct": -7.9500401070757425
+      },
+      {
+        "month": "2026-07",
+        "trades": 105,
+        "profit_abs": 110.7805668,
+        "starting_equity": 1163.29626415,
+        "return_pct": 9.52298827168893
+      },
+      {
+        "month": "2026-08",
+        "trades": 56,
+        "profit_abs": -88.16805715,
+        "starting_equity": 1274.0768309500002,
+        "return_pct": -6.920152302295501
+      }
+    ],
+    "maximum_rss_kib": 502964,
+    "artifact": "user_data/analysis/monthly-incremental-top2-riskbudget2pct-2026/artifacts/offset-15/backtest-result-2026-08-16_23-41-32.zip"
+  },
+  {
+    "anchor_day": 22,
+    "timerange": "20260201-20260814",
+    "selection": "user_data/analysis/monthly-incremental-top2-2026/selections/offset-22.json",
+    "periods": 31,
+    "mean_pool_size": 11.709677419354838,
+    "minimum_pool_size": 9,
+    "maximum_pool_size": 13,
+    "union_pairs": 90,
+    "trades": 662,
+    "rejected_signals": 0,
+    "profit_abs": 453.01199015000003,
+    "profit_pct": 90.60239803,
+    "final_balance": 953.0119901500004,
+    "profit_factor": 1.4915819602860856,
+    "max_relative_drawdown_pct": 20.201713092458412,
+    "return_over_drawdown": 4.484886881391419,
+    "long_profit_abs": 243.76443918999993,
+    "short_profit_abs": 209.24755095999998,
+    "train_profit_abs": 312.14764192,
+    "train_return_pct": 62.429528384,
+    "test_profit_abs": 140.86434823,
+    "test_starting_equity": 812.1476419200001,
+    "test_continuous_return_pct": 17.344672441205674,
+    "monthly": [
+      {
+        "month": "2026-02",
+        "trades": 91,
+        "profit_abs": -20.935034939999998,
+        "starting_equity": 500.0,
+        "return_pct": -4.187006987999999
+      },
+      {
+        "month": "2026-03",
+        "trades": 86,
+        "profit_abs": 80.88656411,
+        "starting_equity": 479.06496506,
+        "return_pct": 16.88425787927728
+      },
+      {
+        "month": "2026-04",
+        "trades": 112,
+        "profit_abs": 258.11143768,
+        "starting_equity": 559.95152917,
+        "return_pct": 46.095317939856535
+      },
+      {
+        "month": "2026-05",
+        "trades": 119,
+        "profit_abs": -5.915324930000021,
+        "starting_equity": 818.06296685,
+        "return_pct": -0.7230891960281897
+      },
+      {
+        "month": "2026-06",
+        "trades": 89,
+        "profit_abs": -25.900056820000014,
+        "starting_equity": 812.14764192,
+        "return_pct": -3.1890823149802703
+      },
+      {
+        "month": "2026-07",
+        "trades": 115,
+        "profit_abs": 133.95918925,
+        "starting_equity": 786.2475850999999,
+        "return_pct": 17.037787051894377
+      },
+      {
+        "month": "2026-08",
+        "trades": 50,
+        "profit_abs": 32.80521580000001,
+        "starting_equity": 920.2067743499999,
+        "return_pct": 3.5649830792837194
+      }
+    ],
+    "maximum_rss_kib": 506348,
+    "artifact": "user_data/analysis/monthly-incremental-top2-riskbudget2pct-2026/artifacts/offset-22/backtest-result-2026-08-16_23-43-58.zip"
+  }
+]

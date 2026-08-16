@@ -1,0 +1,3207 @@
+{
+  "generated_at": "2026-08-15T08:41:45.997110+00:00",
+  "source": {
+    "volume": "Binance public USD-M 1m klines",
+    "market_cap": "CoinMarketCap historical snapshots"
+  },
+  "method": {
+    "universe": "USDT perpetual, Binance underlyingType=COIN",
+    "volume_window": "previous completed 24h at month-start 00:00 UTC",
+    "minimum_quote_volume_usdt": 100000000,
+    "top_volume_count": 20,
+    "excluded_market_cap_ranks": "1-30",
+    "excluded_non_crypto_bases": [
+      "PAXG"
+    ]
+  },
+  "months": {
+    "2026-02": {
+      "selection_time": "2026-02-01T00:00:00Z",
+      "volume_window": {
+        "start": "2026-01-31T00:00:00+00:00",
+        "end_exclusive": "2026-02-01T00:00:00+00:00"
+      },
+      "active_contracts": 617,
+      "contracts_over_100m": 50,
+      "top_volume": [
+        {
+          "raw_symbol": "ETHUSDT",
+          "base": "ETH",
+          "quote_volume_usdt": 23874988096.82025,
+          "minute_count": 1440,
+          "volume_rank": 1,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BTCUSDT",
+          "base": "BTC",
+          "quote_volume_usdt": 21725315465.782196,
+          "minute_count": 1440,
+          "volume_rank": 2,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SOLUSDT",
+          "base": "SOL",
+          "quote_volume_usdt": 5408758968.9473,
+          "minute_count": 1440,
+          "volume_rank": 3,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "XRPUSDT",
+          "base": "XRP",
+          "quote_volume_usdt": 2283836257.2133,
+          "minute_count": 1440,
+          "volume_rank": 4,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "DOGEUSDT",
+          "base": "DOGE",
+          "quote_volume_usdt": 1101631374.83255,
+          "minute_count": 1440,
+          "volume_rank": 5,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BULLAUSDT",
+          "base": "BULLA",
+          "quote_volume_usdt": 1006798562.6729,
+          "minute_count": 1440,
+          "volume_rank": 6,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BNBUSDT",
+          "base": "BNB",
+          "quote_volume_usdt": 995850460.9869001,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "HYPEUSDT",
+          "base": "HYPE",
+          "quote_volume_usdt": 944761558.8708501,
+          "minute_count": 1440,
+          "volume_rank": 8,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ZECUSDT",
+          "base": "ZEC",
+          "quote_volume_usdt": 766789204.1791,
+          "minute_count": 1440,
+          "volume_rank": 9,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 650359888.9364569,
+          "minute_count": 1440,
+          "volume_rank": 10,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SENTUSDT",
+          "base": "SENT",
+          "quote_volume_usdt": 572869022.03263,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SUIUSDT",
+          "base": "SUI",
+          "quote_volume_usdt": 524690462.48796,
+          "minute_count": 1440,
+          "volume_rank": 12,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ADAUSDT",
+          "base": "ADA",
+          "quote_volume_usdt": 478732465.3851,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "RIVERUSDT",
+          "base": "RIVER",
+          "quote_volume_usdt": 468862188.9961,
+          "minute_count": 1440,
+          "volume_rank": 14,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ENSOUSDT",
+          "base": "ENSO",
+          "quote_volume_usdt": 387513783.6513699,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "PAXGUSDT",
+          "base": "PAXG",
+          "quote_volume_usdt": 380439331.0916,
+          "minute_count": 1440,
+          "volume_rank": 16,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": true
+        },
+        {
+          "raw_symbol": "LINKUSDT",
+          "base": "LINK",
+          "quote_volume_usdt": 355480852.8462,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SYNUSDT",
+          "base": "SYN",
+          "quote_volume_usdt": 352553996.44717,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "AVAXUSDT",
+          "base": "AVAX",
+          "quote_volume_usdt": 328854938.58900005,
+          "minute_count": 1440,
+          "volume_rank": 19,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "LTCUSDT",
+          "base": "LTC",
+          "quote_volume_usdt": 303789022.24245995,
+          "minute_count": 1440,
+          "volume_rank": 20,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        }
+      ],
+      "top30_market_cap": [
+        {
+          "rank": 1,
+          "symbol": "BTC",
+          "name": "Bitcoin",
+          "market_cap_usd": 1538153813425.367
+        },
+        {
+          "rank": 2,
+          "symbol": "ETH",
+          "name": "Ethereum",
+          "market_cap_usd": 273729186245.6907
+        },
+        {
+          "rank": 3,
+          "symbol": "USDT",
+          "name": "Tether USDt",
+          "market_cap_usd": 185208104041.87643
+        },
+        {
+          "rank": 4,
+          "symbol": "BNB",
+          "name": "BNB",
+          "market_cap_usd": 103423248457.9898
+        },
+        {
+          "rank": 5,
+          "symbol": "XRP",
+          "name": "XRP",
+          "market_cap_usd": 96838293390.37267
+        },
+        {
+          "rank": 6,
+          "symbol": "USDC",
+          "name": "USDC",
+          "market_cap_usd": 70395706231.63776
+        },
+        {
+          "rank": 7,
+          "symbol": "SOL",
+          "name": "Solana",
+          "market_cap_usd": 57124864203.21765
+        },
+        {
+          "rank": 8,
+          "symbol": "TRX",
+          "name": "TRON",
+          "market_cap_usd": 26955420581.513607
+        },
+        {
+          "rank": 9,
+          "symbol": "DOGE",
+          "name": "Dogecoin",
+          "market_cap_usd": 17588877218.084297
+        },
+        {
+          "rank": 10,
+          "symbol": "BCH",
+          "name": "Bitcoin Cash",
+          "market_cap_usd": 10312466472.126234
+        },
+        {
+          "rank": 11,
+          "symbol": "ADA",
+          "name": "Cardano",
+          "market_cap_usd": 10310348955.615702
+        },
+        {
+          "rank": 12,
+          "symbol": "HYPE",
+          "name": "Hyperliquid",
+          "market_cap_usd": 9267467577.691261
+        },
+        {
+          "rank": 13,
+          "symbol": "LEO",
+          "name": "UNUS SED LEO",
+          "market_cap_usd": 7734525824.39169
+        },
+        {
+          "rank": 14,
+          "symbol": "XMR",
+          "name": "Monero",
+          "market_cap_usd": 7469999531.655236
+        },
+        {
+          "rank": 15,
+          "symbol": "LINK",
+          "name": "Chainlink",
+          "market_cap_usd": 6663709881.094402
+        },
+        {
+          "rank": 16,
+          "symbol": "CC",
+          "name": "Canton",
+          "market_cap_usd": 6639485530.098038
+        },
+        {
+          "rank": 17,
+          "symbol": "USDE",
+          "name": "Ethena USDe",
+          "market_cap_usd": 6556073858.721306
+        },
+        {
+          "rank": 18,
+          "symbol": "XLM",
+          "name": "Stellar",
+          "market_cap_usd": 5694823448.887726
+        },
+        {
+          "rank": 19,
+          "symbol": "DAI",
+          "name": "Dai",
+          "market_cap_usd": 5363492010.814262
+        },
+        {
+          "rank": 20,
+          "symbol": "ZEC",
+          "name": "Zcash",
+          "market_cap_usd": 5040036989.527664
+        },
+        {
+          "rank": 21,
+          "symbol": "USD1",
+          "name": "World Liberty Financial USD",
+          "market_cap_usd": 4988411455.26205
+        },
+        {
+          "rank": 22,
+          "symbol": "LTC",
+          "name": "Litecoin",
+          "market_cap_usd": 4491573354.342581
+        },
+        {
+          "rank": 23,
+          "symbol": "AVAX",
+          "name": "Avalanche",
+          "market_cap_usd": 4280290574.0136704
+        },
+        {
+          "rank": 24,
+          "symbol": "SUI",
+          "name": "Sui",
+          "market_cap_usd": 4243956283.1650887
+        },
+        {
+          "rank": 25,
+          "symbol": "SHIB",
+          "name": "Shiba Inu",
+          "market_cap_usd": 3905523963.2655497
+        },
+        {
+          "rank": 26,
+          "symbol": "HBAR",
+          "name": "Hedera",
+          "market_cap_usd": 3814623413.3014674
+        },
+        {
+          "rank": 27,
+          "symbol": "PYUSD",
+          "name": "PayPal USD",
+          "market_cap_usd": 3596237455.901519
+        },
+        {
+          "rank": 28,
+          "symbol": "WLFI",
+          "name": "World Liberty Financial",
+          "market_cap_usd": 3474495471.5261097
+        },
+        {
+          "rank": 29,
+          "symbol": "TON",
+          "name": "Toncoin",
+          "market_cap_usd": 3255248698.953816
+        },
+        {
+          "rank": 30,
+          "symbol": "CRO",
+          "name": "Cronos",
+          "market_cap_usd": 3125249753.8280253
+        }
+      ],
+      "selected": [
+        {
+          "raw_symbol": "BULLAUSDT",
+          "base": "BULLA",
+          "quote_volume_usdt": 1006798562.6729,
+          "minute_count": 1440,
+          "volume_rank": 6,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 650359888.9364569,
+          "minute_count": 1440,
+          "volume_rank": 10,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "SENTUSDT",
+          "base": "SENT",
+          "quote_volume_usdt": 572869022.03263,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "RIVERUSDT",
+          "base": "RIVER",
+          "quote_volume_usdt": 468862188.9961,
+          "minute_count": 1440,
+          "volume_rank": 14,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "ENSOUSDT",
+          "base": "ENSO",
+          "quote_volume_usdt": 387513783.6513699,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "SYNUSDT",
+          "base": "SYN",
+          "quote_volume_usdt": 352553996.44717,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false
+        }
+      ],
+      "selected_symbols": [
+        "BULLAUSDT",
+        "1000PEPEUSDT",
+        "SENTUSDT",
+        "RIVERUSDT",
+        "ENSOUSDT",
+        "SYNUSDT"
+      ]
+    },
+    "2026-03": {
+      "selection_time": "2026-03-01T00:00:00Z",
+      "volume_window": {
+        "start": "2026-02-28T00:00:00+00:00",
+        "end_exclusive": "2026-03-01T00:00:00+00:00"
+      },
+      "active_contracts": 622,
+      "contracts_over_100m": 35,
+      "top_volume": [
+        {
+          "raw_symbol": "BTCUSDT",
+          "base": "BTC",
+          "quote_volume_usdt": 16739946355.5953,
+          "minute_count": 1440,
+          "volume_rank": 1,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ETHUSDT",
+          "base": "ETH",
+          "quote_volume_usdt": 12172091189.72073,
+          "minute_count": 1440,
+          "volume_rank": 2,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SOLUSDT",
+          "base": "SOL",
+          "quote_volume_usdt": 2871698134.2623997,
+          "minute_count": 1440,
+          "volume_rank": 3,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "XRPUSDT",
+          "base": "XRP",
+          "quote_volume_usdt": 1575367513.91532,
+          "minute_count": 1440,
+          "volume_rank": 4,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "DOGEUSDT",
+          "base": "DOGE",
+          "quote_volume_usdt": 761410793.9363,
+          "minute_count": 1440,
+          "volume_rank": 5,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "POWERUSDT",
+          "base": "POWER",
+          "quote_volume_usdt": 725173253.88388,
+          "minute_count": 1440,
+          "volume_rank": 6,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "PAXGUSDT",
+          "base": "PAXG",
+          "quote_volume_usdt": 683626181.438,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": true
+        },
+        {
+          "raw_symbol": "BNBUSDT",
+          "base": "BNB",
+          "quote_volume_usdt": 546796233.6659999,
+          "minute_count": 1440,
+          "volume_rank": 8,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "HYPEUSDT",
+          "base": "HYPE",
+          "quote_volume_usdt": 444238986.01904,
+          "minute_count": 1440,
+          "volume_rank": 9,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 404530751.0351496,
+          "minute_count": 1440,
+          "volume_rank": 10,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SAHARAUSDT",
+          "base": "SAHARA",
+          "quote_volume_usdt": 377678327.49385,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ZECUSDT",
+          "base": "ZEC",
+          "quote_volume_usdt": 370119223.15901,
+          "minute_count": 1440,
+          "volume_rank": 12,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "PIPPINUSDT",
+          "base": "PIPPIN",
+          "quote_volume_usdt": 348359861.18016,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SUIUSDT",
+          "base": "SUI",
+          "quote_volume_usdt": 303074865.52397,
+          "minute_count": 1440,
+          "volume_rank": 14,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "RIVERUSDT",
+          "base": "RIVER",
+          "quote_volume_usdt": 301048766.3826,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ADAUSDT",
+          "base": "ADA",
+          "quote_volume_usdt": 291921163.9496,
+          "minute_count": 1440,
+          "volume_rank": 16,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "GWEIUSDT",
+          "base": "GWEI",
+          "quote_volume_usdt": 274115274.12537503,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "DOTUSDT",
+          "base": "DOT",
+          "quote_volume_usdt": 256816133.5862,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BCHUSDT",
+          "base": "BCH",
+          "quote_volume_usdt": 238583335.3344,
+          "minute_count": 1440,
+          "volume_rank": 19,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "AVAXUSDT",
+          "base": "AVAX",
+          "quote_volume_usdt": 184284579.55900002,
+          "minute_count": 1440,
+          "volume_rank": 20,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        }
+      ],
+      "top30_market_cap": [
+        {
+          "rank": 1,
+          "symbol": "BTC",
+          "name": "Bitcoin",
+          "market_cap_usd": 1314540492493.9294
+        },
+        {
+          "rank": 2,
+          "symbol": "ETH",
+          "name": "Ethereum",
+          "market_cap_usd": 234030248246.46057
+        },
+        {
+          "rank": 3,
+          "symbol": "USDT",
+          "name": "Tether USDt",
+          "market_cap_usd": 183663380633.05322
+        },
+        {
+          "rank": 4,
+          "symbol": "BNB",
+          "name": "BNB",
+          "market_cap_usd": 84284300487.97672
+        },
+        {
+          "rank": 5,
+          "symbol": "XRP",
+          "name": "XRP",
+          "market_cap_usd": 82577634833.3692
+        },
+        {
+          "rank": 6,
+          "symbol": "USDC",
+          "name": "USDC",
+          "market_cap_usd": 75197152987.32385
+        },
+        {
+          "rank": 7,
+          "symbol": "SOL",
+          "name": "Solana",
+          "market_cap_usd": 47609786567.82679
+        },
+        {
+          "rank": 8,
+          "symbol": "TRX",
+          "name": "TRON",
+          "market_cap_usd": 26594611381.42369
+        },
+        {
+          "rank": 9,
+          "symbol": "DOGE",
+          "name": "Dogecoin",
+          "market_cap_usd": 15531129169.975468
+        },
+        {
+          "rank": 10,
+          "symbol": "ADA",
+          "name": "Cardano",
+          "market_cap_usd": 9870456692.291391
+        },
+        {
+          "rank": 11,
+          "symbol": "BCH",
+          "name": "Bitcoin Cash",
+          "market_cap_usd": 8839058246.523699
+        },
+        {
+          "rank": 12,
+          "symbol": "LEO",
+          "name": "UNUS SED LEO",
+          "market_cap_usd": 8384880455.293911
+        },
+        {
+          "rank": 13,
+          "symbol": "HYPE",
+          "name": "Hyperliquid",
+          "market_cap_usd": 8159339268.516752
+        },
+        {
+          "rank": 14,
+          "symbol": "XMR",
+          "name": "Monero",
+          "market_cap_usd": 6308649669.428747
+        },
+        {
+          "rank": 15,
+          "symbol": "CC",
+          "name": "Canton",
+          "market_cap_usd": 6142875700.410681
+        },
+        {
+          "rank": 16,
+          "symbol": "LINK",
+          "name": "Chainlink",
+          "market_cap_usd": 6140890882.07824
+        },
+        {
+          "rank": 17,
+          "symbol": "USDE",
+          "name": "Ethena USDe",
+          "market_cap_usd": 6027243892.881622
+        },
+        {
+          "rank": 18,
+          "symbol": "DAI",
+          "name": "Dai",
+          "market_cap_usd": 5365766959.275723
+        },
+        {
+          "rank": 19,
+          "symbol": "XLM",
+          "name": "Stellar",
+          "market_cap_usd": 5082298440.234577
+        },
+        {
+          "rank": 20,
+          "symbol": "USD1",
+          "name": "World Liberty Financial USD",
+          "market_cap_usd": 4678207737.360304
+        },
+        {
+          "rank": 21,
+          "symbol": "PYUSD",
+          "name": "PayPal USD",
+          "market_cap_usd": 4202686026.5057635
+        },
+        {
+          "rank": 22,
+          "symbol": "HBAR",
+          "name": "Hedera",
+          "market_cap_usd": 4169511134.0509105
+        },
+        {
+          "rank": 23,
+          "symbol": "LTC",
+          "name": "Litecoin",
+          "market_cap_usd": 4094866719.180846
+        },
+        {
+          "rank": 24,
+          "symbol": "AVAX",
+          "name": "Avalanche",
+          "market_cap_usd": 3899278974.910396
+        },
+        {
+          "rank": 25,
+          "symbol": "ZEC",
+          "name": "Zcash",
+          "market_cap_usd": 3529479177.7761416
+        },
+        {
+          "rank": 26,
+          "symbol": "SUI",
+          "name": "Sui",
+          "market_cap_usd": 3461662340.202404
+        },
+        {
+          "rank": 27,
+          "symbol": "SHIB",
+          "name": "Shiba Inu",
+          "market_cap_usd": 3259097204.1318345
+        },
+        {
+          "rank": 28,
+          "symbol": "CRO",
+          "name": "Cronos",
+          "market_cap_usd": 3071289152.7286334
+        },
+        {
+          "rank": 29,
+          "symbol": "XAUT",
+          "name": "Tether Gold",
+          "market_cap_usd": 3027677928.472662
+        },
+        {
+          "rank": 30,
+          "symbol": "WLFI",
+          "name": "World Liberty Financial",
+          "market_cap_usd": 2992157995.560495
+        }
+      ],
+      "selected": [
+        {
+          "raw_symbol": "POWERUSDT",
+          "base": "POWER",
+          "quote_volume_usdt": 725173253.88388,
+          "minute_count": 1440,
+          "volume_rank": 6,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 404530751.0351496,
+          "minute_count": 1440,
+          "volume_rank": 10,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "SAHARAUSDT",
+          "base": "SAHARA",
+          "quote_volume_usdt": 377678327.49385,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "PIPPINUSDT",
+          "base": "PIPPIN",
+          "quote_volume_usdt": 348359861.18016,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "RIVERUSDT",
+          "base": "RIVER",
+          "quote_volume_usdt": 301048766.3826,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "GWEIUSDT",
+          "base": "GWEI",
+          "quote_volume_usdt": 274115274.12537503,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "DOTUSDT",
+          "base": "DOT",
+          "quote_volume_usdt": 256816133.5862,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false
+        }
+      ],
+      "selected_symbols": [
+        "POWERUSDT",
+        "1000PEPEUSDT",
+        "SAHARAUSDT",
+        "PIPPINUSDT",
+        "RIVERUSDT",
+        "GWEIUSDT",
+        "DOTUSDT"
+      ]
+    },
+    "2026-04": {
+      "selection_time": "2026-04-01T00:00:00Z",
+      "volume_window": {
+        "start": "2026-03-31T00:00:00+00:00",
+        "end_exclusive": "2026-04-01T00:00:00+00:00"
+      },
+      "active_contracts": 630,
+      "contracts_over_100m": 28,
+      "top_volume": [
+        {
+          "raw_symbol": "BTCUSDT",
+          "base": "BTC",
+          "quote_volume_usdt": 16388241988.443499,
+          "minute_count": 1440,
+          "volume_rank": 1,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ETHUSDT",
+          "base": "ETH",
+          "quote_volume_usdt": 13300070169.22609,
+          "minute_count": 1440,
+          "volume_rank": 2,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SOLUSDT",
+          "base": "SOL",
+          "quote_volume_usdt": 2575665070.7688003,
+          "minute_count": 1440,
+          "volume_rank": 3,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SIRENUSDT",
+          "base": "SIREN",
+          "quote_volume_usdt": 796521815.8961,
+          "minute_count": 1440,
+          "volume_rank": 4,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ZECUSDT",
+          "base": "ZEC",
+          "quote_volume_usdt": 795471314.74343,
+          "minute_count": 1440,
+          "volume_rank": 5,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "XRPUSDT",
+          "base": "XRP",
+          "quote_volume_usdt": 668542896.4635999,
+          "minute_count": 1440,
+          "volume_rank": 6,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "DOGEUSDT",
+          "base": "DOGE",
+          "quote_volume_usdt": 553995337.58422,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BNBUSDT",
+          "base": "BNB",
+          "quote_volume_usdt": 417750428.8931,
+          "minute_count": 1440,
+          "volume_rank": 8,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "KERNELUSDT",
+          "base": "KERNEL",
+          "quote_volume_usdt": 416131776.52989006,
+          "minute_count": 1440,
+          "volume_rank": 9,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "HYPEUSDT",
+          "base": "HYPE",
+          "quote_volume_usdt": 389941897.61158,
+          "minute_count": 1440,
+          "volume_rank": 10,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "RIVERUSDT",
+          "base": "RIVER",
+          "quote_volume_usdt": 355991341.3444,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "TAOUSDT",
+          "base": "TAO",
+          "quote_volume_usdt": 349296195.9549,
+          "minute_count": 1440,
+          "volume_rank": 12,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ONTUSDT",
+          "base": "ONT",
+          "quote_volume_usdt": 271991047.45902,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "PAXGUSDT",
+          "base": "PAXG",
+          "quote_volume_usdt": 254871067.35918,
+          "minute_count": 1440,
+          "volume_rank": 14,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": true
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 235722212.50861263,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ADAUSDT",
+          "base": "ADA",
+          "quote_volume_usdt": 214250280.8711,
+          "minute_count": 1440,
+          "volume_rank": 16,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "STOUSDT",
+          "base": "STO",
+          "quote_volume_usdt": 200986235.8717,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "PIPPINUSDT",
+          "base": "PIPPIN",
+          "quote_volume_usdt": 196697704.34467995,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "NOMUSDT",
+          "base": "NOM",
+          "quote_volume_usdt": 193549220.363835,
+          "minute_count": 1440,
+          "volume_rank": 19,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "NIGHTUSDT",
+          "base": "NIGHT",
+          "quote_volume_usdt": 151617279.40703,
+          "minute_count": 1440,
+          "volume_rank": 20,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        }
+      ],
+      "top30_market_cap": [
+        {
+          "rank": 1,
+          "symbol": "BTC",
+          "name": "Bitcoin",
+          "market_cap_usd": 1362271387254.5542
+        },
+        {
+          "rank": 2,
+          "symbol": "ETH",
+          "name": "Ethereum",
+          "market_cap_usd": 258127099883.0072
+        },
+        {
+          "rank": 3,
+          "symbol": "USDT",
+          "name": "Tether USDt",
+          "market_cap_usd": 184126837290.23224
+        },
+        {
+          "rank": 4,
+          "symbol": "BNB",
+          "name": "BNB",
+          "market_cap_usd": 83262735499.1297
+        },
+        {
+          "rank": 5,
+          "symbol": "XRP",
+          "name": "XRP",
+          "market_cap_usd": 82760277048.7801
+        },
+        {
+          "rank": 6,
+          "symbol": "USDC",
+          "name": "USDC",
+          "market_cap_usd": 77210115071.5834
+        },
+        {
+          "rank": 7,
+          "symbol": "SOL",
+          "name": "Solana",
+          "market_cap_usd": 46503064089.63519
+        },
+        {
+          "rank": 8,
+          "symbol": "TRX",
+          "name": "TRON",
+          "market_cap_usd": 29913349082.287292
+        },
+        {
+          "rank": 9,
+          "symbol": "DOGE",
+          "name": "Dogecoin",
+          "market_cap_usd": 14165912507.335197
+        },
+        {
+          "rank": 10,
+          "symbol": "LEO",
+          "name": "UNUS SED LEO",
+          "market_cap_usd": 9229679408.363451
+        },
+        {
+          "rank": 11,
+          "symbol": "HYPE",
+          "name": "Hyperliquid",
+          "market_cap_usd": 9213613981.894098
+        },
+        {
+          "rank": 12,
+          "symbol": "BCH",
+          "name": "Bitcoin Cash",
+          "market_cap_usd": 9093258852.300573
+        },
+        {
+          "rank": 13,
+          "symbol": "ADA",
+          "name": "Cardano",
+          "market_cap_usd": 8954002141.970652
+        },
+        {
+          "rank": 14,
+          "symbol": "LINK",
+          "name": "Chainlink",
+          "market_cap_usd": 6328857314.449871
+        },
+        {
+          "rank": 15,
+          "symbol": "XMR",
+          "name": "Monero",
+          "market_cap_usd": 6208535397.649785
+        },
+        {
+          "rank": 16,
+          "symbol": "USDE",
+          "name": "Ethena USDe",
+          "market_cap_usd": 5879961940.51482
+        },
+        {
+          "rank": 17,
+          "symbol": "XLM",
+          "name": "Stellar",
+          "market_cap_usd": 5596275451.801422
+        },
+        {
+          "rank": 18,
+          "symbol": "CC",
+          "name": "Canton",
+          "market_cap_usd": 5440711840.914509
+        },
+        {
+          "rank": 19,
+          "symbol": "DAI",
+          "name": "Dai",
+          "market_cap_usd": 5364224291.376527
+        },
+        {
+          "rank": 20,
+          "symbol": "USD1",
+          "name": "World Liberty Financial USD",
+          "market_cap_usd": 4385157159.740707
+        },
+        {
+          "rank": 21,
+          "symbol": "ZEC",
+          "name": "Zcash",
+          "market_cap_usd": 4169774743.0607433
+        },
+        {
+          "rank": 22,
+          "symbol": "LTC",
+          "name": "Litecoin",
+          "market_cap_usd": 4143844489.447647
+        },
+        {
+          "rank": 23,
+          "symbol": "PYUSD",
+          "name": "PayPal USD",
+          "market_cap_usd": 4002435327.3353286
+        },
+        {
+          "rank": 24,
+          "symbol": "AVAX",
+          "name": "Avalanche",
+          "market_cap_usd": 3939465152.518804
+        },
+        {
+          "rank": 25,
+          "symbol": "HBAR",
+          "name": "Hedera",
+          "market_cap_usd": 3831994994.7498965
+        },
+        {
+          "rank": 26,
+          "symbol": "SHIB",
+          "name": "Shiba Inu",
+          "market_cap_usd": 3537977126.1201334
+        },
+        {
+          "rank": 27,
+          "symbol": "SUI",
+          "name": "Sui",
+          "market_cap_usd": 3485775151.9491696
+        },
+        {
+          "rank": 28,
+          "symbol": "TAO",
+          "name": "Bittensor",
+          "market_cap_usd": 3323272171.1619406
+        },
+        {
+          "rank": 29,
+          "symbol": "M",
+          "name": "MemeCore",
+          "market_cap_usd": 3169822133.935572
+        },
+        {
+          "rank": 30,
+          "symbol": "TON",
+          "name": "Toncoin",
+          "market_cap_usd": 3054082771.6379037
+        }
+      ],
+      "selected": [
+        {
+          "raw_symbol": "SIRENUSDT",
+          "base": "SIREN",
+          "quote_volume_usdt": 796521815.8961,
+          "minute_count": 1440,
+          "volume_rank": 4,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "KERNELUSDT",
+          "base": "KERNEL",
+          "quote_volume_usdt": 416131776.52989006,
+          "minute_count": 1440,
+          "volume_rank": 9,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "RIVERUSDT",
+          "base": "RIVER",
+          "quote_volume_usdt": 355991341.3444,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "ONTUSDT",
+          "base": "ONT",
+          "quote_volume_usdt": 271991047.45902,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 235722212.50861263,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "STOUSDT",
+          "base": "STO",
+          "quote_volume_usdt": 200986235.8717,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "PIPPINUSDT",
+          "base": "PIPPIN",
+          "quote_volume_usdt": 196697704.34467995,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "NOMUSDT",
+          "base": "NOM",
+          "quote_volume_usdt": 193549220.363835,
+          "minute_count": 1440,
+          "volume_rank": 19,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "NIGHTUSDT",
+          "base": "NIGHT",
+          "quote_volume_usdt": 151617279.40703,
+          "minute_count": 1440,
+          "volume_rank": 20,
+          "excluded_top30_market_cap": false
+        }
+      ],
+      "selected_symbols": [
+        "SIRENUSDT",
+        "KERNELUSDT",
+        "RIVERUSDT",
+        "ONTUSDT",
+        "1000PEPEUSDT",
+        "STOUSDT",
+        "PIPPINUSDT",
+        "NOMUSDT",
+        "NIGHTUSDT"
+      ]
+    },
+    "2026-05": {
+      "selection_time": "2026-05-01T00:00:00Z",
+      "volume_window": {
+        "start": "2026-04-30T00:00:00+00:00",
+        "end_exclusive": "2026-05-01T00:00:00+00:00"
+      },
+      "active_contracts": 635,
+      "contracts_over_100m": 25,
+      "top_volume": [
+        {
+          "raw_symbol": "BTCUSDT",
+          "base": "BTC",
+          "quote_volume_usdt": 7592288630.261801,
+          "minute_count": 1440,
+          "volume_rank": 1,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ETHUSDT",
+          "base": "ETH",
+          "quote_volume_usdt": 5846314944.71813,
+          "minute_count": 1440,
+          "volume_rank": 2,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SOLUSDT",
+          "base": "SOL",
+          "quote_volume_usdt": 1052633781.3357,
+          "minute_count": 1440,
+          "volume_rank": 3,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "DOGEUSDT",
+          "base": "DOGE",
+          "quote_volume_usdt": 1018397118.17368,
+          "minute_count": 1440,
+          "volume_rank": 4,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SKYAIUSDT",
+          "base": "SKYAI",
+          "quote_volume_usdt": 577112373.84989,
+          "minute_count": 1440,
+          "volume_rank": 5,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ZECUSDT",
+          "base": "ZEC",
+          "quote_volume_usdt": 436940595.34881,
+          "minute_count": 1440,
+          "volume_rank": 6,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BSBUSDT",
+          "base": "BSB",
+          "quote_volume_usdt": 427308953.29418004,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BIOUSDT",
+          "base": "BIO",
+          "quote_volume_usdt": 421342763.07417,
+          "minute_count": 1440,
+          "volume_rank": 8,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "XRPUSDT",
+          "base": "XRP",
+          "quote_volume_usdt": 378866954.74223995,
+          "minute_count": 1440,
+          "volume_rank": 9,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "MEGAUSDT",
+          "base": "MEGA",
+          "quote_volume_usdt": 317772966.56756,
+          "minute_count": 1440,
+          "volume_rank": 10,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 273502623.6230618,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "HYPEUSDT",
+          "base": "HYPE",
+          "quote_volume_usdt": 270788056.05489004,
+          "minute_count": 1440,
+          "volume_rank": 12,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BRUSDT",
+          "base": "BR",
+          "quote_volume_usdt": 218583435.37493998,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ORCAUSDT",
+          "base": "ORCA",
+          "quote_volume_usdt": 213002430.2911,
+          "minute_count": 1440,
+          "volume_rank": 14,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "NAORISUSDT",
+          "base": "NAORIS",
+          "quote_volume_usdt": 204484935.48294997,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "AIOTUSDT",
+          "base": "AIOT",
+          "quote_volume_usdt": 176588153.09067,
+          "minute_count": 1440,
+          "volume_rank": 16,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "AIGENSYNUSDT",
+          "base": "AIGENSYN",
+          "quote_volume_usdt": 171950563.26213998,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "RIVERUSDT",
+          "base": "RIVER",
+          "quote_volume_usdt": 167837880.2627,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BNBUSDT",
+          "base": "BNB",
+          "quote_volume_usdt": 144923876.2334,
+          "minute_count": 1440,
+          "volume_rank": 19,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "PENGUUSDT",
+          "base": "PENGU",
+          "quote_volume_usdt": 138298270.483905,
+          "minute_count": 1440,
+          "volume_rank": 20,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        }
+      ],
+      "top30_market_cap": [
+        {
+          "rank": 1,
+          "symbol": "BTC",
+          "name": "Bitcoin",
+          "market_cap_usd": 1565410401247.5889
+        },
+        {
+          "rank": 2,
+          "symbol": "ETH",
+          "name": "Ethereum",
+          "market_cap_usd": 276989076412.8041
+        },
+        {
+          "rank": 3,
+          "symbol": "USDT",
+          "name": "Tether USDt",
+          "market_cap_usd": 189551343054.90448
+        },
+        {
+          "rank": 4,
+          "symbol": "XRP",
+          "name": "XRP",
+          "market_cap_usd": 85415982844.98718
+        },
+        {
+          "rank": 5,
+          "symbol": "BNB",
+          "name": "BNB",
+          "market_cap_usd": 82938064156.29887
+        },
+        {
+          "rank": 6,
+          "symbol": "USDC",
+          "name": "USDC",
+          "market_cap_usd": 77242713213.7419
+        },
+        {
+          "rank": 7,
+          "symbol": "SOL",
+          "name": "Solana",
+          "market_cap_usd": 48242173886.80558
+        },
+        {
+          "rank": 8,
+          "symbol": "TRX",
+          "name": "TRON",
+          "market_cap_usd": 30963741889.79229
+        },
+        {
+          "rank": 9,
+          "symbol": "DOGE",
+          "name": "Dogecoin",
+          "market_cap_usd": 16699691659.102083
+        },
+        {
+          "rank": 10,
+          "symbol": "HYPE",
+          "name": "Hyperliquid",
+          "market_cap_usd": 10478696712.143425
+        },
+        {
+          "rank": 11,
+          "symbol": "LEO",
+          "name": "UNUS SED LEO",
+          "market_cap_usd": 9517854168.006802
+        },
+        {
+          "rank": 12,
+          "symbol": "BCH",
+          "name": "Bitcoin Cash",
+          "market_cap_usd": 9019612026.589024
+        },
+        {
+          "rank": 13,
+          "symbol": "ADA",
+          "name": "Cardano",
+          "market_cap_usd": 8978978325.754438
+        },
+        {
+          "rank": 14,
+          "symbol": "XMR",
+          "name": "Monero",
+          "market_cap_usd": 6996626736.959164
+        },
+        {
+          "rank": 15,
+          "symbol": "LINK",
+          "name": "Chainlink",
+          "market_cap_usd": 6611293318.156042
+        },
+        {
+          "rank": 16,
+          "symbol": "ZEC",
+          "name": "Zcash",
+          "market_cap_usd": 6408854158.14172
+        },
+        {
+          "rank": 17,
+          "symbol": "CC",
+          "name": "Canton",
+          "market_cap_usd": 5747562448.316715
+        },
+        {
+          "rank": 18,
+          "symbol": "DAI",
+          "name": "Dai",
+          "market_cap_usd": 5364336464.563423
+        },
+        {
+          "rank": 19,
+          "symbol": "XLM",
+          "name": "Stellar",
+          "market_cap_usd": 5318156331.906926
+        },
+        {
+          "rank": 20,
+          "symbol": "USD1",
+          "name": "World Liberty Financial USD",
+          "market_cap_usd": 4504110302.088463
+        },
+        {
+          "rank": 21,
+          "symbol": "LTC",
+          "name": "Litecoin",
+          "market_cap_usd": 4272242391.573194
+        },
+        {
+          "rank": 22,
+          "symbol": "AVAX",
+          "name": "Avalanche",
+          "market_cap_usd": 3922307413.555098
+        },
+        {
+          "rank": 23,
+          "symbol": "USDE",
+          "name": "Ethena USDe",
+          "market_cap_usd": 3900699161.245652
+        },
+        {
+          "rank": 24,
+          "symbol": "M",
+          "name": "MemeCore",
+          "market_cap_usd": 3860126595.372302
+        },
+        {
+          "rank": 25,
+          "symbol": "HBAR",
+          "name": "Hedera",
+          "market_cap_usd": 3822567049.6555405
+        },
+        {
+          "rank": 26,
+          "symbol": "SHIB",
+          "name": "Shiba Inu",
+          "market_cap_usd": 3695356814.6558375
+        },
+        {
+          "rank": 27,
+          "symbol": "SUI",
+          "name": "Sui",
+          "market_cap_usd": 3678676248.384687
+        },
+        {
+          "rank": 28,
+          "symbol": "TON",
+          "name": "Toncoin",
+          "market_cap_usd": 3418046335.9581037
+        },
+        {
+          "rank": 29,
+          "symbol": "PYUSD",
+          "name": "PayPal USD",
+          "market_cap_usd": 3381894875.7730956
+        },
+        {
+          "rank": 30,
+          "symbol": "CRO",
+          "name": "Cronos",
+          "market_cap_usd": 2992944684.147635
+        }
+      ],
+      "selected": [
+        {
+          "raw_symbol": "SKYAIUSDT",
+          "base": "SKYAI",
+          "quote_volume_usdt": 577112373.84989,
+          "minute_count": 1440,
+          "volume_rank": 5,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "BSBUSDT",
+          "base": "BSB",
+          "quote_volume_usdt": 427308953.29418004,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "BIOUSDT",
+          "base": "BIO",
+          "quote_volume_usdt": 421342763.07417,
+          "minute_count": 1440,
+          "volume_rank": 8,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "MEGAUSDT",
+          "base": "MEGA",
+          "quote_volume_usdt": 317772966.56756,
+          "minute_count": 1440,
+          "volume_rank": 10,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 273502623.6230618,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "BRUSDT",
+          "base": "BR",
+          "quote_volume_usdt": 218583435.37493998,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "ORCAUSDT",
+          "base": "ORCA",
+          "quote_volume_usdt": 213002430.2911,
+          "minute_count": 1440,
+          "volume_rank": 14,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "NAORISUSDT",
+          "base": "NAORIS",
+          "quote_volume_usdt": 204484935.48294997,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "AIOTUSDT",
+          "base": "AIOT",
+          "quote_volume_usdt": 176588153.09067,
+          "minute_count": 1440,
+          "volume_rank": 16,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "AIGENSYNUSDT",
+          "base": "AIGENSYN",
+          "quote_volume_usdt": 171950563.26213998,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "RIVERUSDT",
+          "base": "RIVER",
+          "quote_volume_usdt": 167837880.2627,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "PENGUUSDT",
+          "base": "PENGU",
+          "quote_volume_usdt": 138298270.483905,
+          "minute_count": 1440,
+          "volume_rank": 20,
+          "excluded_top30_market_cap": false
+        }
+      ],
+      "selected_symbols": [
+        "SKYAIUSDT",
+        "BSBUSDT",
+        "BIOUSDT",
+        "MEGAUSDT",
+        "1000PEPEUSDT",
+        "BRUSDT",
+        "ORCAUSDT",
+        "NAORISUSDT",
+        "AIOTUSDT",
+        "AIGENSYNUSDT",
+        "RIVERUSDT",
+        "PENGUUSDT"
+      ]
+    },
+    "2026-06": {
+      "selection_time": "2026-06-01T00:00:00Z",
+      "volume_window": {
+        "start": "2026-05-31T00:00:00+00:00",
+        "end_exclusive": "2026-06-01T00:00:00+00:00"
+      },
+      "active_contracts": 639,
+      "contracts_over_100m": 29,
+      "top_volume": [
+        {
+          "raw_symbol": "BTCUSDT",
+          "base": "BTC",
+          "quote_volume_usdt": 4298158210.984301,
+          "minute_count": 1440,
+          "volume_rank": 1,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ETHUSDT",
+          "base": "ETH",
+          "quote_volume_usdt": 4264448024.4674997,
+          "minute_count": 1440,
+          "volume_rank": 2,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BNBUSDT",
+          "base": "BNB",
+          "quote_volume_usdt": 1667832190.3321,
+          "minute_count": 1440,
+          "volume_rank": 3,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "HYPEUSDT",
+          "base": "HYPE",
+          "quote_volume_usdt": 1582224700.7006102,
+          "minute_count": 1440,
+          "volume_rank": 4,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ZECUSDT",
+          "base": "ZEC",
+          "quote_volume_usdt": 966150412.42609,
+          "minute_count": 1440,
+          "volume_rank": 5,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SOLUSDT",
+          "base": "SOL",
+          "quote_volume_usdt": 821086432.3276999,
+          "minute_count": 1440,
+          "volume_rank": 6,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "LABUSDT",
+          "base": "LAB",
+          "quote_volume_usdt": 778712967.85061,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "XLMUSDT",
+          "base": "XLM",
+          "quote_volume_usdt": 773141065.1356599,
+          "minute_count": 1440,
+          "volume_rank": 8,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "PORTALUSDT",
+          "base": "PORTAL",
+          "quote_volume_usdt": 485836280.02538896,
+          "minute_count": 1440,
+          "volume_rank": 9,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "XRPUSDT",
+          "base": "XRP",
+          "quote_volume_usdt": 433993179.59305,
+          "minute_count": 1440,
+          "volume_rank": 10,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "STGUSDT",
+          "base": "STG",
+          "quote_volume_usdt": 398881887.2065,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ALLOUSDT",
+          "base": "ALLO",
+          "quote_volume_usdt": 373158301.59191,
+          "minute_count": 1440,
+          "volume_rank": 12,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "NEARUSDT",
+          "base": "NEAR",
+          "quote_volume_usdt": 326589309.71000004,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "WLDUSDT",
+          "base": "WLD",
+          "quote_volume_usdt": 319159043.7112,
+          "minute_count": 1440,
+          "volume_rank": 14,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ASTERUSDT",
+          "base": "ASTER",
+          "quote_volume_usdt": 262754036.30479997,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "DOGEUSDT",
+          "base": "DOGE",
+          "quote_volume_usdt": 252338143.24793002,
+          "minute_count": 1440,
+          "volume_rank": 16,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SUIUSDT",
+          "base": "SUI",
+          "quote_volume_usdt": 239407247.812,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "PLAYUSDT",
+          "base": "PLAY",
+          "quote_volume_usdt": 230775164.91376996,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "币安人生USDT",
+          "base": "币安人生",
+          "quote_volume_usdt": 208353940.72687,
+          "minute_count": 1440,
+          "volume_rank": 19,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "HUSDT",
+          "base": "H",
+          "quote_volume_usdt": 179210373.77359998,
+          "minute_count": 1440,
+          "volume_rank": 20,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        }
+      ],
+      "top30_market_cap": [
+        {
+          "rank": 1,
+          "symbol": "BTC",
+          "name": "Bitcoin",
+          "market_cap_usd": 1429079042956.4138
+        },
+        {
+          "rank": 2,
+          "symbol": "ETH",
+          "name": "Ethereum",
+          "market_cap_usd": 241759166396.58243
+        },
+        {
+          "rank": 3,
+          "symbol": "USDT",
+          "name": "Tether USDt",
+          "market_cap_usd": 188002016296.68698
+        },
+        {
+          "rank": 4,
+          "symbol": "BNB",
+          "name": "BNB",
+          "market_cap_usd": 93288480533.58955
+        },
+        {
+          "rank": 5,
+          "symbol": "XRP",
+          "name": "XRP",
+          "market_cap_usd": 80253828876.57884
+        },
+        {
+          "rank": 6,
+          "symbol": "USDC",
+          "name": "USDC",
+          "market_cap_usd": 75815337685.69067
+        },
+        {
+          "rank": 7,
+          "symbol": "SOL",
+          "name": "Solana",
+          "market_cap_usd": 46894623111.00268
+        },
+        {
+          "rank": 8,
+          "symbol": "TRX",
+          "name": "TRON",
+          "market_cap_usd": 32539626958.254154
+        },
+        {
+          "rank": 9,
+          "symbol": "HYPE",
+          "name": "Hyperliquid",
+          "market_cap_usd": 18624116695.082733
+        },
+        {
+          "rank": 10,
+          "symbol": "DOGE",
+          "name": "Dogecoin",
+          "market_cap_usd": 17145161608.241043
+        },
+        {
+          "rank": 11,
+          "symbol": "LEO",
+          "name": "UNUS SED LEO",
+          "market_cap_usd": 9214078794.780308
+        },
+        {
+          "rank": 12,
+          "symbol": "ZEC",
+          "name": "Zcash",
+          "market_cap_usd": 9095127201.692205
+        },
+        {
+          "rank": 13,
+          "symbol": "ADA",
+          "name": "Cardano",
+          "market_cap_usd": 8351108640.162415
+        },
+        {
+          "rank": 14,
+          "symbol": "XLM",
+          "name": "Stellar",
+          "market_cap_usd": 8157782952.009173
+        },
+        {
+          "rank": 15,
+          "symbol": "LINK",
+          "name": "Chainlink",
+          "market_cap_usd": 6571495112.696839
+        },
+        {
+          "rank": 16,
+          "symbol": "XMR",
+          "name": "Monero",
+          "market_cap_usd": 6341329329.18302
+        },
+        {
+          "rank": 17,
+          "symbol": "CC",
+          "name": "Canton",
+          "market_cap_usd": 5958325575.229183
+        },
+        {
+          "rank": 18,
+          "symbol": "BCH",
+          "name": "Bitcoin Cash",
+          "market_cap_usd": 5875342734.768064
+        },
+        {
+          "rank": 19,
+          "symbol": "TON",
+          "name": "Toncoin",
+          "market_cap_usd": 5593330361.658182
+        },
+        {
+          "rank": 20,
+          "symbol": "DAI",
+          "name": "Dai",
+          "market_cap_usd": 5362321924.90648
+        },
+        {
+          "rank": 21,
+          "symbol": "USD1",
+          "name": "World Liberty Financial USD",
+          "market_cap_usd": 4693339479.56451
+        },
+        {
+          "rank": 22,
+          "symbol": "USDE",
+          "name": "Ethena USDe",
+          "market_cap_usd": 4491828450.719783
+        },
+        {
+          "rank": 23,
+          "symbol": "M",
+          "name": "MemeCore",
+          "market_cap_usd": 4246441125.1940064
+        },
+        {
+          "rank": 24,
+          "symbol": "HBAR",
+          "name": "Hedera",
+          "market_cap_usd": 3993609492.8717947
+        },
+        {
+          "rank": 25,
+          "symbol": "LTC",
+          "name": "Litecoin",
+          "market_cap_usd": 3917375986.7835245
+        },
+        {
+          "rank": 26,
+          "symbol": "AVAX",
+          "name": "Avalanche",
+          "market_cap_usd": 3849643560.154389
+        },
+        {
+          "rank": 27,
+          "symbol": "SUI",
+          "name": "Sui",
+          "market_cap_usd": 3532188159.192967
+        },
+        {
+          "rank": 28,
+          "symbol": "NEAR",
+          "name": "NEAR Protocol",
+          "market_cap_usd": 3414826494.1927967
+        },
+        {
+          "rank": 29,
+          "symbol": "SHIB",
+          "name": "Shiba Inu",
+          "market_cap_usd": 3252299721.4208155
+        },
+        {
+          "rank": 30,
+          "symbol": "PYUSD",
+          "name": "PayPal USD",
+          "market_cap_usd": 3034606980.8601274
+        }
+      ],
+      "selected": [
+        {
+          "raw_symbol": "LABUSDT",
+          "base": "LAB",
+          "quote_volume_usdt": 778712967.85061,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "PORTALUSDT",
+          "base": "PORTAL",
+          "quote_volume_usdt": 485836280.02538896,
+          "minute_count": 1440,
+          "volume_rank": 9,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "STGUSDT",
+          "base": "STG",
+          "quote_volume_usdt": 398881887.2065,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "ALLOUSDT",
+          "base": "ALLO",
+          "quote_volume_usdt": 373158301.59191,
+          "minute_count": 1440,
+          "volume_rank": 12,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "WLDUSDT",
+          "base": "WLD",
+          "quote_volume_usdt": 319159043.7112,
+          "minute_count": 1440,
+          "volume_rank": 14,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "ASTERUSDT",
+          "base": "ASTER",
+          "quote_volume_usdt": 262754036.30479997,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "PLAYUSDT",
+          "base": "PLAY",
+          "quote_volume_usdt": 230775164.91376996,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "币安人生USDT",
+          "base": "币安人生",
+          "quote_volume_usdt": 208353940.72687,
+          "minute_count": 1440,
+          "volume_rank": 19,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "HUSDT",
+          "base": "H",
+          "quote_volume_usdt": 179210373.77359998,
+          "minute_count": 1440,
+          "volume_rank": 20,
+          "excluded_top30_market_cap": false
+        }
+      ],
+      "selected_symbols": [
+        "LABUSDT",
+        "PORTALUSDT",
+        "STGUSDT",
+        "ALLOUSDT",
+        "WLDUSDT",
+        "ASTERUSDT",
+        "PLAYUSDT",
+        "币安人生USDT",
+        "HUSDT"
+      ]
+    },
+    "2026-07": {
+      "selection_time": "2026-07-01T00:00:00Z",
+      "volume_window": {
+        "start": "2026-06-30T00:00:00+00:00",
+        "end_exclusive": "2026-07-01T00:00:00+00:00"
+      },
+      "active_contracts": 646,
+      "contracts_over_100m": 25,
+      "top_volume": [
+        {
+          "raw_symbol": "BTCUSDT",
+          "base": "BTC",
+          "quote_volume_usdt": 11294873694.8577,
+          "minute_count": 1440,
+          "volume_rank": 1,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ETHUSDT",
+          "base": "ETH",
+          "quote_volume_usdt": 6029814926.38176,
+          "minute_count": 1440,
+          "volume_rank": 2,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SOLUSDT",
+          "base": "SOL",
+          "quote_volume_usdt": 1618687360.7539,
+          "minute_count": 1440,
+          "volume_rank": 3,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "INUSDT",
+          "base": "IN",
+          "quote_volume_usdt": 747074632.55047,
+          "minute_count": 1440,
+          "volume_rank": 4,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "HYPEUSDT",
+          "base": "HYPE",
+          "quote_volume_usdt": 652859045.7567201,
+          "minute_count": 1440,
+          "volume_rank": 5,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SYNUSDT",
+          "base": "SYN",
+          "quote_volume_usdt": 544561898.1163299,
+          "minute_count": 1440,
+          "volume_rank": 6,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "LABUSDT",
+          "base": "LAB",
+          "quote_volume_usdt": 424940941.2341,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ZECUSDT",
+          "base": "ZEC",
+          "quote_volume_usdt": 400561294.57280004,
+          "minute_count": 1440,
+          "volume_rank": 8,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "DOGEUSDT",
+          "base": "DOGE",
+          "quote_volume_usdt": 371656912.66828,
+          "minute_count": 1440,
+          "volume_rank": 9,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "XRPUSDT",
+          "base": "XRP",
+          "quote_volume_usdt": 362529542.82934004,
+          "minute_count": 1440,
+          "volume_rank": 10,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "AIGENSYNUSDT",
+          "base": "AIGENSYN",
+          "quote_volume_usdt": 324121178.82065,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "TACUSDT",
+          "base": "TAC",
+          "quote_volume_usdt": 294670286.047821,
+          "minute_count": 1440,
+          "volume_rank": 12,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "REUSDT",
+          "base": "RE",
+          "quote_volume_usdt": 252206660.9691,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BNBUSDT",
+          "base": "BNB",
+          "quote_volume_usdt": 234161308.70859998,
+          "minute_count": 1440,
+          "volume_rank": 14,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "WLDUSDT",
+          "base": "WLD",
+          "quote_volume_usdt": 194263387.9124,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SLXUSDT",
+          "base": "SLX",
+          "quote_volume_usdt": 191323079.92956,
+          "minute_count": 1440,
+          "volume_rank": 16,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "UBUSDT",
+          "base": "UB",
+          "quote_volume_usdt": 176934678.59622002,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "VELVETUSDT",
+          "base": "VELVET",
+          "quote_volume_usdt": 168383906.83488002,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "XLMUSDT",
+          "base": "XLM",
+          "quote_volume_usdt": 153070246.76944,
+          "minute_count": 1440,
+          "volume_rank": 19,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 133193771.8226952,
+          "minute_count": 1440,
+          "volume_rank": 20,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        }
+      ],
+      "top30_market_cap": [
+        {
+          "rank": 1,
+          "symbol": "BTC",
+          "name": "Bitcoin",
+          "market_cap_usd": 1203130405284.7786
+        },
+        {
+          "rank": 2,
+          "symbol": "ETH",
+          "name": "Ethereum",
+          "market_cap_usd": 194174764118.79102
+        },
+        {
+          "rank": 3,
+          "symbol": "USDT",
+          "name": "Tether USDt",
+          "market_cap_usd": 184470505034.96216
+        },
+        {
+          "rank": 4,
+          "symbol": "BNB",
+          "name": "BNB",
+          "market_cap_usd": 74145223949.48012
+        },
+        {
+          "rank": 5,
+          "symbol": "USDC",
+          "name": "USDC",
+          "market_cap_usd": 73180293794.16951
+        },
+        {
+          "rank": 6,
+          "symbol": "XRP",
+          "name": "XRP",
+          "market_cap_usd": 65487268447.62558
+        },
+        {
+          "rank": 7,
+          "symbol": "SOL",
+          "name": "Solana",
+          "market_cap_usd": 44951996941.538666
+        },
+        {
+          "rank": 8,
+          "symbol": "TRX",
+          "name": "TRON",
+          "market_cap_usd": 29945136382.44714
+        },
+        {
+          "rank": 9,
+          "symbol": "HYPE",
+          "name": "Hyperliquid",
+          "market_cap_usd": 15774799943.296915
+        },
+        {
+          "rank": 10,
+          "symbol": "DOGE",
+          "name": "Dogecoin",
+          "market_cap_usd": 11180024295.686674
+        },
+        {
+          "rank": 11,
+          "symbol": "LEO",
+          "name": "UNUS SED LEO",
+          "market_cap_usd": 8509084747.01246
+        },
+        {
+          "rank": 12,
+          "symbol": "ZEC",
+          "name": "Zcash",
+          "market_cap_usd": 6979238026.708068
+        },
+        {
+          "rank": 13,
+          "symbol": "XLM",
+          "name": "Stellar",
+          "market_cap_usd": 6713867828.44067
+        },
+        {
+          "rank": 14,
+          "symbol": "XMR",
+          "name": "Monero",
+          "market_cap_usd": 5800906334.501596
+        },
+        {
+          "rank": 15,
+          "symbol": "ADA",
+          "name": "Cardano",
+          "market_cap_usd": 5607029294.063232
+        },
+        {
+          "rank": 16,
+          "symbol": "CC",
+          "name": "Canton",
+          "market_cap_usd": 5485744370.391269
+        },
+        {
+          "rank": 17,
+          "symbol": "DAI",
+          "name": "Dai",
+          "market_cap_usd": 5362676814.711167
+        },
+        {
+          "rank": 18,
+          "symbol": "LINK",
+          "name": "Chainlink",
+          "market_cap_usd": 5344269455.731005
+        },
+        {
+          "rank": 19,
+          "symbol": "USD1",
+          "name": "World Liberty Financial USD",
+          "market_cap_usd": 4617854854.171517
+        },
+        {
+          "rank": 20,
+          "symbol": "USDE",
+          "name": "Ethena USDe",
+          "market_cap_usd": 4442016723.556802
+        },
+        {
+          "rank": 21,
+          "symbol": "GRAM",
+          "name": "Gram (prev. Toncoin)",
+          "market_cap_usd": 4216980730.014805
+        },
+        {
+          "rank": 22,
+          "symbol": "BCH",
+          "name": "Bitcoin Cash",
+          "market_cap_usd": 4216388659.210888
+        },
+        {
+          "rank": 23,
+          "symbol": "LTC",
+          "name": "Litecoin",
+          "market_cap_usd": 3299010079.6821723
+        },
+        {
+          "rank": 24,
+          "symbol": "HBAR",
+          "name": "Hedera",
+          "market_cap_usd": 3123294676.7184954
+        },
+        {
+          "rank": 25,
+          "symbol": "USDG",
+          "name": "Global Dollar",
+          "market_cap_usd": 3001209203.219133
+        },
+        {
+          "rank": 26,
+          "symbol": "SUI",
+          "name": "Sui",
+          "market_cap_usd": 2899278994.172005
+        },
+        {
+          "rank": 27,
+          "symbol": "AVAX",
+          "name": "Avalanche",
+          "market_cap_usd": 2876871231.8290606
+        },
+        {
+          "rank": 28,
+          "symbol": "PYUSD",
+          "name": "PayPal USD",
+          "market_cap_usd": 2772706775.804064
+        },
+        {
+          "rank": 29,
+          "symbol": "CRO",
+          "name": "Cronos",
+          "market_cap_usd": 2568891028.042209
+        },
+        {
+          "rank": 30,
+          "symbol": "SHIB",
+          "name": "Shiba Inu",
+          "market_cap_usd": 2520786711.8176694
+        }
+      ],
+      "selected": [
+        {
+          "raw_symbol": "INUSDT",
+          "base": "IN",
+          "quote_volume_usdt": 747074632.55047,
+          "minute_count": 1440,
+          "volume_rank": 4,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "SYNUSDT",
+          "base": "SYN",
+          "quote_volume_usdt": 544561898.1163299,
+          "minute_count": 1440,
+          "volume_rank": 6,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "LABUSDT",
+          "base": "LAB",
+          "quote_volume_usdt": 424940941.2341,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "AIGENSYNUSDT",
+          "base": "AIGENSYN",
+          "quote_volume_usdt": 324121178.82065,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "TACUSDT",
+          "base": "TAC",
+          "quote_volume_usdt": 294670286.047821,
+          "minute_count": 1440,
+          "volume_rank": 12,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "REUSDT",
+          "base": "RE",
+          "quote_volume_usdt": 252206660.9691,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "WLDUSDT",
+          "base": "WLD",
+          "quote_volume_usdt": 194263387.9124,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "SLXUSDT",
+          "base": "SLX",
+          "quote_volume_usdt": 191323079.92956,
+          "minute_count": 1440,
+          "volume_rank": 16,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "UBUSDT",
+          "base": "UB",
+          "quote_volume_usdt": 176934678.59622002,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "VELVETUSDT",
+          "base": "VELVET",
+          "quote_volume_usdt": 168383906.83488002,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 133193771.8226952,
+          "minute_count": 1440,
+          "volume_rank": 20,
+          "excluded_top30_market_cap": false
+        }
+      ],
+      "selected_symbols": [
+        "INUSDT",
+        "SYNUSDT",
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "TACUSDT",
+        "REUSDT",
+        "WLDUSDT",
+        "SLXUSDT",
+        "UBUSDT",
+        "VELVETUSDT",
+        "1000PEPEUSDT"
+      ]
+    },
+    "2026-08": {
+      "selection_time": "2026-08-01T00:00:00Z",
+      "volume_window": {
+        "start": "2026-07-31T00:00:00+00:00",
+        "end_exclusive": "2026-08-01T00:00:00+00:00"
+      },
+      "active_contracts": 649,
+      "contracts_over_100m": 18,
+      "top_volume": [
+        {
+          "raw_symbol": "BTCUSDT",
+          "base": "BTC",
+          "quote_volume_usdt": 11118195413.656801,
+          "minute_count": 1440,
+          "volume_rank": 1,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ETHUSDT",
+          "base": "ETH",
+          "quote_volume_usdt": 7517537304.44882,
+          "minute_count": 1440,
+          "volume_rank": 2,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "SOLUSDT",
+          "base": "SOL",
+          "quote_volume_usdt": 1141566524.6076999,
+          "minute_count": 1440,
+          "volume_rank": 3,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "KOMAUSDT",
+          "base": "KOMA",
+          "quote_volume_usdt": 604585005.9905981,
+          "minute_count": 1440,
+          "volume_rank": 4,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BANKUSDT",
+          "base": "BANK",
+          "quote_volume_usdt": 562696137.64149,
+          "minute_count": 1440,
+          "volume_rank": 5,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "HYPEUSDT",
+          "base": "HYPE",
+          "quote_volume_usdt": 490819645.25057006,
+          "minute_count": 1440,
+          "volume_rank": 6,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "MMTUSDT",
+          "base": "MMT",
+          "quote_volume_usdt": 449698522.824,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "XRPUSDT",
+          "base": "XRP",
+          "quote_volume_usdt": 373296929.56192994,
+          "minute_count": 1440,
+          "volume_rank": 8,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "GIGGLEUSDT",
+          "base": "GIGGLE",
+          "quote_volume_usdt": 360524670.8828,
+          "minute_count": 1440,
+          "volume_rank": 9,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ZECUSDT",
+          "base": "ZEC",
+          "quote_volume_usdt": 309771104.34799,
+          "minute_count": 1440,
+          "volume_rank": 10,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "COTIUSDT",
+          "base": "COTI",
+          "quote_volume_usdt": 294534753.3619604,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "1000RATSUSDT",
+          "base": "RATS",
+          "quote_volume_usdt": 287927014.64149994,
+          "minute_count": 1440,
+          "volume_rank": 12,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "DOGEUSDT",
+          "base": "DOGE",
+          "quote_volume_usdt": 270369592.32254,
+          "minute_count": 1440,
+          "volume_rank": 13,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "BNBUSDT",
+          "base": "BNB",
+          "quote_volume_usdt": 265410220.8907,
+          "minute_count": 1440,
+          "volume_rank": 14,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "UNIUSDT",
+          "base": "UNI",
+          "quote_volume_usdt": 166943463.04,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "AKEUSDT",
+          "base": "AKE",
+          "quote_volume_usdt": 131121120.3178889,
+          "minute_count": 1440,
+          "volume_rank": 16,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "ADAUSDT",
+          "base": "ADA",
+          "quote_volume_usdt": 128266557.28080001,
+          "minute_count": 1440,
+          "volume_rank": 17,
+          "excluded_top30_market_cap": true,
+          "excluded_non_crypto_underlying": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 119990992.209597,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false,
+          "excluded_non_crypto_underlying": false
+        }
+      ],
+      "top30_market_cap": [
+        {
+          "rank": 1,
+          "symbol": "BTC",
+          "name": "Bitcoin",
+          "market_cap_usd": 1259315777214.7625
+        },
+        {
+          "rank": 2,
+          "symbol": "ETH",
+          "name": "Ethereum",
+          "market_cap_usd": 222467831056.88828
+        },
+        {
+          "rank": 3,
+          "symbol": "USDT",
+          "name": "Tether USDt",
+          "market_cap_usd": 183284640534.51892
+        },
+        {
+          "rank": 4,
+          "symbol": "BNB",
+          "name": "BNB",
+          "market_cap_usd": 76564600184.1743
+        },
+        {
+          "rank": 5,
+          "symbol": "USDC",
+          "name": "USDC",
+          "market_cap_usd": 71978493621.34137
+        },
+        {
+          "rank": 6,
+          "symbol": "XRP",
+          "name": "XRP",
+          "market_cap_usd": 66269218169.95306
+        },
+        {
+          "rank": 7,
+          "symbol": "SOL",
+          "name": "Solana",
+          "market_cap_usd": 41759933833.48394
+        },
+        {
+          "rank": 8,
+          "symbol": "TRX",
+          "name": "TRON",
+          "market_cap_usd": 31079620325.65624
+        },
+        {
+          "rank": 9,
+          "symbol": "HYPE",
+          "name": "Hyperliquid",
+          "market_cap_usd": 13163516153.229347
+        },
+        {
+          "rank": 10,
+          "symbol": "DOGE",
+          "name": "Dogecoin",
+          "market_cap_usd": 11813434860.190594
+        },
+        {
+          "rank": 11,
+          "symbol": "LEO",
+          "name": "UNUS SED LEO",
+          "market_cap_usd": 8986701024.693642
+        },
+        {
+          "rank": 12,
+          "symbol": "ZEC",
+          "name": "Zcash",
+          "market_cap_usd": 7750858462.564056
+        },
+        {
+          "rank": 13,
+          "symbol": "XMR",
+          "name": "Monero",
+          "market_cap_usd": 6835244876.935113
+        },
+        {
+          "rank": 14,
+          "symbol": "ADA",
+          "name": "Cardano",
+          "market_cap_usd": 6359701961.891511
+        },
+        {
+          "rank": 15,
+          "symbol": "LINK",
+          "name": "Chainlink",
+          "market_cap_usd": 6026695194.223051
+        },
+        {
+          "rank": 16,
+          "symbol": "XLM",
+          "name": "Stellar",
+          "market_cap_usd": 5854414306.875265
+        },
+        {
+          "rank": 17,
+          "symbol": "DAI",
+          "name": "Dai",
+          "market_cap_usd": 4590686254.309052
+        },
+        {
+          "rank": 18,
+          "symbol": "CC",
+          "name": "Canton",
+          "market_cap_usd": 4564207595.828686
+        },
+        {
+          "rank": 19,
+          "symbol": "BCH",
+          "name": "Bitcoin Cash",
+          "market_cap_usd": 4172835781.23544
+        },
+        {
+          "rank": 20,
+          "symbol": "USD1",
+          "name": "World Liberty Financial USD",
+          "market_cap_usd": 3976353482.9110365
+        },
+        {
+          "rank": 21,
+          "symbol": "USDE",
+          "name": "Ethena USDe",
+          "market_cap_usd": 3880712489.018472
+        },
+        {
+          "rank": 22,
+          "symbol": "GRAM",
+          "name": "Gram (prev. Toncoin)",
+          "market_cap_usd": 3809660154.1537952
+        },
+        {
+          "rank": 23,
+          "symbol": "LTC",
+          "name": "Litecoin",
+          "market_cap_usd": 3422173943.536523
+        },
+        {
+          "rank": 24,
+          "symbol": "USDG",
+          "name": "Global Dollar",
+          "market_cap_usd": 3399744977.3234296
+        },
+        {
+          "rank": 25,
+          "symbol": "HBAR",
+          "name": "Hedera",
+          "market_cap_usd": 3024527096.294658
+        },
+        {
+          "rank": 26,
+          "symbol": "SHIB",
+          "name": "Shiba Inu",
+          "market_cap_usd": 2835847294.592663
+        },
+        {
+          "rank": 27,
+          "symbol": "SUI",
+          "name": "Sui",
+          "market_cap_usd": 2751113547.3333316
+        },
+        {
+          "rank": 28,
+          "symbol": "PYUSD",
+          "name": "PayPal USD",
+          "market_cap_usd": 2710374055.994463
+        },
+        {
+          "rank": 29,
+          "symbol": "AVAX",
+          "name": "Avalanche",
+          "market_cap_usd": 2670193060.072224
+        },
+        {
+          "rank": 30,
+          "symbol": "CRO",
+          "name": "Cronos",
+          "market_cap_usd": 2563206073.905339
+        }
+      ],
+      "selected": [
+        {
+          "raw_symbol": "KOMAUSDT",
+          "base": "KOMA",
+          "quote_volume_usdt": 604585005.9905981,
+          "minute_count": 1440,
+          "volume_rank": 4,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "BANKUSDT",
+          "base": "BANK",
+          "quote_volume_usdt": 562696137.64149,
+          "minute_count": 1440,
+          "volume_rank": 5,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "MMTUSDT",
+          "base": "MMT",
+          "quote_volume_usdt": 449698522.824,
+          "minute_count": 1440,
+          "volume_rank": 7,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "GIGGLEUSDT",
+          "base": "GIGGLE",
+          "quote_volume_usdt": 360524670.8828,
+          "minute_count": 1440,
+          "volume_rank": 9,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "COTIUSDT",
+          "base": "COTI",
+          "quote_volume_usdt": 294534753.3619604,
+          "minute_count": 1440,
+          "volume_rank": 11,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "1000RATSUSDT",
+          "base": "RATS",
+          "quote_volume_usdt": 287927014.64149994,
+          "minute_count": 1440,
+          "volume_rank": 12,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "UNIUSDT",
+          "base": "UNI",
+          "quote_volume_usdt": 166943463.04,
+          "minute_count": 1440,
+          "volume_rank": 15,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "AKEUSDT",
+          "base": "AKE",
+          "quote_volume_usdt": 131121120.3178889,
+          "minute_count": 1440,
+          "volume_rank": 16,
+          "excluded_top30_market_cap": false
+        },
+        {
+          "raw_symbol": "1000PEPEUSDT",
+          "base": "PEPE",
+          "quote_volume_usdt": 119990992.209597,
+          "minute_count": 1440,
+          "volume_rank": 18,
+          "excluded_top30_market_cap": false
+        }
+      ],
+      "selected_symbols": [
+        "KOMAUSDT",
+        "BANKUSDT",
+        "MMTUSDT",
+        "GIGGLEUSDT",
+        "COTIUSDT",
+        "1000RATSUSDT",
+        "UNIUSDT",
+        "AKEUSDT",
+        "1000PEPEUSDT"
+      ]
+    }
+  }
+}

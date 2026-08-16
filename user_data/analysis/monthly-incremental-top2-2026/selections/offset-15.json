@@ -1,0 +1,1592 @@
+{
+  "generated_at": "2026-08-16T12:54:44.292629+00:00",
+  "source": {
+    "monthly_core": "user_data/analysis/monthly-refresh-offset-2026/selections/offset-15.json",
+    "weekly_snapshots": "user_data/analysis/weekly-volume-rotation-2026-02-08.json"
+  },
+  "method": {
+    "core_refresh": "monthly at day 15 00:00 UTC",
+    "incremental_refresh": "weekly point-in-time snapshots",
+    "incremental_maximum_pairs": 2,
+    "incremental_score": "prior raw-volume rank minus current raw-volume rank",
+    "new_raw_top20_prior_rank": 21,
+    "minimum_rank_improvement": 1,
+    "incremental_ttl": "until next weekly snapshot",
+    "monthly_refresh_resets_incremental_pool": true
+  },
+  "range": {
+    "start": "2026-02-01T00:00:00+00:00",
+    "end_exclusive": "2026-08-14T00:00:00+00:00"
+  },
+  "anchor_day": 15,
+  "periods": [
+    {
+      "start": "2026-02-01T00:00:00+00:00",
+      "end_exclusive": "2026-02-08T00:00:00+00:00",
+      "selection_time": "2026-02-01T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-01-15T00:00:00Z",
+      "core_selected_symbols": [
+        "DASHUSDT",
+        "RIVERUSDT",
+        "币安人生USDT",
+        "1000PEPEUSDT",
+        "IPUSDT",
+        "BERAUSDT",
+        "GUNUSDT",
+        "ASTERUSDT"
+      ],
+      "incremental_selection_time": "2026-02-01T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "BULLAUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": null,
+          "rank_improvement": 15,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 1006798562.6729
+        },
+        {
+          "raw_symbol": "SENTUSDT",
+          "current_volume_rank": 11,
+          "previous_volume_rank": null,
+          "rank_improvement": 10,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 572869022.03263
+        }
+      ],
+      "incremental_selected_symbols": [
+        "BULLAUSDT",
+        "SENTUSDT"
+      ],
+      "selected_symbols": [
+        "DASHUSDT",
+        "RIVERUSDT",
+        "币安人生USDT",
+        "1000PEPEUSDT",
+        "IPUSDT",
+        "BERAUSDT",
+        "GUNUSDT",
+        "ASTERUSDT",
+        "BULLAUSDT",
+        "SENTUSDT"
+      ]
+    },
+    {
+      "start": "2026-02-08T00:00:00+00:00",
+      "end_exclusive": "2026-02-15T00:00:00+00:00",
+      "selection_time": "2026-02-08T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-01-15T00:00:00Z",
+      "core_selected_symbols": [
+        "DASHUSDT",
+        "RIVERUSDT",
+        "币安人生USDT",
+        "1000PEPEUSDT",
+        "IPUSDT",
+        "BERAUSDT",
+        "GUNUSDT",
+        "ASTERUSDT"
+      ],
+      "incremental_selection_time": "2026-02-08T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "SIRENUSDT",
+          "current_volume_rank": 5,
+          "previous_volume_rank": null,
+          "rank_improvement": 16,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 826077588.7892501
+        },
+        {
+          "raw_symbol": "LAUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": null,
+          "rank_improvement": 15,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 794508726.3367901
+        }
+      ],
+      "incremental_selected_symbols": [
+        "SIRENUSDT",
+        "LAUSDT"
+      ],
+      "selected_symbols": [
+        "DASHUSDT",
+        "RIVERUSDT",
+        "币安人生USDT",
+        "1000PEPEUSDT",
+        "IPUSDT",
+        "BERAUSDT",
+        "GUNUSDT",
+        "ASTERUSDT",
+        "SIRENUSDT",
+        "LAUSDT"
+      ]
+    },
+    {
+      "start": "2026-02-15T00:00:00+00:00",
+      "end_exclusive": "2026-02-22T00:00:00+00:00",
+      "selection_time": "2026-02-15T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-02-15T00:00:00Z",
+      "core_selected_symbols": [
+        "1000PEPEUSDT",
+        "SPACEUSDT",
+        "PIPPINUSDT",
+        "RIVERUSDT",
+        "TAOUSDT",
+        "TAKEUSDT",
+        "VVVUSDT",
+        "NAORISUSDT",
+        "BERAUSDT"
+      ],
+      "incremental_selection_time": null,
+      "incremental_candidates": [],
+      "incremental_selected_symbols": [],
+      "selected_symbols": [
+        "1000PEPEUSDT",
+        "SPACEUSDT",
+        "PIPPINUSDT",
+        "RIVERUSDT",
+        "TAOUSDT",
+        "TAKEUSDT",
+        "VVVUSDT",
+        "NAORISUSDT",
+        "BERAUSDT"
+      ]
+    },
+    {
+      "start": "2026-02-22T00:00:00+00:00",
+      "end_exclusive": "2026-03-01T00:00:00+00:00",
+      "selection_time": "2026-02-22T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-02-15T00:00:00Z",
+      "core_selected_symbols": [
+        "1000PEPEUSDT",
+        "SPACEUSDT",
+        "PIPPINUSDT",
+        "RIVERUSDT",
+        "TAOUSDT",
+        "TAKEUSDT",
+        "VVVUSDT",
+        "NAORISUSDT",
+        "BERAUSDT"
+      ],
+      "incremental_selection_time": "2026-02-22T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "AZTECUSDT",
+          "current_volume_rank": 4,
+          "previous_volume_rank": null,
+          "rank_improvement": 17,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 491312831.59108996
+        },
+        {
+          "raw_symbol": "OPNUSDT",
+          "current_volume_rank": 7,
+          "previous_volume_rank": null,
+          "rank_improvement": 14,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 274494599.5482
+        }
+      ],
+      "incremental_selected_symbols": [
+        "AZTECUSDT",
+        "OPNUSDT"
+      ],
+      "selected_symbols": [
+        "1000PEPEUSDT",
+        "SPACEUSDT",
+        "PIPPINUSDT",
+        "RIVERUSDT",
+        "TAOUSDT",
+        "TAKEUSDT",
+        "VVVUSDT",
+        "NAORISUSDT",
+        "BERAUSDT",
+        "AZTECUSDT",
+        "OPNUSDT"
+      ]
+    },
+    {
+      "start": "2026-03-01T00:00:00+00:00",
+      "end_exclusive": "2026-03-08T00:00:00+00:00",
+      "selection_time": "2026-03-01T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-02-15T00:00:00Z",
+      "core_selected_symbols": [
+        "1000PEPEUSDT",
+        "SPACEUSDT",
+        "PIPPINUSDT",
+        "RIVERUSDT",
+        "TAOUSDT",
+        "TAKEUSDT",
+        "VVVUSDT",
+        "NAORISUSDT",
+        "BERAUSDT"
+      ],
+      "incremental_selection_time": "2026-03-01T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "POWERUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": null,
+          "rank_improvement": 15,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 725173253.88388
+        },
+        {
+          "raw_symbol": "SAHARAUSDT",
+          "current_volume_rank": 11,
+          "previous_volume_rank": null,
+          "rank_improvement": 10,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 377678327.49385
+        }
+      ],
+      "incremental_selected_symbols": [
+        "POWERUSDT",
+        "SAHARAUSDT"
+      ],
+      "selected_symbols": [
+        "1000PEPEUSDT",
+        "SPACEUSDT",
+        "PIPPINUSDT",
+        "RIVERUSDT",
+        "TAOUSDT",
+        "TAKEUSDT",
+        "VVVUSDT",
+        "NAORISUSDT",
+        "BERAUSDT",
+        "POWERUSDT",
+        "SAHARAUSDT"
+      ]
+    },
+    {
+      "start": "2026-03-08T00:00:00+00:00",
+      "end_exclusive": "2026-03-15T00:00:00+00:00",
+      "selection_time": "2026-03-08T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-02-15T00:00:00Z",
+      "core_selected_symbols": [
+        "1000PEPEUSDT",
+        "SPACEUSDT",
+        "PIPPINUSDT",
+        "RIVERUSDT",
+        "TAOUSDT",
+        "TAKEUSDT",
+        "VVVUSDT",
+        "NAORISUSDT",
+        "BERAUSDT"
+      ],
+      "incremental_selection_time": "2026-03-08T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "SIGNUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": null,
+          "rank_improvement": 15,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 327331835.04169
+        },
+        {
+          "raw_symbol": "RESOLVUSDT",
+          "current_volume_rank": 9,
+          "previous_volume_rank": null,
+          "rank_improvement": 12,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 215370969.62699
+        }
+      ],
+      "incremental_selected_symbols": [
+        "SIGNUSDT",
+        "RESOLVUSDT"
+      ],
+      "selected_symbols": [
+        "1000PEPEUSDT",
+        "SPACEUSDT",
+        "PIPPINUSDT",
+        "RIVERUSDT",
+        "TAOUSDT",
+        "TAKEUSDT",
+        "VVVUSDT",
+        "NAORISUSDT",
+        "BERAUSDT",
+        "SIGNUSDT",
+        "RESOLVUSDT"
+      ]
+    },
+    {
+      "start": "2026-03-15T00:00:00+00:00",
+      "end_exclusive": "2026-03-22T00:00:00+00:00",
+      "selection_time": "2026-03-15T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-03-15T00:00:00Z",
+      "core_selected_symbols": [
+        "TRUMPUSDT",
+        "COSUSDT",
+        "RIVERUSDT",
+        "BANANAS31USDT",
+        "LYNUSDT",
+        "PIXELUSDT",
+        "1000PEPEUSDT",
+        "CUSDT",
+        "DEGOUSDT",
+        "SAHARAUSDT"
+      ],
+      "incremental_selection_time": null,
+      "incremental_candidates": [],
+      "incremental_selected_symbols": [],
+      "selected_symbols": [
+        "TRUMPUSDT",
+        "COSUSDT",
+        "RIVERUSDT",
+        "BANANAS31USDT",
+        "LYNUSDT",
+        "PIXELUSDT",
+        "1000PEPEUSDT",
+        "CUSDT",
+        "DEGOUSDT",
+        "SAHARAUSDT"
+      ]
+    },
+    {
+      "start": "2026-03-22T00:00:00+00:00",
+      "end_exclusive": "2026-03-29T00:00:00+00:00",
+      "selection_time": "2026-03-22T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-03-15T00:00:00Z",
+      "core_selected_symbols": [
+        "TRUMPUSDT",
+        "COSUSDT",
+        "RIVERUSDT",
+        "BANANAS31USDT",
+        "LYNUSDT",
+        "PIXELUSDT",
+        "1000PEPEUSDT",
+        "CUSDT",
+        "DEGOUSDT",
+        "SAHARAUSDT"
+      ],
+      "incremental_selection_time": "2026-03-22T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "PIPPINUSDT",
+          "current_volume_rank": 8,
+          "previous_volume_rank": null,
+          "rank_improvement": 13,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 263161905.06526
+        },
+        {
+          "raw_symbol": "RDNTUSDT",
+          "current_volume_rank": 9,
+          "previous_volume_rank": null,
+          "rank_improvement": 12,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 259141549.56614196
+        }
+      ],
+      "incremental_selected_symbols": [
+        "PIPPINUSDT",
+        "RDNTUSDT"
+      ],
+      "selected_symbols": [
+        "TRUMPUSDT",
+        "COSUSDT",
+        "RIVERUSDT",
+        "BANANAS31USDT",
+        "LYNUSDT",
+        "PIXELUSDT",
+        "1000PEPEUSDT",
+        "CUSDT",
+        "DEGOUSDT",
+        "SAHARAUSDT",
+        "PIPPINUSDT",
+        "RDNTUSDT"
+      ]
+    },
+    {
+      "start": "2026-03-29T00:00:00+00:00",
+      "end_exclusive": "2026-04-01T00:00:00+00:00",
+      "selection_time": "2026-03-29T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-03-15T00:00:00Z",
+      "core_selected_symbols": [
+        "TRUMPUSDT",
+        "COSUSDT",
+        "RIVERUSDT",
+        "BANANAS31USDT",
+        "LYNUSDT",
+        "PIXELUSDT",
+        "1000PEPEUSDT",
+        "CUSDT",
+        "DEGOUSDT",
+        "SAHARAUSDT"
+      ],
+      "incremental_selection_time": "2026-03-29T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "NOMUSDT",
+          "current_volume_rank": 9,
+          "previous_volume_rank": null,
+          "rank_improvement": 12,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 277419563.28164
+        },
+        {
+          "raw_symbol": "ONTUSDT",
+          "current_volume_rank": 10,
+          "previous_volume_rank": null,
+          "rank_improvement": 11,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 252378236.87334
+        }
+      ],
+      "incremental_selected_symbols": [
+        "NOMUSDT",
+        "ONTUSDT"
+      ],
+      "selected_symbols": [
+        "TRUMPUSDT",
+        "COSUSDT",
+        "RIVERUSDT",
+        "BANANAS31USDT",
+        "LYNUSDT",
+        "PIXELUSDT",
+        "1000PEPEUSDT",
+        "CUSDT",
+        "DEGOUSDT",
+        "SAHARAUSDT",
+        "NOMUSDT",
+        "ONTUSDT"
+      ]
+    },
+    {
+      "start": "2026-04-01T00:00:00+00:00",
+      "end_exclusive": "2026-04-08T00:00:00+00:00",
+      "selection_time": "2026-04-01T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-03-15T00:00:00Z",
+      "core_selected_symbols": [
+        "TRUMPUSDT",
+        "COSUSDT",
+        "RIVERUSDT",
+        "BANANAS31USDT",
+        "LYNUSDT",
+        "PIXELUSDT",
+        "1000PEPEUSDT",
+        "CUSDT",
+        "DEGOUSDT",
+        "SAHARAUSDT"
+      ],
+      "incremental_selection_time": "2026-04-01T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "KERNELUSDT",
+          "current_volume_rank": 9,
+          "previous_volume_rank": null,
+          "rank_improvement": 12,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 416131776.52989006
+        },
+        {
+          "raw_symbol": "STOUSDT",
+          "current_volume_rank": 17,
+          "previous_volume_rank": null,
+          "rank_improvement": 4,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 200986235.8717
+        }
+      ],
+      "incremental_selected_symbols": [
+        "KERNELUSDT",
+        "STOUSDT"
+      ],
+      "selected_symbols": [
+        "TRUMPUSDT",
+        "COSUSDT",
+        "RIVERUSDT",
+        "BANANAS31USDT",
+        "LYNUSDT",
+        "PIXELUSDT",
+        "1000PEPEUSDT",
+        "CUSDT",
+        "DEGOUSDT",
+        "SAHARAUSDT",
+        "KERNELUSDT",
+        "STOUSDT"
+      ]
+    },
+    {
+      "start": "2026-04-08T00:00:00+00:00",
+      "end_exclusive": "2026-04-15T00:00:00+00:00",
+      "selection_time": "2026-04-08T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-03-15T00:00:00Z",
+      "core_selected_symbols": [
+        "TRUMPUSDT",
+        "COSUSDT",
+        "RIVERUSDT",
+        "BANANAS31USDT",
+        "LYNUSDT",
+        "PIXELUSDT",
+        "1000PEPEUSDT",
+        "CUSDT",
+        "DEGOUSDT",
+        "SAHARAUSDT"
+      ],
+      "incremental_selection_time": "2026-04-08T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "REDUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": null,
+          "rank_improvement": 15,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 720022410.8572
+        },
+        {
+          "raw_symbol": "BULLAUSDT",
+          "current_volume_rank": 8,
+          "previous_volume_rank": null,
+          "rank_improvement": 13,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 546452736.165027
+        }
+      ],
+      "incremental_selected_symbols": [
+        "REDUSDT",
+        "BULLAUSDT"
+      ],
+      "selected_symbols": [
+        "TRUMPUSDT",
+        "COSUSDT",
+        "RIVERUSDT",
+        "BANANAS31USDT",
+        "LYNUSDT",
+        "PIXELUSDT",
+        "1000PEPEUSDT",
+        "CUSDT",
+        "DEGOUSDT",
+        "SAHARAUSDT",
+        "REDUSDT",
+        "BULLAUSDT"
+      ]
+    },
+    {
+      "start": "2026-04-15T00:00:00+00:00",
+      "end_exclusive": "2026-04-22T00:00:00+00:00",
+      "selection_time": "2026-04-15T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-04-15T00:00:00Z",
+      "core_selected_symbols": [
+        "RAVEUSDT",
+        "币安人生USDT",
+        "ARIAUSDT",
+        "BLESSUSDT",
+        "MYXUSDT",
+        "1000PEPEUSDT",
+        "ENJUSDT",
+        "TAOUSDT",
+        "BARDUSDT",
+        "GIGGLEUSDT",
+        "ZAMAUSDT"
+      ],
+      "incremental_selection_time": null,
+      "incremental_candidates": [],
+      "incremental_selected_symbols": [],
+      "selected_symbols": [
+        "RAVEUSDT",
+        "币安人生USDT",
+        "ARIAUSDT",
+        "BLESSUSDT",
+        "MYXUSDT",
+        "1000PEPEUSDT",
+        "ENJUSDT",
+        "TAOUSDT",
+        "BARDUSDT",
+        "GIGGLEUSDT",
+        "ZAMAUSDT"
+      ]
+    },
+    {
+      "start": "2026-04-22T00:00:00+00:00",
+      "end_exclusive": "2026-04-29T00:00:00+00:00",
+      "selection_time": "2026-04-22T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-04-15T00:00:00Z",
+      "core_selected_symbols": [
+        "RAVEUSDT",
+        "币安人生USDT",
+        "ARIAUSDT",
+        "BLESSUSDT",
+        "MYXUSDT",
+        "1000PEPEUSDT",
+        "ENJUSDT",
+        "TAOUSDT",
+        "BARDUSDT",
+        "GIGGLEUSDT",
+        "ZAMAUSDT"
+      ],
+      "incremental_selection_time": "2026-04-22T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "CHIPUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": null,
+          "rank_improvement": 15,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 497585809.38355
+        },
+        {
+          "raw_symbol": "BASEDUSDT",
+          "current_volume_rank": 10,
+          "previous_volume_rank": null,
+          "rank_improvement": 11,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 299626180.33691
+        }
+      ],
+      "incremental_selected_symbols": [
+        "CHIPUSDT",
+        "BASEDUSDT"
+      ],
+      "selected_symbols": [
+        "RAVEUSDT",
+        "币安人生USDT",
+        "ARIAUSDT",
+        "BLESSUSDT",
+        "MYXUSDT",
+        "1000PEPEUSDT",
+        "ENJUSDT",
+        "TAOUSDT",
+        "BARDUSDT",
+        "GIGGLEUSDT",
+        "ZAMAUSDT",
+        "CHIPUSDT",
+        "BASEDUSDT"
+      ]
+    },
+    {
+      "start": "2026-04-29T00:00:00+00:00",
+      "end_exclusive": "2026-05-01T00:00:00+00:00",
+      "selection_time": "2026-04-29T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-04-15T00:00:00Z",
+      "core_selected_symbols": [
+        "RAVEUSDT",
+        "币安人生USDT",
+        "ARIAUSDT",
+        "BLESSUSDT",
+        "MYXUSDT",
+        "1000PEPEUSDT",
+        "ENJUSDT",
+        "TAOUSDT",
+        "BARDUSDT",
+        "GIGGLEUSDT",
+        "ZAMAUSDT"
+      ],
+      "incremental_selection_time": "2026-04-29T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "ZKJUSDT",
+          "current_volume_rank": 4,
+          "previous_volume_rank": null,
+          "rank_improvement": 17,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 587140595.659878
+        },
+        {
+          "raw_symbol": "ORCAUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": null,
+          "rank_improvement": 15,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 482313409.64050007
+        }
+      ],
+      "incremental_selected_symbols": [
+        "ZKJUSDT",
+        "ORCAUSDT"
+      ],
+      "selected_symbols": [
+        "RAVEUSDT",
+        "币安人生USDT",
+        "ARIAUSDT",
+        "BLESSUSDT",
+        "MYXUSDT",
+        "1000PEPEUSDT",
+        "ENJUSDT",
+        "TAOUSDT",
+        "BARDUSDT",
+        "GIGGLEUSDT",
+        "ZAMAUSDT",
+        "ZKJUSDT",
+        "ORCAUSDT"
+      ]
+    },
+    {
+      "start": "2026-05-01T00:00:00+00:00",
+      "end_exclusive": "2026-05-08T00:00:00+00:00",
+      "selection_time": "2026-05-01T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-04-15T00:00:00Z",
+      "core_selected_symbols": [
+        "RAVEUSDT",
+        "币安人生USDT",
+        "ARIAUSDT",
+        "BLESSUSDT",
+        "MYXUSDT",
+        "1000PEPEUSDT",
+        "ENJUSDT",
+        "TAOUSDT",
+        "BARDUSDT",
+        "GIGGLEUSDT",
+        "ZAMAUSDT"
+      ],
+      "incremental_selection_time": "2026-05-01T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "SKYAIUSDT",
+          "current_volume_rank": 5,
+          "previous_volume_rank": null,
+          "rank_improvement": 16,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 577112373.84989
+        },
+        {
+          "raw_symbol": "BIOUSDT",
+          "current_volume_rank": 8,
+          "previous_volume_rank": null,
+          "rank_improvement": 13,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 421342763.07417
+        }
+      ],
+      "incremental_selected_symbols": [
+        "SKYAIUSDT",
+        "BIOUSDT"
+      ],
+      "selected_symbols": [
+        "RAVEUSDT",
+        "币安人生USDT",
+        "ARIAUSDT",
+        "BLESSUSDT",
+        "MYXUSDT",
+        "1000PEPEUSDT",
+        "ENJUSDT",
+        "TAOUSDT",
+        "BARDUSDT",
+        "GIGGLEUSDT",
+        "ZAMAUSDT",
+        "SKYAIUSDT",
+        "BIOUSDT"
+      ]
+    },
+    {
+      "start": "2026-05-08T00:00:00+00:00",
+      "end_exclusive": "2026-05-15T00:00:00+00:00",
+      "selection_time": "2026-05-08T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-04-15T00:00:00Z",
+      "core_selected_symbols": [
+        "RAVEUSDT",
+        "币安人生USDT",
+        "ARIAUSDT",
+        "BLESSUSDT",
+        "MYXUSDT",
+        "1000PEPEUSDT",
+        "ENJUSDT",
+        "TAOUSDT",
+        "BARDUSDT",
+        "GIGGLEUSDT",
+        "ZAMAUSDT"
+      ],
+      "incremental_selection_time": "2026-05-08T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "LABUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": null,
+          "rank_improvement": 15,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 1313060193.38182
+        },
+        {
+          "raw_symbol": "DOGSUSDT",
+          "current_volume_rank": 8,
+          "previous_volume_rank": null,
+          "rank_improvement": 13,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 651430445.3901353
+        }
+      ],
+      "incremental_selected_symbols": [
+        "LABUSDT",
+        "DOGSUSDT"
+      ],
+      "selected_symbols": [
+        "RAVEUSDT",
+        "币安人生USDT",
+        "ARIAUSDT",
+        "BLESSUSDT",
+        "MYXUSDT",
+        "1000PEPEUSDT",
+        "ENJUSDT",
+        "TAOUSDT",
+        "BARDUSDT",
+        "GIGGLEUSDT",
+        "ZAMAUSDT",
+        "LABUSDT",
+        "DOGSUSDT"
+      ]
+    },
+    {
+      "start": "2026-05-15T00:00:00+00:00",
+      "end_exclusive": "2026-05-22T00:00:00+00:00",
+      "selection_time": "2026-05-15T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-05-15T00:00:00Z",
+      "core_selected_symbols": [
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "BILLUSDT",
+        "SIRENUSDT",
+        "1000PEPEUSDT",
+        "QUSDT",
+        "BUSDT",
+        "INJUSDT",
+        "SAGAUSDT"
+      ],
+      "incremental_selection_time": null,
+      "incremental_candidates": [],
+      "incremental_selected_symbols": [],
+      "selected_symbols": [
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "BILLUSDT",
+        "SIRENUSDT",
+        "1000PEPEUSDT",
+        "QUSDT",
+        "BUSDT",
+        "INJUSDT",
+        "SAGAUSDT"
+      ]
+    },
+    {
+      "start": "2026-05-22T00:00:00+00:00",
+      "end_exclusive": "2026-05-29T00:00:00+00:00",
+      "selection_time": "2026-05-22T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-05-15T00:00:00Z",
+      "core_selected_symbols": [
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "BILLUSDT",
+        "SIRENUSDT",
+        "1000PEPEUSDT",
+        "QUSDT",
+        "BUSDT",
+        "INJUSDT",
+        "SAGAUSDT"
+      ],
+      "incremental_selection_time": "2026-05-22T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "BSBUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": null,
+          "rank_improvement": 15,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 623730241.38492
+        },
+        {
+          "raw_symbol": "PROVEUSDT",
+          "current_volume_rank": 7,
+          "previous_volume_rank": null,
+          "rank_improvement": 14,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 597712197.2446699
+        }
+      ],
+      "incremental_selected_symbols": [
+        "BSBUSDT",
+        "PROVEUSDT"
+      ],
+      "selected_symbols": [
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "BILLUSDT",
+        "SIRENUSDT",
+        "1000PEPEUSDT",
+        "QUSDT",
+        "BUSDT",
+        "INJUSDT",
+        "SAGAUSDT",
+        "BSBUSDT",
+        "PROVEUSDT"
+      ]
+    },
+    {
+      "start": "2026-05-29T00:00:00+00:00",
+      "end_exclusive": "2026-06-01T00:00:00+00:00",
+      "selection_time": "2026-05-29T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-05-15T00:00:00Z",
+      "core_selected_symbols": [
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "BILLUSDT",
+        "SIRENUSDT",
+        "1000PEPEUSDT",
+        "QUSDT",
+        "BUSDT",
+        "INJUSDT",
+        "SAGAUSDT"
+      ],
+      "incremental_selection_time": "2026-05-29T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "WLDUSDT",
+          "current_volume_rank": 11,
+          "previous_volume_rank": null,
+          "rank_improvement": 10,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 363152830.9508
+        },
+        {
+          "raw_symbol": "GUAUSDT",
+          "current_volume_rank": 12,
+          "previous_volume_rank": null,
+          "rank_improvement": 9,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 330615567.87849003
+        }
+      ],
+      "incremental_selected_symbols": [
+        "WLDUSDT",
+        "GUAUSDT"
+      ],
+      "selected_symbols": [
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "BILLUSDT",
+        "SIRENUSDT",
+        "1000PEPEUSDT",
+        "QUSDT",
+        "BUSDT",
+        "INJUSDT",
+        "SAGAUSDT",
+        "WLDUSDT",
+        "GUAUSDT"
+      ]
+    },
+    {
+      "start": "2026-06-01T00:00:00+00:00",
+      "end_exclusive": "2026-06-08T00:00:00+00:00",
+      "selection_time": "2026-06-01T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-05-15T00:00:00Z",
+      "core_selected_symbols": [
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "BILLUSDT",
+        "SIRENUSDT",
+        "1000PEPEUSDT",
+        "QUSDT",
+        "BUSDT",
+        "INJUSDT",
+        "SAGAUSDT"
+      ],
+      "incremental_selection_time": "2026-06-01T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "PORTALUSDT",
+          "current_volume_rank": 9,
+          "previous_volume_rank": null,
+          "rank_improvement": 12,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 485836280.02538896
+        },
+        {
+          "raw_symbol": "STGUSDT",
+          "current_volume_rank": 11,
+          "previous_volume_rank": null,
+          "rank_improvement": 10,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 398881887.2065
+        }
+      ],
+      "incremental_selected_symbols": [
+        "PORTALUSDT",
+        "STGUSDT"
+      ],
+      "selected_symbols": [
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "BILLUSDT",
+        "SIRENUSDT",
+        "1000PEPEUSDT",
+        "QUSDT",
+        "BUSDT",
+        "INJUSDT",
+        "SAGAUSDT",
+        "PORTALUSDT",
+        "STGUSDT"
+      ]
+    },
+    {
+      "start": "2026-06-08T00:00:00+00:00",
+      "end_exclusive": "2026-06-15T00:00:00+00:00",
+      "selection_time": "2026-06-08T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-05-15T00:00:00Z",
+      "core_selected_symbols": [
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "BILLUSDT",
+        "SIRENUSDT",
+        "1000PEPEUSDT",
+        "QUSDT",
+        "BUSDT",
+        "INJUSDT",
+        "SAGAUSDT"
+      ],
+      "incremental_selection_time": "2026-06-08T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "WLDUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": 14,
+          "rank_improvement": 8,
+          "new_raw_top20_entry": false,
+          "quote_volume_usdt": 786362022.4511
+        },
+        {
+          "raw_symbol": "BSBUSDT",
+          "current_volume_rank": 13,
+          "previous_volume_rank": null,
+          "rank_improvement": 8,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 310190340.92658997
+        }
+      ],
+      "incremental_selected_symbols": [
+        "WLDUSDT",
+        "BSBUSDT"
+      ],
+      "selected_symbols": [
+        "LABUSDT",
+        "AIGENSYNUSDT",
+        "BILLUSDT",
+        "SIRENUSDT",
+        "1000PEPEUSDT",
+        "QUSDT",
+        "BUSDT",
+        "INJUSDT",
+        "SAGAUSDT",
+        "WLDUSDT",
+        "BSBUSDT"
+      ]
+    },
+    {
+      "start": "2026-06-15T00:00:00+00:00",
+      "end_exclusive": "2026-06-22T00:00:00+00:00",
+      "selection_time": "2026-06-15T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-06-15T00:00:00Z",
+      "core_selected_symbols": [
+        "HUSDT",
+        "VELVETUSDT",
+        "SIRENUSDT",
+        "BEATUSDT",
+        "WLDUSDT",
+        "TRUMPUSDT",
+        "ESPORTSUSDT",
+        "EVAAUSDT",
+        "RIFUSDT"
+      ],
+      "incremental_selection_time": null,
+      "incremental_candidates": [],
+      "incremental_selected_symbols": [],
+      "selected_symbols": [
+        "HUSDT",
+        "VELVETUSDT",
+        "SIRENUSDT",
+        "BEATUSDT",
+        "WLDUSDT",
+        "TRUMPUSDT",
+        "ESPORTSUSDT",
+        "EVAAUSDT",
+        "RIFUSDT"
+      ]
+    },
+    {
+      "start": "2026-06-22T00:00:00+00:00",
+      "end_exclusive": "2026-06-29T00:00:00+00:00",
+      "selection_time": "2026-06-22T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-06-15T00:00:00Z",
+      "core_selected_symbols": [
+        "HUSDT",
+        "VELVETUSDT",
+        "SIRENUSDT",
+        "BEATUSDT",
+        "WLDUSDT",
+        "TRUMPUSDT",
+        "ESPORTSUSDT",
+        "EVAAUSDT",
+        "RIFUSDT"
+      ],
+      "incremental_selection_time": "2026-06-22T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "REUSDT",
+          "current_volume_rank": 5,
+          "previous_volume_rank": null,
+          "rank_improvement": 16,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 657270310.8887
+        },
+        {
+          "raw_symbol": "TNSRUSDT",
+          "current_volume_rank": 6,
+          "previous_volume_rank": null,
+          "rank_improvement": 15,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 533604202.76797104
+        }
+      ],
+      "incremental_selected_symbols": [
+        "REUSDT",
+        "TNSRUSDT"
+      ],
+      "selected_symbols": [
+        "HUSDT",
+        "VELVETUSDT",
+        "SIRENUSDT",
+        "BEATUSDT",
+        "WLDUSDT",
+        "TRUMPUSDT",
+        "ESPORTSUSDT",
+        "EVAAUSDT",
+        "RIFUSDT",
+        "REUSDT",
+        "TNSRUSDT"
+      ]
+    },
+    {
+      "start": "2026-06-29T00:00:00+00:00",
+      "end_exclusive": "2026-07-01T00:00:00+00:00",
+      "selection_time": "2026-06-29T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-06-15T00:00:00Z",
+      "core_selected_symbols": [
+        "HUSDT",
+        "VELVETUSDT",
+        "SIRENUSDT",
+        "BEATUSDT",
+        "WLDUSDT",
+        "TRUMPUSDT",
+        "ESPORTSUSDT",
+        "EVAAUSDT",
+        "RIFUSDT"
+      ],
+      "incremental_selection_time": "2026-06-29T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "MANTAUSDT",
+          "current_volume_rank": 7,
+          "previous_volume_rank": null,
+          "rank_improvement": 14,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 351168560.427864
+        },
+        {
+          "raw_symbol": "ACTUSDT",
+          "current_volume_rank": 8,
+          "previous_volume_rank": null,
+          "rank_improvement": 13,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 336055637.92895997
+        }
+      ],
+      "incremental_selected_symbols": [
+        "MANTAUSDT",
+        "ACTUSDT"
+      ],
+      "selected_symbols": [
+        "HUSDT",
+        "VELVETUSDT",
+        "SIRENUSDT",
+        "BEATUSDT",
+        "WLDUSDT",
+        "TRUMPUSDT",
+        "ESPORTSUSDT",
+        "EVAAUSDT",
+        "RIFUSDT",
+        "MANTAUSDT",
+        "ACTUSDT"
+      ]
+    },
+    {
+      "start": "2026-07-01T00:00:00+00:00",
+      "end_exclusive": "2026-07-08T00:00:00+00:00",
+      "selection_time": "2026-07-01T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-06-15T00:00:00Z",
+      "core_selected_symbols": [
+        "HUSDT",
+        "VELVETUSDT",
+        "SIRENUSDT",
+        "BEATUSDT",
+        "WLDUSDT",
+        "TRUMPUSDT",
+        "ESPORTSUSDT",
+        "EVAAUSDT",
+        "RIFUSDT"
+      ],
+      "incremental_selection_time": "2026-07-01T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "INUSDT",
+          "current_volume_rank": 4,
+          "previous_volume_rank": null,
+          "rank_improvement": 17,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 747074632.55047
+        },
+        {
+          "raw_symbol": "AIGENSYNUSDT",
+          "current_volume_rank": 11,
+          "previous_volume_rank": null,
+          "rank_improvement": 10,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 324121178.82065
+        }
+      ],
+      "incremental_selected_symbols": [
+        "INUSDT",
+        "AIGENSYNUSDT"
+      ],
+      "selected_symbols": [
+        "HUSDT",
+        "VELVETUSDT",
+        "SIRENUSDT",
+        "BEATUSDT",
+        "WLDUSDT",
+        "TRUMPUSDT",
+        "ESPORTSUSDT",
+        "EVAAUSDT",
+        "RIFUSDT",
+        "INUSDT",
+        "AIGENSYNUSDT"
+      ]
+    },
+    {
+      "start": "2026-07-08T00:00:00+00:00",
+      "end_exclusive": "2026-07-15T00:00:00+00:00",
+      "selection_time": "2026-07-08T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-06-15T00:00:00Z",
+      "core_selected_symbols": [
+        "HUSDT",
+        "VELVETUSDT",
+        "SIRENUSDT",
+        "BEATUSDT",
+        "WLDUSDT",
+        "TRUMPUSDT",
+        "ESPORTSUSDT",
+        "EVAAUSDT",
+        "RIFUSDT"
+      ],
+      "incremental_selection_time": "2026-07-08T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "VANRYUSDT",
+          "current_volume_rank": 9,
+          "previous_volume_rank": null,
+          "rank_improvement": 12,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 373033729.416937
+        },
+        {
+          "raw_symbol": "BLURUSDT",
+          "current_volume_rank": 11,
+          "previous_volume_rank": null,
+          "rank_improvement": 10,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 300376536.08281004
+        }
+      ],
+      "incremental_selected_symbols": [
+        "VANRYUSDT",
+        "BLURUSDT"
+      ],
+      "selected_symbols": [
+        "HUSDT",
+        "VELVETUSDT",
+        "SIRENUSDT",
+        "BEATUSDT",
+        "WLDUSDT",
+        "TRUMPUSDT",
+        "ESPORTSUSDT",
+        "EVAAUSDT",
+        "RIFUSDT",
+        "VANRYUSDT",
+        "BLURUSDT"
+      ]
+    },
+    {
+      "start": "2026-07-15T00:00:00+00:00",
+      "end_exclusive": "2026-07-22T00:00:00+00:00",
+      "selection_time": "2026-07-15T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-07-15T00:00:00Z",
+      "core_selected_symbols": [
+        "LABUSDT",
+        "EVAAUSDT",
+        "BILLUSDT",
+        "SXTUSDT",
+        "WLDUSDT",
+        "1000PEPEUSDT",
+        "VELVETUSDT",
+        "BSBUSDT",
+        "TRIAUSDT"
+      ],
+      "incremental_selection_time": null,
+      "incremental_candidates": [],
+      "incremental_selected_symbols": [],
+      "selected_symbols": [
+        "LABUSDT",
+        "EVAAUSDT",
+        "BILLUSDT",
+        "SXTUSDT",
+        "WLDUSDT",
+        "1000PEPEUSDT",
+        "VELVETUSDT",
+        "BSBUSDT",
+        "TRIAUSDT"
+      ]
+    },
+    {
+      "start": "2026-07-22T00:00:00+00:00",
+      "end_exclusive": "2026-07-29T00:00:00+00:00",
+      "selection_time": "2026-07-22T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-07-15T00:00:00Z",
+      "core_selected_symbols": [
+        "LABUSDT",
+        "EVAAUSDT",
+        "BILLUSDT",
+        "SXTUSDT",
+        "WLDUSDT",
+        "1000PEPEUSDT",
+        "VELVETUSDT",
+        "BSBUSDT",
+        "TRIAUSDT"
+      ],
+      "incremental_selection_time": "2026-07-22T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "BANKUSDT",
+          "current_volume_rank": 3,
+          "previous_volume_rank": null,
+          "rank_improvement": 18,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 1397360675.1130002
+        },
+        {
+          "raw_symbol": "DEXEUSDT",
+          "current_volume_rank": 5,
+          "previous_volume_rank": null,
+          "rank_improvement": 16,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 619444310.63013
+        }
+      ],
+      "incremental_selected_symbols": [
+        "BANKUSDT",
+        "DEXEUSDT"
+      ],
+      "selected_symbols": [
+        "LABUSDT",
+        "EVAAUSDT",
+        "BILLUSDT",
+        "SXTUSDT",
+        "WLDUSDT",
+        "1000PEPEUSDT",
+        "VELVETUSDT",
+        "BSBUSDT",
+        "TRIAUSDT",
+        "BANKUSDT",
+        "DEXEUSDT"
+      ]
+    },
+    {
+      "start": "2026-07-29T00:00:00+00:00",
+      "end_exclusive": "2026-08-01T00:00:00+00:00",
+      "selection_time": "2026-07-29T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-07-15T00:00:00Z",
+      "core_selected_symbols": [
+        "LABUSDT",
+        "EVAAUSDT",
+        "BILLUSDT",
+        "SXTUSDT",
+        "WLDUSDT",
+        "1000PEPEUSDT",
+        "VELVETUSDT",
+        "BSBUSDT",
+        "TRIAUSDT"
+      ],
+      "incremental_selection_time": "2026-07-29T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "COTIUSDT",
+          "current_volume_rank": 5,
+          "previous_volume_rank": null,
+          "rank_improvement": 16,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 551885668.9879525
+        },
+        {
+          "raw_symbol": "ONUSDT",
+          "current_volume_rank": 7,
+          "previous_volume_rank": null,
+          "rank_improvement": 14,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 474616174.24186
+        }
+      ],
+      "incremental_selected_symbols": [
+        "COTIUSDT",
+        "ONUSDT"
+      ],
+      "selected_symbols": [
+        "LABUSDT",
+        "EVAAUSDT",
+        "BILLUSDT",
+        "SXTUSDT",
+        "WLDUSDT",
+        "1000PEPEUSDT",
+        "VELVETUSDT",
+        "BSBUSDT",
+        "TRIAUSDT",
+        "COTIUSDT",
+        "ONUSDT"
+      ]
+    },
+    {
+      "start": "2026-08-01T00:00:00+00:00",
+      "end_exclusive": "2026-08-08T00:00:00+00:00",
+      "selection_time": "2026-08-01T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-07-15T00:00:00Z",
+      "core_selected_symbols": [
+        "LABUSDT",
+        "EVAAUSDT",
+        "BILLUSDT",
+        "SXTUSDT",
+        "WLDUSDT",
+        "1000PEPEUSDT",
+        "VELVETUSDT",
+        "BSBUSDT",
+        "TRIAUSDT"
+      ],
+      "incremental_selection_time": "2026-08-01T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "KOMAUSDT",
+          "current_volume_rank": 4,
+          "previous_volume_rank": null,
+          "rank_improvement": 17,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 604585005.9905981
+        },
+        {
+          "raw_symbol": "MMTUSDT",
+          "current_volume_rank": 7,
+          "previous_volume_rank": null,
+          "rank_improvement": 14,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 449698522.824
+        }
+      ],
+      "incremental_selected_symbols": [
+        "KOMAUSDT",
+        "MMTUSDT"
+      ],
+      "selected_symbols": [
+        "LABUSDT",
+        "EVAAUSDT",
+        "BILLUSDT",
+        "SXTUSDT",
+        "WLDUSDT",
+        "1000PEPEUSDT",
+        "VELVETUSDT",
+        "BSBUSDT",
+        "TRIAUSDT",
+        "KOMAUSDT",
+        "MMTUSDT"
+      ]
+    },
+    {
+      "start": "2026-08-08T00:00:00+00:00",
+      "end_exclusive": "2026-08-14T00:00:00+00:00",
+      "selection_time": "2026-08-08T00:00:00+00:00",
+      "core_anchor_day": 15,
+      "core_selection_time": "2026-07-15T00:00:00Z",
+      "core_selected_symbols": [
+        "LABUSDT",
+        "EVAAUSDT",
+        "BILLUSDT",
+        "SXTUSDT",
+        "WLDUSDT",
+        "1000PEPEUSDT",
+        "VELVETUSDT",
+        "BSBUSDT",
+        "TRIAUSDT"
+      ],
+      "incremental_selection_time": "2026-08-08T00:00:00+00:00",
+      "incremental_candidates": [
+        {
+          "raw_symbol": "ACEUSDT",
+          "current_volume_rank": 5,
+          "previous_volume_rank": null,
+          "rank_improvement": 16,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 479081760.3261695
+        },
+        {
+          "raw_symbol": "BICOUSDT",
+          "current_volume_rank": 7,
+          "previous_volume_rank": null,
+          "rank_improvement": 14,
+          "new_raw_top20_entry": true,
+          "quote_volume_usdt": 423553165.37112
+        }
+      ],
+      "incremental_selected_symbols": [
+        "ACEUSDT",
+        "BICOUSDT"
+      ],
+      "selected_symbols": [
+        "LABUSDT",
+        "EVAAUSDT",
+        "BILLUSDT",
+        "SXTUSDT",
+        "WLDUSDT",
+        "1000PEPEUSDT",
+        "VELVETUSDT",
+        "BSBUSDT",
+        "TRIAUSDT",
+        "ACEUSDT",
+        "BICOUSDT"
+      ]
+    }
+  ]
+}

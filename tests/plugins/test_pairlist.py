@@ -2094,6 +2094,7 @@ def test_expand_pairlist(wildcardlist, pairs, expected):
         (["HELLO/WORLD"], [], ["HELLO/WORLD"]),  # Invalid pair kept
         (["BTC/USD"], ["BTC/USD", "BTC/USDT"], ["BTC/USD"]),
         (["BTC/USDT:USDT"], ["BTC/USDT:USDT", "BTC/USDT"], ["BTC/USDT:USDT"]),
+        (["币安人生/USDT:USDT"], ["币安人生/USDT:USDT"], ["币安人生/USDT:USDT"]),
         (
             ["BB_BTC/USDT", "CC_BTC/USDT", "AA_ETH/USDT", "XRP/USDT", "ETH/USDT", "XX_BTC/USDT"],
             ["BTC/USDT", "ETH/USDT"],

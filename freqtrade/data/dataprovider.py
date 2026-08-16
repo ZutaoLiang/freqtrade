@@ -326,6 +326,7 @@ class DataProvider:
                 timeframe=timeframe,
                 datadir=self._config["datadir"],
                 timerange=timerange,
+                fill_up_missing=self._config.get("backtest_fill_up_missing", True),
                 data_format=self._config["dataformat_ohlcv"],
                 candle_type=_candle_type,
             )

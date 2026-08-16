@@ -9,6 +9,7 @@ from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime, timedelta
 
+import numpy as np
 from numpy import isnan, nan
 from pandas import DataFrame, Series
 
@@ -106,6 +107,39 @@ HEADERS = [
     "enter_tag",
     "exit_tag",
 ]
+
+
+class _BacktestDataRowStore:
+    """Compact columnar candle storage with tuple-compatible row access."""
+
+    __slots__ = (
+        "date", "open", "high", "low", "close", "enter_long", "exit_long",
+        "enter_short", "exit_short", "enter_tag", "exit_tag",
+    )
+
+    def __init__(self, dataframe: DataFrame) -> None:
+        self.date = dataframe["date"].array.copy()
+        self.open = dataframe["open"].to_numpy(dtype=np.float64, copy=True)
+        self.high = dataframe["high"].to_numpy(dtype=np.float64, copy=True)
+        self.low = dataframe["low"].to_numpy(dtype=np.float64, copy=True)
+        self.close = dataframe["close"].to_numpy(dtype=np.float64, copy=True)
+        self.enter_long = dataframe["enter_long"].fillna(0).to_numpy(dtype=np.int8)
+        self.exit_long = dataframe["exit_long"].fillna(0).to_numpy(dtype=np.int8)
+        self.enter_short = dataframe["enter_short"].fillna(0).to_numpy(dtype=np.int8)
+        self.exit_short = dataframe["exit_short"].fillna(0).to_numpy(dtype=np.int8)
+        self.enter_tag = dataframe["enter_tag"].to_numpy(dtype=object, copy=True)
+        self.exit_tag = dataframe["exit_tag"].to_numpy(dtype=object, copy=True)
+
+    def __len__(self) -> int:
+        return len(self.date)
+
+    def __getitem__(self, index: int) -> tuple:
+        return (
+            self.date[index], self.open[index], self.high[index], self.low[index],
+            self.close[index], self.enter_long[index], self.exit_long[index],
+            self.enter_short[index], self.exit_short[index], self.enter_tag[index],
+            self.exit_tag[index],
+        )
 
 
 class Backtesting:
@@ -315,6 +349,7 @@ class Backtesting:
             timeframe=self.timeframe,
             timerange=self.timerange,
             startup_candles=self.required_startup,
+            fill_up_missing=self.config.get("backtest_fill_up_missing", True),
             fail_without_data=True,
             data_format=self.config["dataformat_ohlcv"],
             candle_type=self.config.get("candle_type_def", CandleType.SPOT),
@@ -386,6 +421,7 @@ class Backtesting:
                 timeframe=mark_timeframe,
                 timerange=self.timerange,
                 startup_candles=0,
+                fill_up_missing=self.config.get("backtest_fill_up_missing", True),
                 fail_without_data=True,
                 data_format=self.config["dataformat_ohlcv"],
                 candle_type=CandleType.from_string(self.exchange.get_option("mark_ohlcv_price")),
@@ -475,9 +511,10 @@ class Backtesting:
         data: dict = {}
         self.progress.init_step(BacktestState.CONVERT, len(processed))
 
-        # Create dict with data
-        for pair in processed.keys():
-            pair_data = processed[pair]
+        # Create dict with data.  Pop each analyzed frame as it is converted so
+        # the input dictionary is actually cleared as documented above.
+        for pair in list(processed):
+            pair_data = processed.pop(pair)
             self.check_abort()
             self.progress.increment()
 
@@ -486,12 +523,20 @@ class Backtesting:
                 pair_data.drop(HEADERS[5:] + ["buy", "sell"], axis=1, errors="ignore")
             df_analyzed = self.strategy.ft_advise_signals(pair_data, {"pair": pair})
             # Update dataprovider cache
+            callback_cache_columns = getattr(
+                self.strategy, "backtest_callback_cache_columns", None
+            )
+            callback_frame = (
+                df_analyzed.loc[:, list(callback_cache_columns)].copy()
+                if callback_cache_columns
+                else df_analyzed
+            )
             self.dataprovider._set_cached_df(
-                pair, self.timeframe, df_analyzed, self.config["candle_type_def"]
+                pair, self.timeframe, callback_frame, self.config["candle_type_def"]
             )
 
             # Trim startup period from analyzed dataframe
-            df_analyzed = processed[pair] = pair_data = trim_dataframe(
+            df_analyzed = pair_data = trim_dataframe(
                 df_analyzed, self.timerange, startup_candles=self.required_startup
             )
 
@@ -514,9 +559,12 @@ class Backtesting:
 
             df_analyzed = df_analyzed.drop(df_analyzed.head(1).index)
 
-            # Convert from Pandas to list for performance reasons
-            # (Looping Pandas is slow.)
-            data[pair] = df_analyzed[HEADERS].values.tolist() if not df_analyzed.empty else []
+            # Columnar arrays avoid allocating one Python list and several
+            # boxed numeric objects per candle.  Row access still returns the
+            # same tuple-shaped values consumed by the backtest loop.
+            data[pair] = (
+                _BacktestDataRowStore(df_analyzed) if not df_analyzed.empty else []
+            )
         return data
 
     def _get_close_rate(
@@ -1770,6 +1818,15 @@ class Backtesting:
             f"up to {max_date.strftime(DATETIME_PRINT_FORMAT)} "
             f"({(max_date - min_date).days} days)."
         )
+        # ``trim_dataframes`` retains views of every fully analyzed frame.
+        # Trade-only exports do not consume them after this date-range check,
+        # so release those references before list conversion.  This matters
+        # for large rotating universes and leaves signal exports unchanged.
+        if not (
+            self.config.get("export", "none") == "signals"
+            and self.dataprovider.runmode == RunMode.BACKTEST
+        ):
+            preprocessed_tmp.clear()
         # Execute backtest and store results
         results = self.backtest(
             processed=preprocessed,

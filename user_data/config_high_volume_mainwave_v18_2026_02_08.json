@@ -1,0 +1,9 @@
+{
+    "add_config_files": [
+        "config_high_volume_rolling_entry_rotation_2026_02_08.json"
+    ],
+    "strategy": "HighVolumeMainWaveV18",
+    "timeframe": "30m",
+    "max_open_trades": 4,
+    "bot_name": "high-volume-mainwave-v18-2026-02-08"
+}

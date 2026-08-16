@@ -1,0 +1,26 @@
+{
+    "add_config_files": ["config_high_volume_incremental_rotation_2026_05_07.json"],
+    "strategy": "HighVolumeExtendedRollingEntryRotationV2",
+    "exchange": {
+        "pair_whitelist": [
+            "BULLA/USDT:USDT", "1000PEPE/USDT:USDT", "SENT/USDT:USDT",
+            "RIVER/USDT:USDT", "ENSO/USDT:USDT", "SYN/USDT:USDT",
+            "POWER/USDT:USDT", "SAHARA/USDT:USDT", "PIPPIN/USDT:USDT",
+            "GWEI/USDT:USDT", "DOT/USDT:USDT", "SIREN/USDT:USDT",
+            "KERNEL/USDT:USDT", "ONT/USDT:USDT", "STO/USDT:USDT",
+            "NOM/USDT:USDT", "NIGHT/USDT:USDT", "SKYAI/USDT:USDT",
+            "BSB/USDT:USDT", "BIO/USDT:USDT", "MEGA/USDT:USDT",
+            "BR/USDT:USDT", "ORCA/USDT:USDT", "NAORIS/USDT:USDT",
+            "AIOT/USDT:USDT", "AIGENSYN/USDT:USDT", "PENGU/USDT:USDT",
+            "LAB/USDT:USDT", "PORTAL/USDT:USDT", "STG/USDT:USDT",
+            "ALLO/USDT:USDT", "WLD/USDT:USDT", "ASTER/USDT:USDT",
+            "PLAY/USDT:USDT", "币安人生/USDT:USDT", "H/USDT:USDT",
+            "IN/USDT:USDT", "TAC/USDT:USDT", "RE/USDT:USDT",
+            "SLX/USDT:USDT", "UB/USDT:USDT", "VELVET/USDT:USDT",
+            "KOMA/USDT:USDT", "BANK/USDT:USDT", "MMT/USDT:USDT",
+            "GIGGLE/USDT:USDT", "COTI/USDT:USDT", "1000RATS/USDT:USDT",
+            "UNI/USDT:USDT", "AKE/USDT:USDT"
+        ]
+    },
+    "bot_name": "high-volume-rolling-entry-v2-2026-02-08"
+}
