@@ -159,3 +159,48 @@ python3 -m freqtrade backtesting \
 1. 换标的宇宙或换信号族，重新做第 6 项的事件研究**再**决定要不要写策略——统计检验几分钟，回测几小时。
 2. 如果坚持用这个信号，把它当成**动量 1–4 小时**的东西做，并先解决 0.14% 手续费大于信号幅度这个问题。
 3. 任何新结论回填本文件。
+
+## 2026-08 信号族横扫（第 1 项的执行结果）
+
+按上面第 1 项做了一轮"先事件研究、后回测"的新信号族横扫。全部净手续费 0.07%/边。
+预注册验收线：4 个半年段（25H1/25H2/26H1/26H2）净 Sharpe 全正才进回测。
+
+### 新证伪清单（勿重跑）
+
+| 信号 | 宇宙 | 结果 |
+|---|---|---|
+| 横截面 funding carry（多低费短高费，3/7/14d 窗 × 8h/1d/3d 再平衡 × rank/zscore/带滞后） | 15 主流币 | 毛利两年为正但被换手吃光；最好 14d/3d 带滞后 0.74/0.46，达不到线 |
+| 横截面 funding carry | 高量小币（2025 池 72 / 2026 全集 314） | **2026 两个半年 -1.85/-5.17 Sharpe**，高费币在动量市持续碾压空头。强证伪 |
+| carry 去均值（对自身 30d 均值） | 主流币 | 2026 -2.58，证伪 |
+| 单周期动量 1d/3d/14d/30d | 小币宇宙 | 每个周期都有段位反号（mom14d 26H2 -2.10；mom30d 25H2 -0.64），单周期不可用 |
+| 1d 反转 | 主流币 | 毛利即负 + 换手 1.9/事件，净 -2 至 -4 Sharpe。最强证伪 |
+| 低波动因子、距 30d 高点、量能增速、mom×carry 混合 | 小币宇宙 | 全部有负段，未过线 |
+| 主流币 tsmom（10/20/60d，vol-scaled） | 15 主流币 | 两年为正但仅 ~0.3-0.4 Sharpe，25H1 负 |
+| **逆波动率（等风险）加权替代等权** | 小币 XS 动量回测 | **把两年从 +47%/+31% 翻成 -12%/-5%**——动量利润恰好在最高波动的币上。勿再试 |
+
+### 幸存者：XsMomEnsembleV1（多周期动量合奏，市场中性）
+
+- 信号：3d/14d/30d 动量横截面百分位 rank 等权平均；多 top5 空 bottom5；1d 再平衡；量能门槛 = 尾随 7d 平均 24h 成交额 > 30M（点位化，策略内生计算）。
+- 事件研究（`scripts/analyze_mom_ensemble_quarters.py`）：2025 池净 Sharpe 1.02、2026 全集 0.90；原生 7 个季度 6 正 1 微负（26Q2 -0.45）。
+- freqtrade 回测（等权、灾难止损 -0.90、每日 trim 回等权）：
+  - 2025-03→2026-01（binance-2025，市场 -30.6%）：**+47.2%，Sharpe 0.98，PF 1.07，DD 41.2%**
+  - 2026-02→2026-08（binance/futures 309 对，市场 +14.5%）：**+31.1%（CAGR 70%），Sharpe 0.81，PF 1.04，DD 47.2%**
+- **未解决的弱点（上实盘前必须面对）**：
+  - 利润仍靠右尾：2025 top pair（PIPPIN）占 72%，2026 top pair（LAB）超过总利润（其余净亏）。这是动量策略的本性，但与本文件第 1 条教训同构——样本外能不能再抓到下一个 PIPPIN 无法从回测证明。
+  - 月度胜率仅 9/18；DD 40%+。空头腿两年皆小亏（-3.7%/-22%），edge 全在多头腿，但空头腿提供了 2025 熊市里的中性保护（市场 -30.6% 时策略 +47%）。
+  - 2026 半年段 26Q2 在事件研究里为负。
+
+### freqtrade 实现教训（工程层，已踩坑）
+
+1. **不做每日 trim 时策略退化为彩票**：持仓在槽内复利，第一版 2025 +209% 里单笔 PIPPIN +2490 超过总利润（ex-top1 为负）。
+2. **adjust_trade_position 负数按入场 margin 比例换算数量**（`amount×|Δ|/stake_amount`），按现值给 Δ 会在大赢家上请求超过持仓量、被 `remaining < min_stake` 静默拒绝——赢家永远修不回等权。必须返回 `-frac×trade.stake_amount`。
+3. **-50% 硬止损是主要亏损源**（2026：止损 -2879 vs 轮换 +2907）——事件研究口径是逐日再平衡削减亏损仓、不吃插针。灾难位 -0.90 + 每日 trim 后两年分别 +0.3/+18 个百分点。
+4. EOS/SXP 无 market metadata 照旧不能进白名单（本文件已知边界）。
+
+### 产物
+
+- 事件研究脚本：`scripts/analyze_funding_carry_event_study.py`、`analyze_funding_carry_grid.py`、`analyze_carry_mom_combo.py`、`analyze_smallcap_carry_xs.py`、`analyze_xs_signal_battery.py`、`analyze_majors_carry_tsmom_combo.py`、`analyze_mom_ensemble_quarters.py`
+- 策略：`user_data/strategies/neutral/XsMomEnsembleV1.py`
+- 配置：`user_data/config_xs_mom_ensemble_v1_{2025,2026}.json`
+- 回测导出：`user_data/analysis/_xsmom_v1_{2025,2026}-*.zip`
+- 数据边界：主流币 5m/30m+funding 覆盖 2025-01→2026-08 仅 15 对；2025 大横截面只有 72 池币（binance-2025）；2026 全集 1h+funding 314 对（binance/futures）。1m 全集仅 2026。
