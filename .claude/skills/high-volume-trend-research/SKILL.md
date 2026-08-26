@@ -213,6 +213,16 @@ python3 -m freqtrade backtesting \
 
 **方法论教训**：桶均值/截面回归的显著性必须过"组合级模拟"这一关（容量、集中度、funding、换手全算上）再谈回测。上市龄案例里这步把假幸存者拦在 freqtrade 之前。
 
+### Regime 判别指标（2026-08-26，测过，不可用）
+
+问题："能否用日线/周线趋势度指标事前判断震荡还是趋势，切换动量/回归？" 脚本 `scripts/analyze_regime_indicator.py`。6 个指标（主流币等权指数与 BTC 的 90d Kaufman ER、趋势 R²、日收益 AC1、年化波动、横截面 30d 收益离散度 DISP），月初事前值 vs 当月「动量-回归」相对盈亏，n=16 个月：
+
+- 秩相关全部 |ρ|≤0.20，唯 DISP -0.50——但**符号反直觉**（离散度高时动量反而跑输）、被 2025-11 单月离群值（DISP 0.816、mom -61.8%）驱动、且 6 个指标里挑出来的 -0.50 在多重检验下无意义。
+- 更根本：动量月度盈亏**在年内就剧烈翻转**（2026 年各月 +53/+6/+26/+34/-55/+55/-30），"2025 震荡 / 2026 趋势"只是年度汇总叙事，月度粒度上不存在可切换的稳定 regime。
+- 样本里本质只有一次 regime 转换，任何切换器的独立样本量 ≈ 1。
+
+**结论：不做 regime 切换。多周期合奏本身就是对 regime 不确定性的正确回应。** 若未来拿到 2021-2024 数据（多次牛熊转换）才值得重开这个问题。
+
 ### 产物
 
 - 事件研究脚本：`scripts/analyze_funding_carry_event_study.py`、`analyze_funding_carry_grid.py`、`analyze_carry_mom_combo.py`、`analyze_smallcap_carry_xs.py`、`analyze_xs_signal_battery.py`、`analyze_majors_carry_tsmom_combo.py`、`analyze_mom_ensemble_quarters.py`、`analyze_new_families_battery.py`、`analyze_third_battery.py`、`analyze_listing_age_short_sim.py`
