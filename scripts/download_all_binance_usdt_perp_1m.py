@@ -121,23 +121,26 @@ def archived_usdt_symbols() -> set[str]:
     symbols: set[str] = set()
     for interval in ("monthly", "daily"):
         prefix = f"data/futures/um/{interval}/klines/"
-        root = ET.fromstring(
-            request(
-                S3_ENDPOINT,
-                params={
-                    "list-type": "2",
-                    "prefix": prefix,
-                    "delimiter": "/",
-                    "max-keys": "1000",
-                },
-            ).content
-        )
-        if root.findtext("s3:IsTruncated", namespaces=S3_NS) == "true":
-            raise RuntimeError(f"archive symbol listing for {interval} is truncated")
-        for item in root.findall("s3:CommonPrefixes", S3_NS):
-            symbol = item.findtext("s3:Prefix", namespaces=S3_NS)[len(prefix) :].strip("/")
-            if symbol.endswith("USDT") and "_" not in symbol:
-                symbols.add(symbol)
+        token: str | None = None
+        while True:
+            params = {
+                "list-type": "2",
+                "prefix": prefix,
+                "delimiter": "/",
+                "max-keys": "1000",
+            }
+            if token:
+                params["continuation-token"] = token
+            root = ET.fromstring(request(S3_ENDPOINT, params=params).content)
+            for item in root.findall("s3:CommonPrefixes", S3_NS):
+                symbol = item.findtext("s3:Prefix", namespaces=S3_NS)[len(prefix) :].strip("/")
+                if symbol.endswith("USDT") and "_" not in symbol:
+                    symbols.add(symbol)
+            if root.findtext("s3:IsTruncated", namespaces=S3_NS) != "true":
+                break
+            token = root.findtext("s3:NextContinuationToken", namespaces=S3_NS)
+            if not token:
+                raise RuntimeError(f"truncated listing without continuation token: {interval}")
     return symbols
 
 
