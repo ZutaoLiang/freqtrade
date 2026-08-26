@@ -230,6 +230,13 @@ python3 -m freqtrade backtesting \
 - 走前切换实测（ER > 扩展中位数选动量，否则回归）：**-43.1%/年（Sharpe -0.86）**，远差于纯动量（+36.3%，+0.69）与 50/50（-6.0%）。切换是主动毁灭价值。
 - 副产品发现：主流币 XS 动量 2019-2023 年年正（Sharpe +0.9~+3.4），**2024-2026 连续三年负**（-0.8/-0.7/-1.7）——主流币动量已衰减，edge 迁移到了高量小币（正是 XsMomEnsembleV1 的宇宙）。主流币 XS 反转 8 年里 7 年负——彻底死因子。
 
+**追问：把 XsMomEnsembleV1 的合奏机制搬到主流币上有用吗？**（`scripts/analyze_majors_mom_ensemble_longterm.py`，8 年周度再平衡净费用）：
+
+- XS 合奏 ens(3,14,30)d 全样本 Sharpe 0.42、ens(7,30,90)d 0.47——都不超过最好的单周期（mom14d 0.51 / mom30d 0.54），2024 年负值照旧。**合奏≈成分平均，只分散周期选择风险，不产生 alpha，救不活衰减中的因子。**
+- mom14d 单看 8 年 7 年非负——但这是 5 个单周期里事后挑的，选择偏差，不可作为策略依据。
+- TSMOM 合奏是唯一真获益者：sign(30/90/180) 混合把 tsm90d 的 0.37 提到 **0.58**（8 年，年化 +27.5%），年度剖面更平；但 2024-2026 也只有 +0.4/-0.3/-0.1，量级不足以立策略。
+- **核心结论：XsMomEnsembleV1 = 合奏（方差缩减）× 高量小币宇宙（edge 载体）。宇宙是本体，合奏是工程。机制移植到死因子上得到的是更平滑的死因子。**
+
 ### 产物
 
 - 事件研究脚本：`scripts/analyze_funding_carry_event_study.py`、`analyze_funding_carry_grid.py`、`analyze_carry_mom_combo.py`、`analyze_smallcap_carry_xs.py`、`analyze_xs_signal_battery.py`、`analyze_majors_carry_tsmom_combo.py`、`analyze_mom_ensemble_quarters.py`、`analyze_new_families_battery.py`、`analyze_third_battery.py`、`analyze_listing_age_short_sim.py`
