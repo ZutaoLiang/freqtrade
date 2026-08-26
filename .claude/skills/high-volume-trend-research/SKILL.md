@@ -223,6 +223,13 @@ python3 -m freqtrade backtesting \
 
 **结论：不做 regime 切换。多周期合奏本身就是对 regime 不确定性的正确回应。** 若未来拿到 2021-2024 数据（多次牛熊转换）才值得重开这个问题。
 
+**2026-08-26 已扩样本重开并关死**（`scripts/download_majors_spot_daily.py` 下载 20 主流币 2018-2026 日线现货，`scripts/analyze_regime_indicator_longterm.py`，95 个月、含 2019 震荡/2020-21 牛/2022 熊/2023 震荡/2024 牛/2025-26 翻转）：
+
+- 预注册主检验：指数 90d ER 对次月「动量−回归」价差，Spearman **-0.122，置换 p=0.229**——符号甚至为负。全部 5 个指标 |ρ|≤0.17，无一显著。
+- 指标本身高度自持续（VOL 自相关 0.81、AC1 0.61、ER 0.36）——**regime 可测量，但不可利用**：趋势度昨天是多少能告诉你今天是多少，不能告诉你哪个策略下月赚钱。
+- 走前切换实测（ER > 扩展中位数选动量，否则回归）：**-43.1%/年（Sharpe -0.86）**，远差于纯动量（+36.3%，+0.69）与 50/50（-6.0%）。切换是主动毁灭价值。
+- 副产品发现：主流币 XS 动量 2019-2023 年年正（Sharpe +0.9~+3.4），**2024-2026 连续三年负**（-0.8/-0.7/-1.7）——主流币动量已衰减，edge 迁移到了高量小币（正是 XsMomEnsembleV1 的宇宙）。主流币 XS 反转 8 年里 7 年负——彻底死因子。
+
 ### 产物
 
 - 事件研究脚本：`scripts/analyze_funding_carry_event_study.py`、`analyze_funding_carry_grid.py`、`analyze_carry_mom_combo.py`、`analyze_smallcap_carry_xs.py`、`analyze_xs_signal_battery.py`、`analyze_majors_carry_tsmom_combo.py`、`analyze_mom_ensemble_quarters.py`、`analyze_new_families_battery.py`、`analyze_third_battery.py`、`analyze_listing_age_short_sim.py`
