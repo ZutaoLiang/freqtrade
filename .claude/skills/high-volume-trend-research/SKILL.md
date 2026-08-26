@@ -197,9 +197,25 @@ python3 -m freqtrade backtesting \
 3. **-50% 硬止损是主要亏损源**（2026：止损 -2879 vs 轮换 +2907）——事件研究口径是逐日再平衡削减亏损仓、不吃插针。灾难位 -0.90 + 每日 trim 后两年分别 +0.3/+18 个百分点。
 4. EOS/SXP 无 market metadata 照旧不能进白名单（本文件已知边界）。
 
+### 第二、三批横扫（2026-08-26，全部证伪，勿重跑）
+
+同一预注册验收线（4 个半年段全正）。脚本：`scripts/analyze_new_families_battery.py`、`analyze_third_battery.py`、`analyze_listing_age_short_sim.py`。
+
+| 信号 | 结果 |
+|---|---|
+| 跳变反转（单根 1h \|z\|>4 后反向，H4-H48） | 各段负或 t<1，两宇宙皆无 |
+| BTC 领先滞后（BTC 4/24/72h 收益符号 → alt 前向 24h） | 2025 弱正、2026 全负（72h 段 -0.44%），跨年反号 |
+| 时段季节性（UTC 小时、星期） | 最好/最差小时跨半年漂移，星期效应符号翻转，无稳定结构 |
+| 主流币 beta 对冲价差均值回归（\|z\|>1.5 进 <0.5 出） | **2025 +53%/+123%（Sharpe 1.5/3.3）、2026 -69%/-95%**。与动量完美镜像的 regime 反转——2025 震荡利回归、2026 趋势利动量。不要试图做 regime 切换（两年数据拟合切换器=过拟合） |
+| Amihud 非流动性因子 | 仅 25H1 正，其余平或负 |
+| MAX 彩票因子（做空近期单日暴涨币） | 26H1 -0.47 / 26H2 +0.97，符号翻转 |
+| 上市龄做空（第 8-30 天） | 桶均值两个大样本段显著负（t≈-2.5，25H1/26H1），funding 成本仅 -0.05%/天；**但组合级模拟 +166%/-152%/-31%/-58%**——活跃日常只持 1-2 个新币，单个暴涨新币摧毁半年。桶显著 ≠ 组合可交易 |
+
+**方法论教训**：桶均值/截面回归的显著性必须过"组合级模拟"这一关（容量、集中度、funding、换手全算上）再谈回测。上市龄案例里这步把假幸存者拦在 freqtrade 之前。
+
 ### 产物
 
-- 事件研究脚本：`scripts/analyze_funding_carry_event_study.py`、`analyze_funding_carry_grid.py`、`analyze_carry_mom_combo.py`、`analyze_smallcap_carry_xs.py`、`analyze_xs_signal_battery.py`、`analyze_majors_carry_tsmom_combo.py`、`analyze_mom_ensemble_quarters.py`
+- 事件研究脚本：`scripts/analyze_funding_carry_event_study.py`、`analyze_funding_carry_grid.py`、`analyze_carry_mom_combo.py`、`analyze_smallcap_carry_xs.py`、`analyze_xs_signal_battery.py`、`analyze_majors_carry_tsmom_combo.py`、`analyze_mom_ensemble_quarters.py`、`analyze_new_families_battery.py`、`analyze_third_battery.py`、`analyze_listing_age_short_sim.py`
 - 策略：`user_data/strategies/neutral/XsMomEnsembleV1.py`
 - 配置：`user_data/config_xs_mom_ensemble_v1_{2025,2026}.json`
 - 回测导出：`user_data/analysis/_xsmom_v1_{2025,2026}-*.zip`
