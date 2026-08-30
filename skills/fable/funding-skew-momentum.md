@@ -486,7 +486,8 @@ python3 scripts/build_niche_dailyvol.py --datadir /root/freqtrade/user_data/data
 docker restart freqtrade-funding-skew      # 策略在 import 时 lru_cache 读表,不重启不生效
 ```
 
-本机已装成 cron(`/root/freqtrade/refresh_funding_skew.sh`,每天 00:20 UTC)。
+本机已装成 cron(`/root/freqtrade/refresh_funding_skew.sh`,每天 00:20 CST = 16:20 UTC;
+脚本里 python 要写 miniconda 的绝对路径,cron 的 `python3` 没有 ccxt)。
 
 - **不要用 `freqtrade download-data` 做这一步**:期货模式下它对每个 pair 额外拉 1h mark 与
   funding 历史,600 个 pair 就是几千次请求,而且 funding 请求带 `limit=1000` 会被
@@ -526,18 +527,29 @@ docker run -d --name freqtrade-funding-skew --restart unless-stopped --init --st
   --strategy FundingSkewMomentum5m
 ```
 
-**配置里必须有** `"exchange": {"_ft_has_params": {"funding_fee_candle_limit": 200}}`。
-freqtrade 对 Binance 的 funding 历史默认 `limit=1000`,实测该参数值 ≥500 时
-`/fapi/v1/fundingRate` 返回 403 Forbidden(HTML 页,不是 -1003 限频),200 正常。
-不加这一项,启动时全部 pair 的 funding 拉取"Giving up",策略对每个 pair 打
-`no funding rate data ... cannot trade`,**一笔都不会开且不报错**。200 根 1h = 8 天,
-策略只需要上一次结算,够用。
+**funding 历史的拉取节奏由策略自己控制,不要去掉**(`informative_pairs` 里的门控)。
+freqtrade 判断 funding_rate candle 是否过期用的是"最后一根的时间戳 + `funding_fee_timeframe`(1h)",
+而这个宇宙大多数 pair 每 4h/8h 才结算一次,所以 269 个 informative pair 在**每个 5 秒 loop 都被全量重拉**。
+`/fapi/v1/fundingRate` 限额 500 次/5 分钟/IP,超过后 Binance 返回 403 Forbidden(HTML 页,
+`server: awselb`,不是 -1003),而 freqtrade 对每个失败 pair 重试 4 次、下个 loop 再来,
+封禁被自己一直续着(2026-08-30 首次运行:一小时写了 60MB 的 403 日志,封禁持续 1 小时以上)。
+策略的做法:`informative_pairs()` 只在每小时 :01 返回 funding pair 列表(启动时立即一次),
+其余 loop 返回空列表——freqtrade 就不发请求,缓存的 candle 仍能通过 `dp.get_pair_dataframe` 读到。
+结算后几秒历史里就有记录,策略对 T 这根 candle 的分析发生在 T+5m,:01 拉一次够用。
+代价:某个 pair 那一次拉失败,要等下一个小时,那一小时它不能交易。
+
+配置里另外保留 `"exchange": {"_ft_has_params": {"funding_fee_candle_limit": 200}}`
+(默认 1000;200 根 1h = 8 天,策略只要上一次结算)。封禁期间实测 `limit=1000` 403 而
+`limit=100` 200,说明 WAF 对大 limit 更敏感,但根因是上面的重拉频率,不是这个参数。
+
+判断是否被封:`curl -s -o /dev/null -w '%{http_code}' 'https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1'`
+返回 403 就是。被封时先 `docker stop`,否则 bot 的重试让封禁不会解除。
 
 启动后先确认三件事,任何一件不对就停下来查,不要让它空跑两周:
 
 1. 日志里 pairlist 解析出的 pair 数在 120-250 之间。太少说明 `min_value` 设错了。
    (2026-08-30 实测 269,超出上沿是因为宇宙里新增了一批股票/商品挂钩永续。)
-2. 日志里没有 `no funding rate data` 警告;有则先查 §10.4 的 `funding_fee_candle_limit`。
+2. 日志里没有 `no funding rate data` 警告、没有 `403 Forbidden`;有则按 §10.4 查封禁。
    为空则整个策略不会开任何仓,而且**不会报错**。
 3. `daily_qv.parquet` 的最新日期是昨天。过期意味着新 pair 永远进不来。
 

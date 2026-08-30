@@ -28,12 +28,12 @@ per pair, which silently drops the later -- and more profitable -- settlements o
 """
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 
 import pandas as pd
-from freqtrade.enums import CandleType
+from freqtrade.enums import CandleType, RunMode
 from freqtrade.persistence import Trade
 from freqtrade.strategy import BooleanParameter, DecimalParameter, IntParameter, IStrategy
 
@@ -106,10 +106,29 @@ class FundingSkewMomentum5m(IStrategy):
     # These pairs skew hard to crowded shorts, so leaving it off costs almost nothing.
     allow_long = BooleanParameter(default=False, space="buy")
 
+    # Funding history is re-fetched once an hour, not once a loop. Freqtrade decides a
+    # funding_rate candle is stale when its last stamp is older than one funding_fee_timeframe
+    # (1h on Binance), and most of this universe settles every 4h or 8h, so with ~270 pairs in
+    # informative_pairs the bot would re-request every pair's history on every 5s iteration.
+    # /fapi/v1/fundingRate is capped at 500 requests per 5 minutes per IP; past that Binance
+    # answers 403 and the retries keep the ban alive. Returning [] here skips the fetch and
+    # leaves the cached candles readable. Settlements post within seconds of the hour, and
+    # the candle stamped T is analysed at T+5m, so one fetch at hh:01 is early enough.
+    fr_fetch_minute = 1
+    _fr_next_fetch: datetime | None = None
+
     def informative_pairs(self):
-        """Funding rate series for every tradable pair."""
+        """Funding rate series for every tradable pair, refreshed hourly (see above)."""
         if self.dp is None:
             return []
+        now = datetime.now(UTC)
+        if self.dp.runmode in (RunMode.LIVE, RunMode.DRY_RUN):
+            if self._fr_next_fetch is not None and now < self._fr_next_fetch:
+                return []
+            self._fr_next_fetch = now.replace(minute=0, second=0, microsecond=0) + timedelta(
+                hours=1, minutes=self.fr_fetch_minute
+            )
+            logger.info("refreshing funding history; next at %s", self._fr_next_fetch)
         return [
             (pair, self.dp.get_funding_rate_timeframe(), CandleType.FUNDING_RATE)
             for pair in self.dp.current_whitelist()
