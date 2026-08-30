@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 # a 30-day window on 5m candles needs 8640 startup candles, which exceeds what the exchange
 # will serve at startup. Refresh with scripts/build_niche_dailyvol.py (see the runbook in
 # skills/fable/funding-skew-momentum.md); the fast-moving funding signal is read live.
-DAILY_QV = Path("/root/freqtrade/user_data/niche_work/daily_qv.parquet")
+DAILY_QV = Path(__file__).resolve().parents[1] / "niche_work" / "daily_qv.parquet"
 
 
 @lru_cache(maxsize=1)

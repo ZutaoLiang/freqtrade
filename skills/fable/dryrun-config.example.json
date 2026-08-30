@@ -59,7 +59,10 @@
             "RE/USDT:USDT",
             "SLX/USDT:USDT",
             "ZHIPU/USDT:USDT"
-        ]
+        ],
+        "_ft_has_params": {
+            "funding_fee_candle_limit": 200
+        }
     },
     "pairlists": [
         {

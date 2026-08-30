@@ -480,10 +480,20 @@ freqtrade backtesting -c config-funding-skew.json \
 ### 10.2 每日刷新(不做的话新 pair 永远进不来)
 
 ```bash
-freqtrade download-data -c config-funding-skew-dryrun.json \
-  --datadir user_data/data/niche_funding --timeframes 5m 1d --days 40
-python3 scripts/build_niche_dailyvol.py --datadir user_data/data/niche_funding/futures
+python3 scripts/fetch_1d_for_dailyvol.py --out /root/freqtrade/user_data/data/binance/futures
+python3 scripts/build_niche_dailyvol.py --datadir /root/freqtrade/user_data/data/binance/futures \
+  --out /root/freqtrade/user_data/niche_work/daily_qv.parquet
+docker restart freqtrade-funding-skew      # 策略在 import 时 lru_cache 读表,不重启不生效
 ```
+
+本机已装成 cron(`/root/freqtrade/refresh_funding_skew.sh`,每天 00:20 UTC)。
+
+- **不要用 `freqtrade download-data` 做这一步**:期货模式下它对每个 pair 额外拉 1h mark 与
+  funding 历史,600 个 pair 就是几千次请求,而且 funding 请求带 `limit=1000` 会被
+  Binance WAF 直接 403(见 §10.4)。流动性表只需要 1d K 线,`fetch_1d_for_dailyvol.py`
+  用 ccxt 只拉这一种,700 个 pair 约 10 分钟。
+- 也不要用它给动态 pairlist 预下载 K 线:`download-data` 不解析 `VolumePairList`
+  (whitelist 为空时"No pairs available"),实盘/dry-run 启动时 bot 自己拉。
 
 流动性窗口是 30 天中位数,慢变量,每天刷一次足够。它之所以不放进策略内计算:
 30 天窗口在 5m 上需要 8640 根启动 K 线,freqtrade 拒绝超过交易所单次供给量 5 倍的
@@ -502,15 +512,32 @@ cap 4 / 6 / 20 分别成交 1530 / 1536 / 1538 笔,单笔均值都是 +89bps。
 
 ### 10.4 启动
 
+本机用 `/root/freqtrade` 下的 docker 镜像 `freqtradeorg/freqtrade:stable` 跑,
+策略与配置拷到 `/root/freqtrade/user_data/`(策略里 `daily_qv.parquet` 路径已改为
+相对策略文件,宿主机与容器都能找到)。`docker-compose` 1.29 与 Docker 29 引擎不兼容
+(`KeyError: 'ContainerConfig'`),所以直接 `docker run`:
+
 ```bash
-freqtrade trade -c config-funding-skew-dryrun.json \
-  --datadir user_data/data/niche_funding --strategy FundingSkewMomentum5m
+docker run -d --name freqtrade-funding-skew --restart unless-stopped --init --stop-timeout 60 \
+  -v /root/freqtrade/user_data:/freqtrade/user_data -p 127.0.0.1:18083:8080 \
+  freqtradeorg/freqtrade:stable trade \
+  --logfile /freqtrade/user_data/logs/funding-skew.log \
+  --config /freqtrade/user_data/config-funding-skew-dryrun.json \
+  --strategy FundingSkewMomentum5m
 ```
+
+**配置里必须有** `"exchange": {"_ft_has_params": {"funding_fee_candle_limit": 200}}`。
+freqtrade 对 Binance 的 funding 历史默认 `limit=1000`,实测该参数值 ≥500 时
+`/fapi/v1/fundingRate` 返回 403 Forbidden(HTML 页,不是 -1003 限频),200 正常。
+不加这一项,启动时全部 pair 的 funding 拉取"Giving up",策略对每个 pair 打
+`no funding rate data ... cannot trade`,**一笔都不会开且不报错**。200 根 1h = 8 天,
+策略只需要上一次结算,够用。
 
 启动后先确认三件事,任何一件不对就停下来查,不要让它空跑两周:
 
 1. 日志里 pairlist 解析出的 pair 数在 120-250 之间。太少说明 `min_value` 设错了。
-2. 随便挑一个 pair,确认 `dp.get_pair_dataframe(pair, candle_type="funding_rate")` 非空。
+   (2026-08-30 实测 269,超出上沿是因为宇宙里新增了一批股票/商品挂钩永续。)
+2. 日志里没有 `no funding rate data` 警告;有则先查 §10.4 的 `funding_fee_candle_limit`。
    为空则整个策略不会开任何仓,而且**不会报错**。
 3. `daily_qv.parquet` 的最新日期是昨天。过期意味着新 pair 永远进不来。
 
