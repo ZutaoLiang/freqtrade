@@ -520,7 +520,7 @@ cap 4 / 6 / 20 分别成交 1530 / 1536 / 1538 笔,单笔均值都是 +89bps。
 
 ```bash
 docker run -d --name freqtrade-funding-skew --restart unless-stopped --init --stop-timeout 60 \
-  -v /root/freqtrade/user_data:/freqtrade/user_data -p 127.0.0.1:18083:8080 \
+  -v /root/freqtrade/user_data:/freqtrade/user_data -p 18081:8080 \
   freqtradeorg/freqtrade:stable trade \
   --logfile /freqtrade/user_data/logs/funding-skew.log \
   --config /freqtrade/user_data/config-funding-skew-dryrun.json \
