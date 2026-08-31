@@ -147,7 +147,11 @@ class FundingSkewMomentum5m(IStrategy):
         a rate of exactly zero is 1.5% of all rows but never lands inside an extreme run --
         it reclassifies 0 of 7506 extreme settlements over the full history.
         """
-        df = self.dp.get_pair_dataframe(pair, candle_type=CandleType.FUNDING_RATE)
+        # timeframe passed explicitly: omitting it makes the dataprovider warn
+        # "funding rate timeframe not matching 1h" for every pair on every cycle (~3MB/day).
+        df = self.dp.get_pair_dataframe(
+            pair, self.dp.get_funding_rate_timeframe(), candle_type=CandleType.FUNDING_RATE
+        )
         if df is None or df.empty:
             logger.warning("no funding rate data for %s; it cannot trade", pair)
             return pd.Series(dtype="float64")
