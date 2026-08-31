@@ -486,8 +486,17 @@ python3 scripts/build_niche_dailyvol.py --datadir /root/freqtrade/user_data/data
 docker restart freqtrade-funding-skew      # 策略在 import 时 lru_cache 读表,不重启不生效
 ```
 
-本机已装成 cron(`/root/freqtrade/refresh_funding_skew.sh`,每天 00:20 CST = 16:20 UTC;
+本机已装成 cron(`/root/freqtrade/refresh_funding_skew.sh`,每天 **08:10 CST = 00:10 UTC**;
 脚本里 python 要写 miniconda 的绝对路径,cron 的 `python3` 没有 ccxt)。
+刷新时间必须贴着 UTC 零点:表里日期为 D 的行要在 D 日一开始就存在,拖到当天下午才建,
+D 日前半天全是 NaN。
+
+- **表的最后一行必须是"今天"**。`build_niche_dailyvol.py` 早期版本用 `.shift(1)` 做
+  "右移一天",这会把最新值直接丢掉,表的最后一行永远是昨天——回测时表是事后全量建的,
+  每个日期都有行,从没暴露;dry-run 第一天(2026-08-30/31)TUT 连续 5 次合格结算
+  全部被 qv=NaN 拦下,0 笔成交。现在改成给索引整体 +1 天(对齐语义不变,只是不丢最新值),
+  同时策略端对 qv 做最多 2 天的 ffill:cron 没跑的头几个小时用前一天的中位数顶上,
+  超过 2 天仍为 NaN——表彻底过期时门槛应当关闭(对应下面第 3 条检查)。
 
 - **不要用 `freqtrade download-data` 做这一步**:期货模式下它对每个 pair 额外拉 1h mark 与
   funding 历史,600 个 pair 就是几千次请求,而且 funding 请求带 `limit=1000` 会被

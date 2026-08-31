@@ -40,7 +40,12 @@ def main():
         df = df[~df.index.duplicated()]
         quote_volume = df["close"] * df["volume"]
         daily = quote_volume.resample("1D").sum() if resample else quote_volume
-        trail = daily.rolling(VOL_DAYS, min_periods=VOL_MIN_DAYS).median().shift(1).dropna()
+        # Shift one day by re-dating rather than .shift(1): a value dated D still uses only
+        # days strictly before D, but the newest median now lands on a row dated "today"
+        # instead of being dropped -- live, todays candles must find a row or the qv gate
+        # blocks every entry (this cost the first dry-run day all of its signals).
+        trail = daily.rolling(VOL_DAYS, min_periods=VOL_MIN_DAYS).median().dropna()
+        trail.index = trail.index + pd.Timedelta(days=1)
         if trail.empty:
             missing += 1
             continue

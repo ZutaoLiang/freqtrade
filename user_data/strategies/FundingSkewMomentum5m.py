@@ -168,6 +168,13 @@ class FundingSkewMomentum5m(IStrategy):
         else:
             dataframe["fr_streak"] = float("nan")
         qv = _pair_qv(metadata["pair"].split("/")[0] + "_USDT_USDT")
+        if len(qv):
+            # The liquidity table is rebuilt daily; between UTC midnight and the rebuild the
+            # newest candles would otherwise map to nothing and the gate would silently block
+            # every entry. Carry the last value forward at most 2 days -- staler than that
+            # means the refresh is broken and the gate SHOULD close (runbook check 3).
+            days = pd.DatetimeIndex(dataframe["date"].dt.normalize().unique()).union(qv.index)
+            qv = qv.reindex(days).ffill(limit=2)
         dataframe["qv"] = dataframe["date"].dt.normalize().map(qv).astype("float64")
         return dataframe
 
