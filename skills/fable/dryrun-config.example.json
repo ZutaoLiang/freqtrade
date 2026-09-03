@@ -5,7 +5,7 @@
     "tradable_balance_ratio": 0.99,
     "dry_run": true,
     "dry_run_wallet": 100,
-    "timeframe": "5m",
+    "timeframe": "1m",
     "trading_mode": "futures",
     "margin_mode": "isolated",
     "fee": 0.0005,
@@ -79,7 +79,7 @@
             "min_days_listed": 10
         }
     ],
-    "strategy": "FundingSkewMomentum5m",
+    "strategy": "FundingSkewMom15Filter1m",
     "internals": {
         "process_throttle_secs": 5
     },

@@ -4,7 +4,10 @@
 本文档与其他三份不同:这里的每个数字都是在本地 perp 数据上实测出来的,不是设计意图。
 回测纪律见主 SKILL.md §2;本文档在 §6 给出**四条**实测补充,违反其中任何一条会得到反号的结论。
 
-**当前生产配置仍是 `FundingSkewMomentum5m` + `config-funding-skew-dryrun.json`,见 §10 运行手册。**
+**当前 dry-run 自 2026-09-03 起换为候选 `FundingSkewMom15Filter1m`(1m + 15m 同向硬过滤,
+`FundingSkewFlowVariants.py`),配置同 `config-funding-skew-dryrun.json` 但 `timeframe: 1m`,
+容器启动命令的 `--strategy` 同步更换。dry-run 本身就是 §5.10.3 要求的独立 OOS 验证;
+基线(不过滤)的信号是候选的超集,可用资金费+价格数据离线重放对账。**
 2026-09-03 的当前代码统一复测在 §5.10:1m + 因果 15m 同向动量硬过滤是最强候选,
 但它来自同一样本上的探索,在独立 OOS / dry-run 前不自动替换生产配置。
 §4 与 §5.6 是资金费未计入的历史记录(原因见 §6.4);§5.8 的旧标题误称 5m,
