@@ -1,0 +1,12 @@
+{
+    "add_config_files": [
+        "config-funding-skew-wide.json"
+    ],
+    "max_open_trades": 6,
+    "stake_amount": "unlimited",
+    "dry_run_wallet": 1000,
+    "tradable_balance_ratio": 0.9,
+    "timeframe": "1m",
+    "fee": 0.001,
+    "strategy": "FundingSkewMom15Filter1m"
+}
