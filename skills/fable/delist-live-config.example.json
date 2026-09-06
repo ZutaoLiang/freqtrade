@@ -1,0 +1,58 @@
+{
+ "max_open_trades": 8,
+ "stake_currency": "USDT",
+ "stake_amount": "unlimited",
+ "tradable_balance_ratio": 0.99,
+ "dry_run": false,
+ "timeframe": "1m",
+ "trading_mode": "futures",
+ "margin_mode": "isolated",
+ "fee": 0.001,
+ "dataformat_ohlcv": "feather",
+ "entry_pricing": {
+  "price_side": "other",
+  "use_order_book": true,
+  "order_book_top": 1
+ },
+ "exit_pricing": {
+  "price_side": "other",
+  "use_order_book": true,
+  "order_book_top": 1
+ },
+ "exchange": {
+  "name": "binance",
+  "key": "<FUTURES-TRADE-ONLY-KEY>",
+  "secret": "<SECRET>",
+  "pair_whitelist": [],
+  "pair_blacklist": [],
+  "ccxt_config": {
+   "timeout": 30000
+  },
+  "ccxt_async_config": {
+   "aiohttp_proxy": "http://127.0.0.1:10811"
+  }
+ },
+ "pairlists": [
+  {
+   "method": "RemotePairList",
+   "pairlist_url": "file:////root/freqtrade/user_data/delist/pairlist.json",
+   "number_assets": 50,
+   "refresh_period": 60,
+   "keep_pairlist_on_failure": true
+  }
+ ],
+ "strategy": "DelistShort1m",
+ "db_url": "sqlite:///user_data/tradesv3.delist_live.sqlite",
+ "initial_state": "running",
+ "bot_name": "delist_short_live",
+ "internals": {
+  "process_throttle_secs": 5
+ },
+ "order_types": {
+  "entry": "market",
+  "exit": "market",
+  "stoploss": "market",
+  "stoploss_on_exchange": true,
+  "stoploss_on_exchange_interval": 60
+ }
+}
