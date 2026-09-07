@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import sys
 import zipfile
 from datetime import date
@@ -212,7 +213,11 @@ def download() -> None:
     done = 0
     # network-bound, tiny frames per symbol; 6 workers stays far below the
     # host memory budget in AGENTS.md
-    with ThreadPoolExecutor(max_workers=6) as pool:
+    # network-bound, tiny frames per symbol; the worker count is capped at
+    # half the box's cores so a long backfill leaves the machine usable
+    workers = int(os.environ.get("HIST_WORKERS", 6))
+    print(f"using {workers} download threads")
+    with ThreadPoolExecutor(max_workers=workers) as pool:
         futs = {pool.submit(fetch_symbol, s): s for s in shortlist}
         for fut in as_completed(futs):
             done += 1
