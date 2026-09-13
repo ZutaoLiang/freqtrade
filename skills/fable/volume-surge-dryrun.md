@@ -22,7 +22,20 @@
 
 ## 启动前检查
 
-在仓库根目录 `/root/freqtrade` 执行：
+API Server 已启用并监听 `0.0.0.0:18081`。用户名、密码、JWT 密钥和 WebSocket token
+不得提交到仓库，启动前通过环境变量注入：
+
+```bash
+export FREQTRADE__API_SERVER__USERNAME='<本地用户名>'
+export FREQTRADE__API_SERVER__PASSWORD='<本地强密码>'
+export FREQTRADE__API_SERVER__JWT_SECRET_KEY='<本地随机密钥>'
+export FREQTRADE__API_SERVER__WS_TOKEN='<本地随机 token>'
+```
+
+端口绑定到全部网卡，但 Freqtrade API 本身不提供 HTTPS。只应通过防火墙、VPN 或 SSH
+隧道访问，不要把 18081 直接暴露到公网。
+
+随后在仓库根目录 `/root/freqtrade` 执行：
 
 ```bash
 .venv/bin/freqtrade --version
@@ -33,8 +46,22 @@
 必须确认解析结果包含：`dry_run=true`、`dry_run_wallet=100`、`stake_amount=25`、
 `max_open_trades=4`、`trading_mode=futures`、`margin_mode=isolated` 和策略
 `VolumeSurgeTrend1m`。配置不含私钥；若只做 dry-run，不要加入交易权限 API key。
-当前配置按本机环境使用 `http://127.0.0.1:10811` 作为异步行情代理；迁移到其他机器时
-应按实际网络修改或删除 `ccxt_async_config.aiohttp_proxy`。
+
+仓库配置不包含任何代理。某台机器需要代理时，在被 Git 忽略的本地覆盖文件中配置，
+例如 `config-volume-surge-local.json`：
+
+```json
+{
+  "exchange": {
+    "ccxt_async_config": {
+      "aiohttp_proxy": "<本机代理 URL>"
+    }
+  }
+}
+```
+
+然后在下列检查和启动命令中额外添加
+`-c config-volume-surge-local.json`；不需要代理的环境不要创建该文件。
 
 ## 前台启动与恢复
 
@@ -49,6 +76,7 @@ mkdir -p user_data/logs
 
 命令行的 `--dry-run` 是配置之外的第二重保护。启动日志必须出现解析到
 `VolumeSurgeTrend1m`、dry-run 已启用和四个白名单合约；任一项不符就停止排查。
+API 健康检查地址为 `http://<运行主机>:18081/api/v1/ping`。
 
 正常停止时发送一次 `Ctrl-C`，等待 Freqtrade 完成退出。恢复时执行同一条命令；同一
 数据库会恢复模拟持仓，策略再从 Trade 自定义数据恢复并推进 ATR 移动止损。不要并发启动

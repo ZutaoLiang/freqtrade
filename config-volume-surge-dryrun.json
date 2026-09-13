@@ -29,8 +29,7 @@
       }
     },
     "ccxt_async_config": {
-      "enableRateLimit": true,
-      "aiohttp_proxy": "http://127.0.0.1:10811"
+      "enableRateLimit": true
     },
     "pair_whitelist": [
       "LSK/USDT:USDT",
@@ -70,13 +69,11 @@
     "chat_id": ""
   },
   "api_server": {
-    "enabled": false,
-    "listen_ip_address": "127.0.0.1",
-    "listen_port": 18083,
+    "enabled": true,
+    "listen_ip_address": "0.0.0.0",
+    "listen_port": 18081,
     "verbosity": "error",
     "enable_openapi": false,
-    "CORS_origins": [],
-    "username": "",
-    "password": ""
+    "CORS_origins": []
   }
 }
