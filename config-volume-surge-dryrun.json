@@ -1,0 +1,82 @@
+{
+  "$schema": "https://schema.freqtrade.io/schema.json",
+  "bot_name": "volume-surge-dryrun",
+  "strategy": "VolumeSurgeTrend1m",
+  "strategy_path": "user_data/strategies",
+  "timeframe": "1m",
+  "max_open_trades": 4,
+  "stake_currency": "USDT",
+  "stake_amount": 25,
+  "dry_run_wallet": 100,
+  "tradable_balance_ratio": 1.0,
+  "fee": 0.0005,
+  "dry_run": true,
+  "initial_state": "running",
+  "db_url": "sqlite:///user_data/tradesv3.volume_surge_dryrun.sqlite",
+  "trading_mode": "futures",
+  "margin_mode": "isolated",
+  "exchange": {
+    "name": "binance",
+    "key": "",
+    "secret": "",
+    "ccxt_config": {
+      "enableRateLimit": true,
+      "options": {
+        "defaultType": "swap",
+        "fetchMarkets": {
+          "types": ["linear"]
+        }
+      }
+    },
+    "ccxt_async_config": {
+      "enableRateLimit": true,
+      "aiohttp_proxy": "http://127.0.0.1:10811"
+    },
+    "pair_whitelist": [
+      "LSK/USDT:USDT",
+      "CVC/USDT:USDT",
+      "STEEM/USDT:USDT",
+      "ARK/USDT:USDT"
+    ],
+    "pair_blacklist": []
+  },
+  "pairlists": [
+    {
+      "method": "StaticPairList",
+      "allow_inactive": true
+    }
+  ],
+  "entry_pricing": {
+    "price_side": "other",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "exit_pricing": {
+    "price_side": "other",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "unfilledtimeout": {
+    "entry": 1,
+    "exit": 1,
+    "unit": "minutes"
+  },
+  "internals": {
+    "process_throttle_secs": 5
+  },
+  "telegram": {
+    "enabled": false,
+    "token": "",
+    "chat_id": ""
+  },
+  "api_server": {
+    "enabled": false,
+    "listen_ip_address": "127.0.0.1",
+    "listen_port": 18083,
+    "verbosity": "error",
+    "enable_openapi": false,
+    "CORS_origins": [],
+    "username": "",
+    "password": ""
+  }
+}

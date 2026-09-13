@@ -1,6 +1,6 @@
 ---
 name: freqtrade-niche-pair
-description: Implement and backtest niche-pair (low-competition crypto) strategies in Freqtrade at 1m candle granularity — lead-lag following via informative pairs, overshoot reversion with maker limit entries, and event-driven (funding/listing) plays. Use this skill whenever the user builds, backtests, or dry-runs these strategies in Freqtrade, configures pairlists for a screened universe, injects realistic costs into backtests, or asks about fill assumptions, custom_entry_price, informative pairs, producer/consumer mode, or FreqAI features for lead-lag — including Chinese phrasings like 冷门交易对、领先滞后、过冲回归、资金费率、回测撮合、挂单成交假设.
+description: Implement, backtest, and dry-run niche-pair crypto strategies in Freqtrade at 1m candle granularity, including abnormal-volume breakouts, lead-lag following, overshoot reversion, and event-driven funding or listing plays. Use for screened-universe pairlists, realistic backtest costs and fills, VolumeSurgeTrend1m operations, informative pairs, producer/consumer mode, or related FreqAI features — including Chinese requests about 冷门交易对、异常放量、领先滞后、过冲回归、资金费率、回测撮合、挂单成交假设.
 ---
 
 # 冷门交易对策略:Freqtrade 实现与回测
@@ -69,6 +69,7 @@ Freqtrade 回测按 K 线价格撮合、限价单**触及即成交**、无排队
 | 大单/清算打穿后的回归、maker 接单 | `references/overshoot-reversion.md` |
 | 资金费率结算、上新、价差极值等结构性时点 | `references/event-driven.md` |
 | 资金费极值的**已实测**分支:站在付费方做动量 | `references/funding-skew-momentum.md` |
+| 异常放量突破/冲高反转，或运行 `VolumeSurgeTrend1m` dry-run | `references/volume-surge-dryrun.md` |
 
 只读当前任务相关的文档;各文档共享本文件 §2 的回测纪律,不再重复。
 
