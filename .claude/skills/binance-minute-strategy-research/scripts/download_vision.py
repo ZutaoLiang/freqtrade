@@ -12,6 +12,10 @@ Kinds:
   fundingRate     data/futures/um/monthly/fundingRate/{SYM}/...          (monthly only; the
                   current/previous month comes from REST /fapi/v1/fundingRate -> rest/ subdir)
   markPriceKlines data/futures/um/{monthly|daily}/markPriceKlines/{SYM}/1h/...
+  metrics         data/futures/um/daily/metrics/{SYM}/...  (daily only, 5m: OI, top-trader and account
+                  long/short ratios, taker buy/sell volume ratio; opt-in via --kinds)
+  premiumIndexKlines data/futures/um/{monthly|daily}/premiumIndexKlines/{SYM}/1h/...  (opt-in via --kinds;
+                  the per-minute input of the funding rate: close = perp/index premium)
 
 Examples:
   # list every USDT-M symbol that has monthly 1m klines
@@ -171,7 +175,14 @@ def download_symbol(sym: str, kinds: list[str], start: str, end: str, interval: 
             ok = fetch(f"data/futures/um/monthly/fundingRate/{sym}/{sym}-fundingRate-{tag}.zip", raw, stats)
             if not ok and (today.year * 12 + today.month) - (y * 12 + m) <= 1:
                 fetch_funding_rest(sym, y, m, raw, stats)
-        for kind, iv in (("klines", interval), ("markPriceKlines", "1h")):
+        if "metrics" in kinds:                      # 5m OI / long-short ratios: daily archives only
+            last = calendar.monthrange(y, m)[1]
+            for d in range(1, last + 1):
+                day = date(y, m, d)
+                if day >= today:
+                    break
+                fetch(f"data/futures/um/daily/metrics/{sym}/{sym}-metrics-{day.isoformat()}.zip", raw, stats)
+        for kind, iv in (("klines", interval), ("markPriceKlines", "1h"), ("premiumIndexKlines", "1h")):
             if kind not in kinds:
                 continue
             key = f"data/futures/um/monthly/{kind}/{sym}/{iv}/{sym}-{iv}-{tag}.zip"
