@@ -526,3 +526,42 @@ R291 TRAIN 51 笔 +84 bp t 1.21；R102 737 笔 +174 bp t 0.83；R145 73 笔 +205
 - "OI Flushout" 分支没有使用持仓量，实际规则为 12h 跌幅 > 8%、RSI < 30、放量阳线。
 - 同一根 K 线可能同时出现 `enter_long`（抄底）与 `enter_short`（R24），freqtrade 对冲突信号不开仓。
 
+
+---
+
+## 十二、对第十一节的补充：修正实现后的全天候 V2 与幸存者偏差（2026-09-25，会话 freqtrade-1c）
+
+与第十一节结论一致（全天候整体不通过，收益来自 R24 分支）。以下为补充。预注册与结果记录：
+`user_data/minute_research/allweather_review/LOG.md`；策略 `user_data/strategies/AllWeatherRegimeAdaptiveV2.py`。
+
+### 1. 原回测配置的幸存者偏差
+原作者回测配置 `user_data/minute_research/r8_bear_adaptive/config_allweather.json` 使用 `StaticPairList` 但**未设 `allow_inactive: true`**，
+freqtrade 回测时静默剔除 U162 中此后已下架的 8 个合约（NEIROETH、UXLINK、AI16Z、OM、TON、VINE、MKR、OMNI），
+原手册 / 第十节的全部数字都不含这些币。请第十一节的复核确认所用配置是否同样缺该项。
+
+### 2. V2：只修实现、参数不变，逐引擎按 TRAIN / VALID-C 选择（HOLDOUT 只在最后读一次）
+修正项：5m 基础周期（1h 引擎在整点收盘后下一根入场，与原 1h 版一致；R24 分支恢复 T+5 分钟入场、8h、无止盈）；
+杠杆 1（止损 / 止盈为价格幅度）；止损由 `custom_stoploss` 盘中触发；取消全局 `minimal_roi`；包含已下架币。
+回归：仅开 R24 分支时与 `FundingExhaustionShort5m` 在 VALID-C 上 99 笔逐笔一致。
+费率 0.10%/边，100 USDT，10 仓位，freqtrade 引擎，真实资金费：
+
+| 引擎（单独运行） | TRAIN | VALID-C | 预注册保留规则（TRAIN PF ≥ 1.1 且 VALID PF ≥ 1.2） |
+|---|---|---|---|
+| `dual_sq_long` | 363 笔，PF 1.41，t 0.54 | 45 笔，PF 0.43，t −2.33 | 否 |
+| `dual_sq_short` | 188 笔，PF 1.80，t 2.28 | 68 笔，PF 0.95 | 否 |
+| `flushout_long` | 482 笔，PF 0.99 | 121 笔，PF 0.67 | 否 |
+| `exhaust_short`（= R24） | 220 笔，PF 1.24，t 1.53 | 99 笔，PF 2.04，t 2.17 | **是** |
+| 四引擎合并（参照） | 1178 笔，+85.0%，PF 1.26 | 293 笔，+9.0%，PF 1.15（ARC 占利润 112%） | — |
+
+最终 V2 = 仅 R24 分支：VALID-C 费率 0.15% 仍 PF 1.96；HOLDOUT（读一次）98 笔，+4.9%，PF 1.22，t 0.78，ARC 占利润 114%；
+VALID+HOLDOUT PF 1.58，t 2.16，剔除 ARC t 1.11。**修正实现后其余三个引擎在 VALID 上仍亏损，说明失败不是实现错误，而是没有优势；
+全天候设计不成立，V2 退化为已上线 dry-run 的 `FundingExhaustionShort5m`。** V2 仅在单引擎时用 10 个仓位会稀释资金，不建议部署。
+
+### 3. 待对账：`dual_sq_short` 笔数
+第十一节该分支三段合计 2 笔；本机原样复现原策略（同一代码、U162、`r3b` 数据）为 TRAIN 177 / VALID-C 89 / HOLDOUT 188 笔。
+该分支只在 BTC 宏观"中性"状态开仓，差异如此之大更像双方 BTC 1d / 4h 数据或宏观判定不同，建议核对 BTC 1d K 线起点与 `btc_macro_neutral` 的占比。
+
+### 4. 记录一个事后观察（不据此调参）
+第十一节中 R24 分支（结算后 **1h** 入场、1.5 倍杠杆、14% ROI 封顶）HOLDOUT PF 2.42、t 1.87，而 R24 原版（结算后 **5 分钟**入场、无止盈）
+HOLDOUT PF 1.22–1.55、t 0.78–1.01。入场延后可能避开结算后第一段价格跳动（见 prior-results C2）。这是看过 HOLDOUT 后的观察，
+只能作为预注册变体（例如"T+1h 入场、7h 持有"）在 2026-09 之后的新数据或 dry-run 上检验，不能据此修改现有策略。
