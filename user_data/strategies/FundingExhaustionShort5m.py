@@ -110,7 +110,7 @@ class FundingExhaustionShort5m(IStrategy):
             if pair in whitelist:
                 self._store(pair, r["fundingTime"], r["fundingRate"])
                 n += 1
-        logger.debug(f"funding refresh: {n} whitelisted settlements in the last 2h")
+        logger.info(f"funding refresh: {n} whitelisted settlements in the last 2h")
 
     def _settlements(self, pair: str) -> DataFrame:
         if self._live:
