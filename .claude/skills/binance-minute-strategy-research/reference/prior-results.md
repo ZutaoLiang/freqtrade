@@ -278,4 +278,19 @@ binance-hist futures feather 无 `quote_volume`、funding 费率在 `open` 列�
 - r3 35 族的 TRAIN 最佳格在 VALID-C：11 族净正、0 族 t≥2，收益主要来自空头腿（VALID-C 为下跌段）。
 - 唯一例外：**KST 日线 + BTC 30 日已实现波动 < 180 日中位数**，VALID-C n101、+1740bp、PF9.3、t3.1，参数 ±20% 全稳；
   但 101 笔全在 2026-01、46 笔集中在 4 天（单一事件），且为读过 VALID 后派生的变体。§4 不过（B、E）；事件口径形式上通过，HOLDOUT 未读。
+- **HOLDOUT 与引擎复核（用户批准事件口径后）**：harness 口径 HOLDOUT n308 +255bp PF1.48 t2.04、V+HO t3.41；
+  但 freqtrade 引擎（`user_data/strategies/KSTLowVolDaily.py`）把 TRAIN 改写为 **−46bp PF0.95**：harness 的 BTC 日线从 2025-01 起，
+  180 日中位数历史不足，把 2025-01/02 的低波动期漏掉。以完整历史 TRAIN PF < 1.1 → **否决**（VALID/HOLDOUT 两者一致：+1783bp / +215bp t1.78）。
+  陷阱：相对自身长期历史的状态过滤，数据起点必须早于 TRAIN 起点至少一个窗口。
+
+### E3. PROFITABLE_STRATEGIES.md 七个策略的独立复核（U160、Vision 1h 原始 K 线含 taker_buy、真实资金费；脚本 `scripts/minute_research/r5/p7_*.py`）
+| 策略 | 文档 VALID | 复核 VALID-C | 复核 TRAIN | 结论 |
+|---|---|---|---|---|
+| R291 双挤压+主动买 | +103bp t1.44 | +94bp PF1.83 t1.20 | +106bp t1.53 | 复现，t<2 |
+| R24 资金费衰竭做空 | +177~203bp t2.3-2.6 | +223bp t3.30，**ARC 占 83%** | **−12bp**（文档 +107bp） | VALID 为单币；TRAIN 不复现 |
+| R102 放量长下影 | +527bp t1.32 | +552bp t1.34，单日 71% | +42bp t0.22 | 复现，t<2、单日集中 |
+| R145 极端负费率反弹 | +175bp t1.39 | +143bp t1.20 | +191bp t1.47 | 复现，t<2 |
+| R362 / R105 主动买占比 | +110 / +107bp | n6 / n4 | n0 / n15 | 不可复现：真实数据 taker 占比 >0.66 仅 0.8% 的小时、>0.60 仅 4.2% |
+| R234 OI 暴跌+大户 | +230bp t2.58 | 仅液 30 有 metrics：n0 | n25 +78bp | 数据不全；文档 TRAIN +1620bp/笔不合理 |
+文档的"放宽口径"是 t≥1.5；SKILL 批准的事件口径只放宽频率 B 与集中度 E，D 仍为 V+HO t≥2、C 要求 TRAIN PF≥1.1。统一口径下 7 个均不通过（HOLDOUT 未读）。
 
