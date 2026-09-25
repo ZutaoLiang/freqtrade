@@ -78,3 +78,10 @@
 - 修正后 R24 TRAIN：U162 339 笔 +113bp PF1.81 t2.05（对方 338 笔 +107bp）；U160 262 笔 +176bp PF1.94 t2.47。R24 事件口径通过；保留 ARC 依赖、4h/8h 分化（+216 / −16bp）。
 - "r3b 缺资金费"推断撤回；七策略 TRAIN 列修正：R291 51 笔 +84bp、R102 737 笔 +174bp、R145 73 笔 +205bp，其余不变，结论不变。
 - 同一 bug 的其余影响：方案 C 复核表中 r4 YoungListingFadeUp 的 'TRAIN n2072 +70bp' 混入了 2023-24 交易（其数据始于 2022-11）；判定依据为 VALID-C（t0.97），结论不变。r3 候选、NFI、E0V1E、KST、DualSqueeze 的数据/回测均始于 2025-01，不受影响。
+
+## AllWeatherRegimeAdaptive 独立复核（2026-09-25）
+- 原样代码 + dry-run 配置（1.5 倍、10 槽复利），白名单 = 对方 U162 静态；数据 r5u162；季度分块；费率 0.06% / 0.10%。
+- 整体 V+HO t 1.69 / 1.46（< 2 不过）；分支：exhaust_short（R24）V+HO 146 笔 +286bp t3.98（剔除 ARC 55 笔 +220bp t2.19）；
+  dual_sq_long 366 笔 +21bp t0.42；flushout_long 210 笔 −19bp t−0.29；剔除 ARC 后整体 t0.62。
+- 分块钱包（0.06%）：−3.9 / +53.6 / +22.9 / 隔离 −1.6 / VALID +21.5 / +40.6 / −12.2%。
+- 代码审查：custom_exit 只在 1h 收盘判断 SL/TP；minimal_roi 14% 使 R24 的 +15% 止盈不生效；百分比按 1.5 倍保证金计；"OI Flushout" 未用 OI。
