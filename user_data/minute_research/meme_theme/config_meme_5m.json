@@ -1,0 +1,50 @@
+{
+  "max_open_trades": 5,
+  "stake_currency": "USDT",
+  "stake_amount": "unlimited",
+  "tradable_balance_ratio": 0.99,
+  "dry_run": true,
+  "dry_run_wallet": 100,
+  "timeframe": "5m",
+  "stoploss": -0.1,
+  "trading_mode": "futures",
+  "margin_mode": "isolated",
+  "fee": 0.0006,
+  "dataformat_ohlcv": "feather",
+  "entry_pricing": {
+    "price_side": "other",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "exit_pricing": {
+    "price_side": "other",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "exchange": {
+    "name": "binance",
+    "key": "",
+    "secret": "",
+    "pair_whitelist": [
+      "DOGE/USDT:USDT",
+      "1000SHIB/USDT:USDT",
+      "1000PEPE/USDT:USDT",
+      "WIF/USDT:USDT",
+      "1000BONK/USDT:USDT",
+      "1000FLOKI/USDT:USDT",
+      "POPCAT/USDT:USDT",
+      "MOODENG/USDT:USDT",
+      "PNUT/USDT:USDT",
+      "FARTCOIN/USDT:USDT"
+    ],
+    "pair_blacklist": [
+      ".*(UP|DOWN|BULL|BEAR)/.*"
+    ]
+  },
+  "pairlists": [
+    {
+      "method": "StaticPairList",
+      "allow_inactive": true
+    }
+  ]
+}

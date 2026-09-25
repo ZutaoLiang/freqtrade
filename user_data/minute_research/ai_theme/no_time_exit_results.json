@@ -1,0 +1,181 @@
+[
+  {
+    "label": "Baseline (With 18h Exit, TP 14%, SL 7%)",
+    "strategy": "DualSqueezeBtcTrend1h",
+    "TRAIN_trades": 60,
+    "TRAIN_winrate": 61.7,
+    "TRAIN_profit": 22.98,
+    "TRAIN_pf": 1.73,
+    "TRAIN_t": 1.51,
+    "TRAIN_dd": 6.99,
+    "TRAIN_dur": "14.5h",
+    "TRAIN_reasons": {
+      "roi": 8,
+      "time_expired_18h": 42,
+      "stop_loss": 10,
+      "TOTAL": 60
+    },
+    "VALID-C_trades": 29,
+    "VALID-C_winrate": 69.0,
+    "VALID-C_profit": 9.48,
+    "VALID-C_pf": 2.11,
+    "VALID-C_t": 0.68,
+    "VALID-C_dd": 3.29,
+    "VALID-C_dur": "15.7h",
+    "VALID-C_reasons": {
+      "roi": 5,
+      "time_expired_18h": 22,
+      "stop_loss": 2,
+      "TOTAL": 29
+    },
+    "HOLDOUT_trades": 59,
+    "HOLDOUT_winrate": 32.2,
+    "HOLDOUT_profit": -23.33,
+    "HOLDOUT_pf": 0.32,
+    "HOLDOUT_t": -2.28,
+    "HOLDOUT_dd": 23.33,
+    "HOLDOUT_dur": "16.9h",
+    "HOLDOUT_reasons": {
+      "time_expired_18h": 52,
+      "stop_loss": 7,
+      "TOTAL": 59
+    }
+  },
+  {
+    "label": "No Time Exit (Pure TP 14% / SL 7%)",
+    "strategy": "DualSqAi_NoTimeExit_TP14",
+    "TRAIN_trades": 47,
+    "TRAIN_winrate": 23.4,
+    "TRAIN_profit": -14.15,
+    "TRAIN_pf": 0.7,
+    "TRAIN_t": -0.87,
+    "TRAIN_dd": 15.45,
+    "TRAIN_dur": "86.6h",
+    "TRAIN_reasons": {
+      "tp_dual_sq_long": 9,
+      "tp_dual_sq_short": 2,
+      "stop_loss": 11,
+      "trailing_stop_loss": 25,
+      "TOTAL": 47
+    },
+    "VALID-C_trades": 22,
+    "VALID-C_winrate": 31.8,
+    "VALID-C_profit": -4.95,
+    "VALID-C_pf": 0.75,
+    "VALID-C_t": -0.48,
+    "VALID-C_dd": 11.87,
+    "VALID-C_dur": "159.6h",
+    "VALID-C_reasons": {
+      "tp_dual_sq_short": 5,
+      "force_exit": 2,
+      "stop_loss": 3,
+      "trailing_stop_loss": 12,
+      "TOTAL": 22
+    },
+    "HOLDOUT_trades": 49,
+    "HOLDOUT_winrate": 28.6,
+    "HOLDOUT_profit": -0.89,
+    "HOLDOUT_pf": 0.98,
+    "HOLDOUT_t": 0.11,
+    "HOLDOUT_dd": 13.41,
+    "HOLDOUT_dur": "111.1h",
+    "HOLDOUT_reasons": {
+      "tp_dual_sq_long": 10,
+      "tp_dual_sq_short": 4,
+      "stop_loss": 18,
+      "trailing_stop_loss": 17,
+      "TOTAL": 49
+    }
+  },
+  {
+    "label": "No Time Exit + Vol Filter (TP 14% / SL 7%)",
+    "strategy": "DualSqAi_NoTimeExit_Vol_TP14",
+    "TRAIN_trades": 38,
+    "TRAIN_winrate": 26.3,
+    "TRAIN_profit": -6.28,
+    "TRAIN_pf": 0.83,
+    "TRAIN_t": -0.33,
+    "TRAIN_dd": 10.39,
+    "TRAIN_dur": "81.3h",
+    "TRAIN_reasons": {
+      "tp_dual_sq_long": 8,
+      "tp_dual_sq_short": 2,
+      "stop_loss": 10,
+      "trailing_stop_loss": 18,
+      "TOTAL": 38
+    },
+    "VALID-C_trades": 20,
+    "VALID-C_winrate": 25.0,
+    "VALID-C_profit": -10.63,
+    "VALID-C_pf": 0.46,
+    "VALID-C_t": -1.28,
+    "VALID-C_dd": 11.61,
+    "VALID-C_dur": "143.5h",
+    "VALID-C_reasons": {
+      "tp_dual_sq_short": 3,
+      "force_exit": 2,
+      "stop_loss": 3,
+      "trailing_stop_loss": 12,
+      "TOTAL": 20
+    },
+    "HOLDOUT_trades": 38,
+    "HOLDOUT_winrate": 31.6,
+    "HOLDOUT_profit": 5.84,
+    "HOLDOUT_pf": 1.16,
+    "HOLDOUT_t": 0.5,
+    "HOLDOUT_dd": 9.21,
+    "HOLDOUT_dur": "109.8h",
+    "HOLDOUT_reasons": {
+      "tp_dual_sq_long": 10,
+      "tp_dual_sq_short": 2,
+      "stop_loss": 12,
+      "trailing_stop_loss": 14,
+      "TOTAL": 38
+    }
+  },
+  {
+    "label": "No Time Exit + Vol Filter (TP 8% / SL 6%)",
+    "strategy": "DualSqAi_NoTimeExit_Vol_TP8",
+    "TRAIN_trades": 42,
+    "TRAIN_winrate": 52.4,
+    "TRAIN_profit": 16.66,
+    "TRAIN_pf": 1.64,
+    "TRAIN_t": 1.46,
+    "TRAIN_dd": 5.84,
+    "TRAIN_dur": "28.9h",
+    "TRAIN_reasons": {
+      "tp_dual_sq_long": 15,
+      "tp_dual_sq_short": 7,
+      "stop_loss": 6,
+      "trailing_stop_loss": 14,
+      "TOTAL": 42
+    },
+    "VALID-C_trades": 21,
+    "VALID-C_winrate": 38.1,
+    "VALID-C_profit": -0.98,
+    "VALID-C_pf": 0.93,
+    "VALID-C_t": -0.05,
+    "VALID-C_dd": 9.09,
+    "VALID-C_dur": "84.9h",
+    "VALID-C_reasons": {
+      "tp_dual_sq_short": 8,
+      "stop_loss": 5,
+      "trailing_stop_loss": 8,
+      "TOTAL": 21
+    },
+    "HOLDOUT_trades": 41,
+    "HOLDOUT_winrate": 29.3,
+    "HOLDOUT_profit": -6.02,
+    "HOLDOUT_pf": 0.82,
+    "HOLDOUT_t": -0.34,
+    "HOLDOUT_dd": 11.91,
+    "HOLDOUT_dur": "67.7h",
+    "HOLDOUT_reasons": {
+      "tp_dual_sq_long": 10,
+      "tp_dual_sq_short": 2,
+      "trailing_stop_loss": 11,
+      "stop_loss": 18,
+      "TOTAL": 41
+    }
+  }
+]

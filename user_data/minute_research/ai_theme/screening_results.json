@@ -1,0 +1,974 @@
+[
+  {
+    "name": "FundingExhaustionShort5m (R24)",
+    "strategy": "FundingExhaustionShort5m",
+    "TRAIN_trades": 12,
+    "TRAIN_winrate": 83.3,
+    "TRAIN_profit": 16.91,
+    "TRAIN_pf": 198.33,
+    "TRAIN_t": 3.48,
+    "TRAIN_dd": 0.05,
+    "TRAIN_pairs": {
+      "AI16Z": [
+        9,
+        14.85
+      ],
+      "VIRTUAL": [
+        3,
+        2.06
+      ],
+      "TAO": [
+        0,
+        0.0
+      ],
+      "FET": [
+        0,
+        0.0
+      ],
+      "RENDER": [
+        0,
+        0.0
+      ],
+      "AIXBT": [
+        0,
+        0.0
+      ],
+      "GRASS": [
+        0,
+        0.0
+      ],
+      "IO": [
+        0,
+        0.0
+      ],
+      "WLD": [
+        0,
+        0.0
+      ],
+      "ARKM": [
+        0,
+        0.0
+      ],
+      "TOTAL": [
+        12,
+        16.91
+      ]
+    },
+    "VALID-C_trades": 0,
+    "VALID-C_winrate": 0,
+    "VALID-C_profit": 0.0,
+    "VALID-C_pf": 0.0,
+    "VALID-C_t": 0.0,
+    "VALID-C_dd": 0.0,
+    "VALID-C_pairs": {
+      "TAO": [
+        0,
+        0.0
+      ],
+      "FET": [
+        0,
+        0.0
+      ],
+      "RENDER": [
+        0,
+        0.0
+      ],
+      "VIRTUAL": [
+        0,
+        0.0
+      ],
+      "AI16Z": [
+        0,
+        0.0
+      ],
+      "AIXBT": [
+        0,
+        0.0
+      ],
+      "GRASS": [
+        0,
+        0.0
+      ],
+      "IO": [
+        0,
+        0.0
+      ],
+      "WLD": [
+        0,
+        0.0
+      ],
+      "ARKM": [
+        0,
+        0.0
+      ],
+      "TOTAL": [
+        0,
+        0.0
+      ]
+    }
+  },
+  {
+    "name": "AllWeatherV2_Exhaust (R24 inside V2)",
+    "strategy": "AllWeatherV2_Exhaust",
+    "TRAIN_trades": 6,
+    "TRAIN_winrate": 100.0,
+    "TRAIN_profit": 10.02,
+    "TRAIN_pf": 0.0,
+    "TRAIN_t": 2.42,
+    "TRAIN_dd": 0.0,
+    "TRAIN_pairs": {
+      "AI16Z": [
+        5,
+        8.74
+      ],
+      "VIRTUAL": [
+        1,
+        1.28
+      ],
+      "TAO": [
+        0,
+        0.0
+      ],
+      "FET": [
+        0,
+        0.0
+      ],
+      "RENDER": [
+        0,
+        0.0
+      ],
+      "AIXBT": [
+        0,
+        0.0
+      ],
+      "GRASS": [
+        0,
+        0.0
+      ],
+      "IO": [
+        0,
+        0.0
+      ],
+      "WLD": [
+        0,
+        0.0
+      ],
+      "ARKM": [
+        0,
+        0.0
+      ],
+      "TOTAL": [
+        6,
+        10.02
+      ]
+    },
+    "VALID-C_trades": 0,
+    "VALID-C_winrate": 0,
+    "VALID-C_profit": 0.0,
+    "VALID-C_pf": 0.0,
+    "VALID-C_t": 0.0,
+    "VALID-C_dd": 0.0,
+    "VALID-C_pairs": {
+      "TAO": [
+        0,
+        0.0
+      ],
+      "FET": [
+        0,
+        0.0
+      ],
+      "RENDER": [
+        0,
+        0.0
+      ],
+      "VIRTUAL": [
+        0,
+        0.0
+      ],
+      "AI16Z": [
+        0,
+        0.0
+      ],
+      "AIXBT": [
+        0,
+        0.0
+      ],
+      "GRASS": [
+        0,
+        0.0
+      ],
+      "IO": [
+        0,
+        0.0
+      ],
+      "WLD": [
+        0,
+        0.0
+      ],
+      "ARKM": [
+        0,
+        0.0
+      ],
+      "TOTAL": [
+        0,
+        0.0
+      ]
+    }
+  },
+  {
+    "name": "AllWeatherV2_DualSqLong",
+    "strategy": "AllWeatherV2_DualSqLong",
+    "TRAIN_trades": 38,
+    "TRAIN_winrate": 57.9,
+    "TRAIN_profit": 6.59,
+    "TRAIN_pf": 1.5,
+    "TRAIN_t": 0.95,
+    "TRAIN_dd": 3.57,
+    "TRAIN_pairs": {
+      "AIXBT": [
+        6,
+        4.17
+      ],
+      "WLD": [
+        4,
+        2.73
+      ],
+      "AI16Z": [
+        3,
+        1.98
+      ],
+      "IO": [
+        1,
+        0.86
+      ],
+      "TAO": [
+        1,
+        0.66
+      ],
+      "FET": [
+        4,
+        0.42
+      ],
+      "RENDER": [
+        3,
+        0.26
+      ],
+      "ARKM": [
+        5,
+        0.22
+      ],
+      "GRASS": [
+        6,
+        -0.52
+      ],
+      "VIRTUAL": [
+        5,
+        -4.21
+      ],
+      "TOTAL": [
+        38,
+        6.59
+      ]
+    },
+    "VALID-C_trades": 1,
+    "VALID-C_winrate": 0.0,
+    "VALID-C_profit": -0.04,
+    "VALID-C_pf": 0.0,
+    "VALID-C_t": 0.0,
+    "VALID-C_dd": 0.04,
+    "VALID-C_pairs": {
+      "FET": [
+        0,
+        0.0
+      ],
+      "RENDER": [
+        0,
+        0.0
+      ],
+      "VIRTUAL": [
+        0,
+        0.0
+      ],
+      "AI16Z": [
+        0,
+        0.0
+      ],
+      "AIXBT": [
+        0,
+        0.0
+      ],
+      "GRASS": [
+        0,
+        0.0
+      ],
+      "IO": [
+        0,
+        0.0
+      ],
+      "WLD": [
+        0,
+        0.0
+      ],
+      "ARKM": [
+        0,
+        0.0
+      ],
+      "TAO": [
+        1,
+        -0.04
+      ],
+      "TOTAL": [
+        1,
+        -0.04
+      ]
+    }
+  },
+  {
+    "name": "AllWeatherV2_DualSqShort",
+    "strategy": "AllWeatherV2_DualSqShort",
+    "TRAIN_trades": 11,
+    "TRAIN_winrate": 81.8,
+    "TRAIN_profit": 10.4,
+    "TRAIN_pf": 6.47,
+    "TRAIN_t": 2.04,
+    "TRAIN_dd": 1.69,
+    "TRAIN_pairs": {
+      "AI16Z": [
+        3,
+        3.24
+      ],
+      "VIRTUAL": [
+        2,
+        2.22
+      ],
+      "GRASS": [
+        1,
+        1.87
+      ],
+      "FET": [
+        1,
+        1.56
+      ],
+      "WLD": [
+        1,
+        1.41
+      ],
+      "IO": [
+        1,
+        1.24
+      ],
+      "ARKM": [
+        1,
+        0.4
+      ],
+      "TAO": [
+        0,
+        0.0
+      ],
+      "RENDER": [
+        0,
+        0.0
+      ],
+      "AIXBT": [
+        1,
+        -1.54
+      ],
+      "TOTAL": [
+        11,
+        10.4
+      ]
+    },
+    "VALID-C_trades": 5,
+    "VALID-C_winrate": 60.0,
+    "VALID-C_profit": 0.13,
+    "VALID-C_pf": 1.07,
+    "VALID-C_t": 0.1,
+    "VALID-C_dd": 1.38,
+    "VALID-C_pairs": {
+      "AIXBT": [
+        1,
+        0.84
+      ],
+      "TAO": [
+        1,
+        0.63
+      ],
+      "FET": [
+        1,
+        0.45
+      ],
+      "RENDER": [
+        0,
+        0.0
+      ],
+      "VIRTUAL": [
+        0,
+        0.0
+      ],
+      "AI16Z": [
+        0,
+        0.0
+      ],
+      "IO": [
+        0,
+        0.0
+      ],
+      "ARKM": [
+        0,
+        0.0
+      ],
+      "WLD": [
+        1,
+        -0.4
+      ],
+      "GRASS": [
+        1,
+        -1.38
+      ],
+      "TOTAL": [
+        5,
+        0.13
+      ]
+    }
+  },
+  {
+    "name": "AllWeatherV2_Flushout",
+    "strategy": "AllWeatherV2_Flushout",
+    "TRAIN_trades": 70,
+    "TRAIN_winrate": 47.1,
+    "TRAIN_profit": 4.31,
+    "TRAIN_pf": 1.12,
+    "TRAIN_t": 0.37,
+    "TRAIN_dd": 9.37,
+    "TRAIN_pairs": {
+      "FET": [
+        7,
+        5.56
+      ],
+      "TAO": [
+        8,
+        1.52
+      ],
+      "AI16Z": [
+        11,
+        1.03
+      ],
+      "RENDER": [
+        5,
+        0.94
+      ],
+      "ARKM": [
+        5,
+        0.38
+      ],
+      "IO": [
+        6,
+        0.24
+      ],
+      "WLD": [
+        5,
+        0.02
+      ],
+      "VIRTUAL": [
+        8,
+        -0.44
+      ],
+      "GRASS": [
+        7,
+        -0.82
+      ],
+      "AIXBT": [
+        8,
+        -4.12
+      ],
+      "TOTAL": [
+        70,
+        4.31
+      ]
+    },
+    "VALID-C_trades": 21,
+    "VALID-C_winrate": 52.4,
+    "VALID-C_profit": 2.59,
+    "VALID-C_pf": 1.43,
+    "VALID-C_t": 0.46,
+    "VALID-C_dd": 3.5,
+    "VALID-C_pairs": {
+      "FET": [
+        4,
+        2.38
+      ],
+      "AIXBT": [
+        2,
+        1.76
+      ],
+      "IO": [
+        1,
+        1.32
+      ],
+      "VIRTUAL": [
+        2,
+        0.23
+      ],
+      "WLD": [
+        2,
+        0.07
+      ],
+      "ARKM": [
+        2,
+        0.04
+      ],
+      "AI16Z": [
+        0,
+        0.0
+      ],
+      "RENDER": [
+        4,
+        -0.2
+      ],
+      "TAO": [
+        2,
+        -0.62
+      ],
+      "GRASS": [
+        2,
+        -2.4
+      ],
+      "TOTAL": [
+        21,
+        2.59
+      ]
+    }
+  },
+  {
+    "name": "AllWeatherRegimeAdaptiveV2 (Combined)",
+    "strategy": "AllWeatherRegimeAdaptiveV2",
+    "TRAIN_trades": 121,
+    "TRAIN_winrate": 54.5,
+    "TRAIN_profit": 30.68,
+    "TRAIN_pf": 1.5,
+    "TRAIN_t": 1.43,
+    "TRAIN_dd": 9.92,
+    "TRAIN_pairs": {
+      "AI16Z": [
+        20,
+        14.36
+      ],
+      "FET": [
+        12,
+        8.43
+      ],
+      "WLD": [
+        10,
+        5.11
+      ],
+      "TAO": [
+        9,
+        2.32
+      ],
+      "RENDER": [
+        8,
+        1.4
+      ],
+      "IO": [
+        7,
+        1.32
+      ],
+      "ARKM": [
+        11,
+        1.21
+      ],
+      "GRASS": [
+        14,
+        0.3
+      ],
+      "AIXBT": [
+        15,
+        -1.28
+      ],
+      "VIRTUAL": [
+        15,
+        -2.48
+      ],
+      "TOTAL": [
+        121,
+        30.68
+      ]
+    },
+    "VALID-C_trades": 26,
+    "VALID-C_winrate": 53.8,
+    "VALID-C_profit": 2.79,
+    "VALID-C_pf": 1.36,
+    "VALID-C_t": 0.48,
+    "VALID-C_dd": 3.51,
+    "VALID-C_pairs": {
+      "FET": [
+        4,
+        2.93
+      ],
+      "AIXBT": [
+        3,
+        2.6
+      ],
+      "IO": [
+        1,
+        1.33
+      ],
+      "VIRTUAL": [
+        2,
+        0.22
+      ],
+      "ARKM": [
+        2,
+        0.04
+      ],
+      "AI16Z": [
+        0,
+        0.0
+      ],
+      "TAO": [
+        4,
+        -0.03
+      ],
+      "RENDER": [
+        4,
+        -0.2
+      ],
+      "WLD": [
+        3,
+        -0.32
+      ],
+      "GRASS": [
+        3,
+        -3.78
+      ],
+      "TOTAL": [
+        26,
+        2.79
+      ]
+    }
+  },
+  {
+    "name": "DualSqueezeBtcTrend1h",
+    "strategy": "DualSqueezeBtcTrend1h",
+    "TRAIN_trades": 60,
+    "TRAIN_winrate": 61.7,
+    "TRAIN_profit": 22.98,
+    "TRAIN_pf": 1.73,
+    "TRAIN_t": 1.51,
+    "TRAIN_dd": 6.99,
+    "TRAIN_pairs": {
+      "WLD": [
+        9,
+        12.07
+      ],
+      "ARKM": [
+        8,
+        7.04
+      ],
+      "AI16Z": [
+        3,
+        3.45
+      ],
+      "GRASS": [
+        9,
+        2.39
+      ],
+      "TAO": [
+        4,
+        2.14
+      ],
+      "AIXBT": [
+        7,
+        1.23
+      ],
+      "RENDER": [
+        3,
+        0.61
+      ],
+      "FET": [
+        8,
+        -0.73
+      ],
+      "IO": [
+        2,
+        -0.96
+      ],
+      "VIRTUAL": [
+        7,
+        -4.26
+      ],
+      "TOTAL": [
+        60,
+        22.98
+      ]
+    },
+    "VALID-C_trades": 29,
+    "VALID-C_winrate": 69.0,
+    "VALID-C_profit": 9.48,
+    "VALID-C_pf": 2.11,
+    "VALID-C_t": 0.68,
+    "VALID-C_dd": 3.29,
+    "VALID-C_pairs": {
+      "TAO": [
+        4,
+        3.38
+      ],
+      "FET": [
+        4,
+        3.34
+      ],
+      "ARKM": [
+        3,
+        3.04
+      ],
+      "WLD": [
+        4,
+        3.04
+      ],
+      "IO": [
+        2,
+        0.93
+      ],
+      "AIXBT": [
+        1,
+        0.77
+      ],
+      "AI16Z": [
+        0,
+        0.0
+      ],
+      "RENDER": [
+        2,
+        -0.12
+      ],
+      "VIRTUAL": [
+        5,
+        -0.33
+      ],
+      "GRASS": [
+        4,
+        -4.56
+      ],
+      "TOTAL": [
+        29,
+        9.48
+      ]
+    }
+  },
+  {
+    "name": "TrendShiftADXPureSignal",
+    "strategy": "TrendShiftADXPureSignal",
+    "TRAIN_trades": 1185,
+    "TRAIN_winrate": 37.6,
+    "TRAIN_profit": 21.42,
+    "TRAIN_pf": 1.03,
+    "TRAIN_t": 0.63,
+    "TRAIN_dd": 44.31,
+    "TRAIN_pairs": {
+      "VIRTUAL": [
+        112,
+        32.08
+      ],
+      "GRASS": [
+        102,
+        24.18
+      ],
+      "WLD": [
+        96,
+        4.25
+      ],
+      "RENDER": [
+        150,
+        1.69
+      ],
+      "IO": [
+        96,
+        -1.29
+      ],
+      "FET": [
+        149,
+        -5.97
+      ],
+      "AI16Z": [
+        114,
+        -6.52
+      ],
+      "TAO": [
+        160,
+        -7.47
+      ],
+      "ARKM": [
+        81,
+        -8.51
+      ],
+      "AIXBT": [
+        125,
+        -11.01
+      ],
+      "TOTAL": [
+        1185,
+        21.42
+      ]
+    },
+    "VALID-C_trades": 388,
+    "VALID-C_winrate": 33.8,
+    "VALID-C_profit": -24.95,
+    "VALID-C_pf": 0.81,
+    "VALID-C_t": -0.75,
+    "VALID-C_dd": 40.0,
+    "VALID-C_pairs": {
+      "GRASS": [
+        35,
+        10.52
+      ],
+      "ARKM": [
+        45,
+        1.24
+      ],
+      "AI16Z": [
+        0,
+        0.0
+      ],
+      "FET": [
+        45,
+        -0.16
+      ],
+      "VIRTUAL": [
+        27,
+        -2.22
+      ],
+      "WLD": [
+        45,
+        -2.57
+      ],
+      "RENDER": [
+        35,
+        -2.99
+      ],
+      "AIXBT": [
+        56,
+        -6.18
+      ],
+      "IO": [
+        42,
+        -9.52
+      ],
+      "TAO": [
+        58,
+        -13.07
+      ],
+      "TOTAL": [
+        388,
+        -24.95
+      ]
+    }
+  },
+  {
+    "name": "MacroRelativeStrengthSqueeze1h",
+    "strategy": "MacroRelativeStrengthSqueeze1h",
+    "TRAIN_trades": 116,
+    "TRAIN_winrate": 44.0,
+    "TRAIN_profit": -24.18,
+    "TRAIN_pf": 0.66,
+    "TRAIN_t": -1.46,
+    "TRAIN_dd": 32.41,
+    "TRAIN_pairs": {
+      "IO": [
+        8,
+        5.08
+      ],
+      "ARKM": [
+        12,
+        3.57
+      ],
+      "WLD": [
+        10,
+        2.41
+      ],
+      "RENDER": [
+        5,
+        -0.46
+      ],
+      "AIXBT": [
+        9,
+        -4.25
+      ],
+      "TAO": [
+        8,
+        -4.68
+      ],
+      "GRASS": [
+        15,
+        -4.78
+      ],
+      "VIRTUAL": [
+        15,
+        -5.31
+      ],
+      "AI16Z": [
+        12,
+        -7.41
+      ],
+      "FET": [
+        22,
+        -8.34
+      ],
+      "TOTAL": [
+        116,
+        -24.18
+      ]
+    },
+    "VALID-C_trades": 20,
+    "VALID-C_winrate": 30.0,
+    "VALID-C_profit": -3.12,
+    "VALID-C_pf": 0.77,
+    "VALID-C_t": -0.33,
+    "VALID-C_dd": 8.83,
+    "VALID-C_pairs": {
+      "IO": [
+        5,
+        2.6
+      ],
+      "RENDER": [
+        2,
+        2.12
+      ],
+      "VIRTUAL": [
+        3,
+        1.94
+      ],
+      "AI16Z": [
+        0,
+        0.0
+      ],
+      "TAO": [
+        1,
+        -0.17
+      ],
+      "ARKM": [
+        1,
+        -0.45
+      ],
+      "WLD": [
+        1,
+        -0.99
+      ],
+      "FET": [
+        1,
+        -1.95
+      ],
+      "AIXBT": [
+        3,
+        -2.35
+      ],
+      "GRASS": [
+        3,
+        -3.86
+      ],
+      "TOTAL": [
+        20,
+        -3.12
+      ]
+    }
+  }
+]

@@ -25,8 +25,7 @@ description: 在任意服务器上从零做 Binance USDT-M 永续分钟级策略
 | `templates/iteration_log.md` | 迭代日志模板 |
 | `reference/data-pipeline.md` | 数据来源、归档结构、格式陷阱、freqtrade 文件布局 |
 | `reference/indicators.md` | 可用指标库与指标族、不前视写法、lookahead/recursive 分析 |
-| `reference/prior-results.md` | 已测结论（20 轮分钟级扫描 + 本仓库更早的策略线） |
-| `PROFITABLE_STRATEGIES.md` | 方案 C 下经样本外复核验证的可盈利策略全集（AllWeatherRegimeAdaptive 全天候架构、R291、R24、R102、R362、R105、R145、R234 核心参数与对账） |
+| `PROFITABLE_STRATEGIES.md` | 方案 C 下经样本外复核验证的可盈利策略全集（AllWeather 全天候架构、R291、R24、R102、六大题材细分子池量化突破与 HOLDOUT 熊市多空归因决算） |
 
 所有命令从 freqtrade 仓库根目录执行；`K=.claude/skills/binance-minute-strategy-research/scripts`。
 全流程已在 freqtrade 2026.1 上端到端跑通（下载 → 转换 → 校验 → 回测，资金费非零）。

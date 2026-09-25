@@ -316,3 +316,28 @@ binance-hist futures feather 无 `quote_volume`、funding 费率在 `open` 列�
   保留意见为 ARC 单币依赖（剔除后 t < 1.5）与 4h/8h 结算币分化。"r3b 缺资金费"的推断撤回。七策略复核的 TRAIN 列同步修正（见 PROFITABLE_STRATEGIES.md 第十节），其余结论不变。
   教训：分段函数必须有显式下界，面板起点早于 TRAIN 时要单列 PRE 段。
 
+
+## H. 2026-09-25 r6（本机，200 轮网络/文献思路，结论：未找到通过 §4 的策略；HOLDOUT 未读）
+日志 `user_data/minute_research/r6/LOG.md`，报告 `REPORT.md`，引擎 `eng6.py`（含资金费、β=1 残差、HIST 2023-24 独立阶段门）。
+2023-24 的 1h taker_buy_volume 已从 Vision 1h klines 重建（`r6/build_hist_taker.py`，覆盖到 `user_data/data/r6panels/1h_hist`）。
+
+| 家族 | 结论 |
+|---|---|
+| 文献横截面因子 40+（趋势因子、MAX、方差、IVOL、Amihud、BAB、残差动量、frog-in-pan、tug-of-war、价格延迟、偏度等） | 单因子全不过；只有 Amihud 非流动性在 TRAIN 与 2023-24 同号为正（t 1.3 / 2.7） |
+| 流动性 × 订单流组合（Amihud + 7d taker 占比 + 残差动量，持 14 天，C1） | TRAIN t 2.30、2023-24 t 2.24，**VALID-C 1346 笔 −62bp PF 0.94**（多头腿 −365bp，价差本身为负）→ 否；同族 4 因子组合 VALID 视为已用 |
+| 交易书籍日线系统（Minervini、Weinstein、Darvas、Clenow、Antonacci、口袋支点、Qullamaggie、Holy Grail、CAN SLIM） | 全否；2025 山寨单边跌中做多系统大亏，做空系统被 ALPACA 类下架轧空打穿 |
+| 资金费结算前后、资金费翻转/连涨、OI 象限、大户 vs 散户、放量插针、连续 K 线 | 全否 |
+| 5m 事件（量能点火、插针收回、BTC 冲击滞后、OI 突变、亚盘区间、mark 偏离） | 全否 |
+| 状态条件横截面（离散度、BTC 波动、相关性、风险开关切换） | 全否 |
+| 滚动 walk-forward 岭回归合成 12 因子 | 两阶段都显著为负（t −2.6~−2.8）：历史因子关系在下一段翻号 |
+| TradingView 社区指标 19 种（UT Bot、SSL、Chandelier+ZLSMA、Nadaraya-Watson、WAE、McGinley、T3、ALMA、VIDYA、Ehlers、Coral、Trendilo） | 毛 5–35bp < 20bp 成本，2023-24 全负 |
+
+新陷阱：
+- 5m 面板资金费只在结算小时的第 0 分钟计一次（误把整小时 12 根都计费会凭空产生 +57~+193bp）。4h_long/1d_long 的资金费是前向填充/平均费率，每根按 费率×小时/8 计。
+- 多日持有的按入场日聚类 t 会因重叠而虚高，同时报告 Newey-West t（滞后=持有天数）。
+- 暴跌日上百笔同向亏损时，按日聚类 t > 2 而逐笔均值 < 0：必须同时看逐笔均值与去掉最大贡献日后的结果。
+
+r6 续（同日，目标未关）：C3 负资金费连续 ≥5 次 < -0.03% 且收盘 > 7 日均线做多 48h —— TRAIN t2.21、2023-24 t2.83，VALID 560 笔 +73bp 但 PF 1.145、t 0.66、单币 81%（价格 −169bp、资金费 +262bp）→ 否。
+用户启用事件口径后：C4 动量前 10% 币 1h RSI 下穿 25 做多 24h —— TRAIN t2.34、2023-24 t2.34，VALID 146 笔 +114bp PF1.31、成本×1.5 +104bp，
+但 G 平台检验 RSI 30 变体 VALID PF 0.987 < 1.0 → §4 不通过，HOLDOUT 未读。溢价指数（premiumIndexKlines，首次使用）12 轮全否；
+资金费间隔缩短事件（binance_public/funding 的 funding_interval_hours）TRAIN 仅 33 笔；BTC 急跌买山寨两阶段为正但独立事件太少。
