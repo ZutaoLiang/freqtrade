@@ -311,4 +311,8 @@ binance-hist futures feather 无 `quote_volume`、funding 费率在 `open` 列�
 - **DualSqueezeBtcTrend1h**（双挤压 + BTC 趋势闸门，已配 dry-run）：freqtrade 原样代码、自建 U160 数据；0.10% / 0.06% 费率下
   TRAIN +43 / +54bp（t ≤ 1.45），VALID-C +84 / +93bp（t ≤ 0.88，单日占利润 89-98%），**HOLDOUT −20 / −8bp（PF 0.91 / 0.96）** → 否。
 - 教训：`user_data/minute_research/<rN>/` 这类通用目录名会在会话之间撞车；新研究目录用带主题的名字（如 r3_tpsl、r5_live），日志尽早纳入 git。
+- **更正（2026-09-25）**：§E3/§E4 中 R24 的 TRAIN「−12 bp / 1206 笔」「U162 1452 笔 −18 bp」来自本机分段 bug（TRAIN 无下界，面板始于 2024-11 → 2024-11/12 混入 TRAIN）。
+  修正后 R24 TRAIN：U162 339 笔 +113 bp PF 1.81 t 2.05（与另一会话 338 笔 +107 bp 一致），U160 262 笔 +176 bp PF 1.94；R24 在**事件口径**下通过，
+  保留意见为 ARC 单币依赖（剔除后 t < 1.5）与 4h/8h 结算币分化。"r3b 缺资金费"的推断撤回。七策略复核的 TRAIN 列同步修正（见 PROFITABLE_STRATEGIES.md 第十节），其余结论不变。
+  教训：分段函数必须有显式下界，面板起点早于 TRAIN 时要单列 PRE 段。
 
