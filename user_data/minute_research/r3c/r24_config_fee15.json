@@ -191,14 +191,8 @@
   "pair_blacklist": [
    ".*(UP|DOWN|BULL|BEAR)/.*"
   ],
-  "ccxt_config": {
-   "httpsProxy": "http://127.0.0.1:10811",
-   "wsProxy": "http://127.0.0.1:10811"
-  },
-  "ccxt_async_config": {
-   "httpsProxy": "http://127.0.0.1:10811",
-   "wsProxy": "http://127.0.0.1:10811"
-  }
+  "ccxt_config": {},
+  "ccxt_async_config": {}
  },
  "pairlists": [
   {
