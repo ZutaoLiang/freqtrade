@@ -42,3 +42,20 @@
 | R145 | +175bp t1.39 | +143bp t1.20 | +191bp t1.47 | 复现，t<2 |
 | R362 / R105 | +110 / +107bp | n6 / n4 | n0 / n15 | 不可复现（taker 占比 >0.66 仅 0.8% 的小时） |
 | R234 | +230bp t2.58 | 液 30 有 metrics：n0 | n25 +78bp | 数据不全 |
+
+## R24 与 DualSqueezeBtcTrend1h 复核（2026-09-25，拉取 69e5c64e0 / 9924b7b31 / 6d8f60daf 后）
+- 事故：6d8f60daf 把另一会话的研究归档到 minute_research/r3、r5 同名路径，拉取时覆盖了本会话被忽略的 r3/LOG.md、r5/LOG.md → 已在 r3_tpsl/、r5_live/ 重建并提交（3abfa6308）。
+### R24 FundingExhaustionShort5m（对方：TRAIN 249 笔 PF1.53、VALID-C 99 笔 PF2.06、HOLDOUT 97 笔 PF1.23，数据 r3b 不在本机）
+- 本机独立数据（U160、1h、结算后下一根入场；T+0 诊断相同）：TRAIN n1206 −12bp PF0.94；VALID-C n134 +223bp t3.30（ARC 83%）；
+  HOLDOUT n86 +56bp PF1.26 t1.18（ARC 91%）；V+HO t3.44，**剔除 ARC 后 t1.27**（对方自己的 ex-ARC t1.35）。
+- TRAIN 按资金费结算间隔拆分：4h 结算币 627 笔 +62.5bp，8h 结算币 579 笔 −92.7bp → 结果取决于宇宙中 4h 币占比。
+- 判定：C（TRAIN）与 E（单币）不过；样本外收益基本是 ARC 单币行情，不可推广。
+### DualSqueezeBtcTrend1h（方案 B：双挤压 + BTC 1d SMA50 & 4h EMA50 闸门，−7% 止损 / +14% 止盈 / 18h，1.5 倍，复利 10 槽）
+- 本机独立数据 user_data/data/r5u160（Vision 1h 自建，159 对，剔除已下架 EOS），freqtrade 引擎按季度分块（钱包每块重置），原样策略代码。
+- 首次读取该策略的 HOLDOUT（对方未记录过）。
+| 费率 | TRAIN | VALID-C | HOLDOUT | V+HO t |
+|---|---|---|---|---|
+| 0.10% | n1222 +43bp PF1.16 t1.17 | n415 +84bp PF1.38 t0.80，单日占 98% | **n960 −20bp PF0.91** | 0.31 |
+| 0.06% | n1224 +54bp PF1.20 t1.45 | n417 +93bp PF1.43 t0.88 | **n963 −8bp PF0.96** | 0.59 |
+- 判定：否（t 远低于 2、HOLDOUT 为负）。不建议据此上 dry-run 之外的资金。
+- 内存事件：159 对全周期单次回测 MemAvailable 跌至 212MB，已终止并改为季度分块（峰值约 540MB）。

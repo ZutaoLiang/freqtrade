@@ -305,3 +305,10 @@ binance-hist futures feather 无 `quote_volume`、funding 费率在 `open` 列�
   - 加入 **BTC 宏观趋势闸口**（BTC 1d > SMA50 且 4h > EMA50 做多；相反做空）：实现牛市、震荡市、熊市 100% 季度全盈利。
   - 实盘配置文件已配置并落地于 [`config-dualsqueeze-b-dryrun.json`](file:///root/freqtrade/config-dualsqueeze-b-dryrun.json)，支持 100 USDT 本金以每笔 10 USDT（或动态总资产/10）进行安全复利滚动。
 
+### E4. 两个"落地"策略的独立复核（2026-09-25）
+- **R24 FundingExhaustionShort5m**：本机独立数据 TRAIN −12bp（4h 结算币 +62bp、8h 结算币 −93bp，结论随宇宙翻号）；
+  VALID-C +223bp t3.30、HOLDOUT +56bp PF1.26，但样本外利润 83-91% 来自 ARC，剔除 ARC 后 V+HO t1.27（对方 ex-ARC t1.35）→ 否。
+- **DualSqueezeBtcTrend1h**（双挤压 + BTC 趋势闸门，已配 dry-run）：freqtrade 原样代码、自建 U160 数据；0.10% / 0.06% 费率下
+  TRAIN +43 / +54bp（t ≤ 1.45），VALID-C +84 / +93bp（t ≤ 0.88，单日占利润 89-98%），**HOLDOUT −20 / −8bp（PF 0.91 / 0.96）** → 否。
+- 教训：`user_data/minute_research/<rN>/` 这类通用目录名会在会话之间撞车；新研究目录用带主题的名字（如 r3_tpsl、r5_live），日志尽早纳入 git。
+
