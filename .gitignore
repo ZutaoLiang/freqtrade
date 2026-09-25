@@ -10,6 +10,16 @@ user_data/*
 !user_data/models
 !user_data/freqaimodels
 !user_data/strategies
+!user_data/minute_research
+user_data/minute_research/**/*.parquet
+user_data/minute_research/**/*.h5
+user_data/minute_research/**/*.feather
+user_data/minute_research/**/*.sqlite*
+user_data/minute_research/**/*.zip
+user_data/minute_research/**/*.out
+user_data/minute_research/**/dl_*.txt
+user_data/minute_research/**/__pycache__
+user_data/minute_research/**/.ipynb_checkpoints
 user_data/freqaimodels/*
 user_data/models/*
 user_data/notebooks/*
@@ -118,3 +128,5 @@ target/
 !config_examples/config_freqai.example.json
 
 docker-compose-*.yml
+
+*.feather

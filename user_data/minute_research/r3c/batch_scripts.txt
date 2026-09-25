@@ -1,0 +1,10 @@
+batch1_f1_f2.py
+batch2_f3_f4.py
+batch3_f5_f6.py
+batch4_f7_f8.py
+batch5_f9_f10.py
+exp500_batch1_squeeze.py
+exp500_batch2_orderflow.py
+exp500_batch3_oi.py
+exp500_batch4_funding.py
+exp500_batch5_hybrids.py

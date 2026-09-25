@@ -1,0 +1,41 @@
+round,name,n,mean_bp,med_bp,win,pf,day_t,per_day,status
+131,FR Cum72h < -0.3% Long Rebound,3592,-56.53,-108.0,0.404,0.744,-1.4,39.91,REJECT
+132,FR Cum72h > +0.3% Short Exhaust,3104,32.31,31.16,0.543,1.198,1.0,34.49,PROFITABLE
+133,FR 8h Delta Momentum Follow,2132,-38.36,-34.18,0.468,0.829,-1.35,23.69,REJECT
+134,"Spot-Led Rally (Price Up, FR<=0)",1295,-85.52,-140.21,0.377,0.672,-2.07,14.39,REJECT
+135,FR<-0.05% Short Squeeze Break,117,-126.64,-176.04,0.325,0.638,-1.76,1.3,REJECT
+136,FR>+0.08% Long Flush Breakdown,8,492.44,-321.15,0.5,1.964,0.57,0.09,PROFITABLE
+137,FR MA Cross + 4h Trend,8095,-21.26,-20.0,0.48,0.891,-0.79,89.94,REJECT
+138,Multi-Settlement FR Short (Filtered),20,302.86,61.18,0.6,2.683,0.93,0.22,PROFITABLE
+139,FR 14d Z-Score Mean Reversion,748,13.89,-22.45,0.483,1.075,0.26,8.31,PROFITABLE
+140,High-FR Alt Short in Macro Bear,44,203.47,102.26,0.682,2.162,1.22,0.49,PROFITABLE
+141,FR Zero-Cross Momentum Burst,1098,-80.57,-115.27,0.385,0.66,-1.51,12.2,REJECT
+142,FR Extreme Spike Decay Fade,5,-20.16,102.32,0.6,0.945,-0.05,0.06,REJECT
+143,FR-Discount Trend Following,5189,-11.89,-15.36,0.483,0.939,-0.32,57.66,REJECT
+144,FR Volatility-Normalized Stretch,1589,-63.0,-79.05,0.405,0.712,-2.01,17.66,REJECT
+145,FR Capitulation Rebound Long,39,175.09,16.66,0.538,2.224,1.39,0.43,PROFITABLE
+146,FR Dislocation + ATR SL/TP,47,-82.13,-270.0,0.255,0.551,-1.46,0.52,REJECT
+147,FR 5-Period Exhaustion Short,20,267.65,579.31,0.7,1.466,0.52,0.22,PROFITABLE
+148,FR Trend-Aligned Carry Bias,532,-138.54,-201.92,0.368,0.609,-2.77,5.91,REJECT
+149,FR Bullish Divergence at Lows,1226,73.76,57.91,0.56,1.5,1.44,13.62,PROFITABLE
+150,FR Extreme + 4h SuperTrend,581,-100.98,-144.75,0.368,0.65,-2.37,6.46,REJECT
+151,OI Surge + Price Breakout Follow,573,-111.16,-226.13,0.353,0.687,-1.76,6.37,REJECT
+152,OI Absorption Coiled Spring Break,5,-56.96,-66.8,0.4,0.585,-0.48,0.06,REJECT
+153,OI Collapse Cascade Continuation,111,-177.24,-189.34,0.288,0.457,-1.38,1.23,REJECT
+154,OI Flush Climax Snapback Long,11,157.86,20.99,0.545,3.906,1.28,0.12,PROFITABLE
+155,OI 7d Expansion + Trend Consensus,1213,-79.56,-143.2,0.399,0.744,-1.62,13.48,REJECT
+156,OI Bearish Divergence at Highs,17,13.93,77.65,0.588,1.116,0.14,0.19,PROFITABLE
+157,OI Bullish Accumulation at Lows,31,-134.6,-181.22,0.387,0.59,-1.25,0.34,REJECT
+158,OI Build + Negative FR Squeeze,338,-118.71,-186.04,0.349,0.615,-2.6,3.76,REJECT
+159,OI Build + Positive FR Long Squeeze,14,768.21,406.31,0.714,6.103,1.51,0.16,PROFITABLE
+160,Post-Flush Stabilization Reclaim,283,-74.2,-114.31,0.41,0.723,-0.85,3.14,REJECT
+161,Top-Trader + OI Joint Expansion,1097,-97.12,-156.7,0.376,0.666,-1.86,12.19,REJECT
+162,OI Velocity Spike Follow,5911,-36.04,-40.34,0.457,0.808,-1.21,65.68,REJECT
+163,OI Breakout + Tight SL/TP,7163,-11.41,-270.0,0.379,0.927,-0.49,79.59,REJECT
+164,OI 7d ATH Rejection Short,625,21.55,-20.0,0.362,1.216,0.78,6.94,PROFITABLE
+165,Fast 1h OI Flush Snapback,0,0.0,0.0,0.0,0.0,0.0,0.0,REJECT
+166,Coiled Spring Low-Vol OI Break,131,-89.81,-201.0,0.366,0.69,-1.03,1.46,REJECT
+167,OI/Turnover Ratio Spike,5035,18.07,7.76,0.512,1.115,0.62,55.94,PROFITABLE
+168,Persistent 20h OI Inflow Trend,1117,-17.24,-59.49,0.449,0.923,-0.27,12.41,REJECT
+169,Post-Flush Bottom + Dynamic SL/TP,113,-20.8,-275.32,0.381,0.88,-0.38,1.26,REJECT
+170,OI Mom + 4h SuperTrend Cross,1502,-52.8,-70.42,0.436,0.771,-1.46,16.69,REJECT

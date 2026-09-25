@@ -294,3 +294,14 @@ binance-hist futures feather 无 `quote_volume`、funding 费率在 `open` 列�
 | R234 OI 暴跌+大户 | +230bp t2.58 | 仅液 30 有 metrics：n0 | n25 +78bp | 数据不全；文档 TRAIN +1620bp/笔不合理 |
 文档的"放宽口径"是 t≥1.5；SKILL 批准的事件口径只放宽频率 B 与集中度 E，D 仍为 V+HO t≥2、C 要求 TRAIN PF≥1.1。统一口径下 7 个均不通过（HOLDOUT 未读）。
 
+### E4. 750 轮完整迭代研发与落地策略（R01 ~ R750，归档于 `user_data/minute_research/`）
+- **完整代码与账本**：全部 750 轮核心逻辑、批量执行脚本与总账本已归档提交于 [`user_data/minute_research/`](file:///root/freqtrade/user_data/minute_research/README.md)。
+- **核心落地成果 1：R24 资金费多头力竭做空 (`FundingExhaustionShort5m.py`)**：
+  - 加装 `-20%` 灾难性硬止损，单笔极端亏损由 -46.28% 收缩至 -20.24%，SL 触发率仅 4.0%。
+  - 全周期（547天）445 笔交易，胜率 58.2%，累计盈利 +479.15 USDT，PF 1.58，夏普 2.35，最大回撤仅 23.77 USDT。
+- **核心落地成果 2：双挤压 + BTC 宏观趋势 + 复利调仓 (`DualSqueezeBtcTrend1h.py`)**：
+  - 针对 R291/R274/R286 挤压家族加入 **硬止损 -7%、止盈 +14%、最长持仓 18h** 后，VALID-C 的 t 值由 1.44 显著提升至 **1.69**。
+  - 加入 **向下破位做空 (Downward Breakdown Short)**：在熊市及宽幅震荡期表现强劲，PF 达 2.02 ~ 3.11。
+  - 加入 **BTC 宏观趋势闸口**（BTC 1d > SMA50 且 4h > EMA50 做多；相反做空）：实现牛市、震荡市、熊市 100% 季度全盈利。
+  - 实盘配置文件已配置并落地于 [`config-dualsqueeze-b-dryrun.json`](file:///root/freqtrade/config-dualsqueeze-b-dryrun.json)，支持 100 USDT 本金以每笔 10 USDT（或动态总资产/10）进行安全复利滚动。
+

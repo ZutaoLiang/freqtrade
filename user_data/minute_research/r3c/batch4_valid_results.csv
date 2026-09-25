@@ -1,0 +1,41 @@
+round,name,n,mean_bp,med_bp,win,pf,day_t,per_day,status
+171,MTF Fair Value Gap (FVG) Retest,932,-42.5,-63.01,0.418,0.788,-0.93,10.36,REJECT
+172,Break of Structure (BOS) + 4h,6690,-8.66,-8.97,0.49,0.954,-0.23,74.33,REJECT
+173,Liquidity Sweep Judas Swing,2703,-6.85,8.74,0.515,0.957,-0.22,30.03,REJECT
+174,PDH/PDL Sweep Reversal,8238,-28.32,-20.0,0.471,0.806,-1.46,91.53,REJECT
+175,EQH Liquidity Grab Breakout,150,-100.98,-96.67,0.32,0.494,-2.61,1.67,REJECT
+176,London Session Sweep Reclaim,1187,-4.75,7.32,0.513,0.965,-0.11,13.19,REJECT
+177,Inside Bar Breakout + 4h Trend,8225,-18.73,-11.14,0.484,0.884,-0.86,91.39,REJECT
+178,Engulfing Bar + 4h Trend,6468,-14.57,-20.0,0.481,0.913,-0.59,71.87,REJECT
+179,Pin Bar Rejection at 50 EMA,1315,-85.31,-92.94,0.377,0.559,-1.96,14.61,REJECT
+180,Swing Failure Pattern (SFP) 48h,1077,-2.33,13.11,0.514,0.986,-0.07,11.97,REJECT
+181,NR4 Volatility Expansion Break,10693,-7.63,-3.64,0.495,0.953,-0.32,118.81,REJECT
+182,Wide Range Bar Follow Through,1071,-135.98,-130.27,0.398,0.504,-1.28,11.9,REJECT
+183,Tight Box (<3%) Breakout,791,26.44,26.08,0.544,1.267,0.67,8.79,PROFITABLE
+184,3-Bar Higher Lows 4h Trend,3475,-87.39,-110.64,0.372,0.615,-1.93,38.61,REJECT
+185,Price Action Channel (PAC) Break,9054,-32.07,-33.58,0.463,0.835,-1.08,100.6,REJECT
+186,Extreme Wick Exhaustion Fade,2263,60.56,37.54,0.546,1.5,1.11,25.14,PROFITABLE
+187,Triangle Compression Breakout,991,67.59,57.87,0.589,1.5,1.57,11.01,PASS_VALID
+188,FVG + Donchian Confluence,216,-73.26,-176.67,0.366,0.72,-0.82,2.4,REJECT
+189,SFP Reversal + Dynamic SL/TP,964,55.02,-20.0,0.494,1.442,1.19,10.71,PROFITABLE
+190,24h Break + 4h ST + SL/TP,7413,14.18,-320.0,0.404,1.08,0.35,82.37,PROFITABLE
+191,XS 24h Momentum Top/Bottom 10%,2880,-45.15,-20.0,0.445,0.808,-2.95,32.0,REJECT
+192,XS 7d Mom Leader Dip Buyer,387,-70.01,-109.55,0.382,0.693,-1.39,4.3,REJECT
+193,XS Volume Share Surge Leaders,450,-78.19,-117.23,0.398,0.74,-1.48,5.0,REJECT
+194,XS Vol-Adjusted Momentum Spread,2880,-44.27,-20.0,0.445,0.799,-3.13,32.0,REJECT
+195,XS Top-Trader LS Factor Spread,2700,-16.88,-20.0,0.479,0.912,-2.21,30.0,REJECT
+196,XS Funding Rate Carry Spread,2700,-11.11,-20.0,0.479,0.945,-1.17,30.0,REJECT
+197,XS Low-Volatility Anomaly,2880,10.34,-20.0,0.423,1.062,0.66,32.0,PROFITABLE
+198,XS OI 24h Growth Spread,2880,-34.64,-22.34,0.465,0.848,-3.1,32.0,REJECT
+199,XS 24h Mean Reversion Spread,2880,5.21,-20.0,0.469,1.025,0.34,32.0,PROFITABLE
+200,XS Price Acceleration Factor,2880,-32.62,-20.0,0.443,0.855,-2.44,32.0,REJECT
+201,XS Multi-Factor Composite Spread,2700,-48.96,-33.81,0.465,0.798,-3.58,30.0,REJECT
+202,XS Long-Only Mom in 1d Bull,0,0.0,0.0,0.0,0.0,0.0,0.0,REJECT
+203,XS Short-Only Laggards in 1d Bear,450,-23.98,24.16,0.527,0.905,-0.51,5.0,REJECT
+204,XS 48h Momentum 48h Rebalance,1440,-47.7,-20.0,0.447,0.847,-1.52,16.0,REJECT
+205,XS Turnover Velocity Factor,450,-112.83,-164.83,0.382,0.677,-2.11,5.0,REJECT
+206,XS Low-Beta 7d Safe Havens,65,-20.0,-20.0,0.0,0.0,0.0,0.72,REJECT
+207,XS High-Beta Laggard Catch-Up,375,-114.81,-172.12,0.341,0.572,-2.17,4.17,REJECT
+208,XS 24h Mom + SL/TP (3:6),1053,-5.57,-320.0,0.366,0.97,-0.29,11.7,REJECT
+209,XS Quintile Momentum Spread,5760,-37.52,-20.0,0.445,0.822,-3.62,64.0,REJECT
+210,XS Mom Filtered by BTC 4h Trend,1440,-27.9,-20.0,0.478,0.881,-0.63,16.0,REJECT

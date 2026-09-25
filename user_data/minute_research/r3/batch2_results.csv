@@ -1,0 +1,41 @@
+round,name,n,mean_bp,med_bp,win,pf,day_t,per_day,status
+91,Top-Trader LS Div Accumulation,6476,-21.2,-61.32,0.449,0.913,-0.48,23.72,REJECT
+92,Top-Trader LS Surge + Taker Flow,3064,-82.96,-43.4,0.461,0.72,-1.34,11.22,REJECT
+93,Taker Buy 4h Surge >65%,70,-5.37,-35.85,0.429,0.962,-0.1,0.26,REJECT
+94,Taker Climax Exhaustion Fade,6,35.92,-56.01,0.333,1.697,0.5,0.02,REJECT
+95,Quote Vol Breakout + 4h Trend,6543,-42.84,-99.27,0.421,0.856,-0.92,23.97,REJECT
+96,Retail Count Frenzy Fade,7,-1858.27,55.19,0.571,0.083,-1.11,0.03,REJECT
+97,Inst Block Flow Follow,220,85.47,-23.34,0.473,1.464,1.37,0.81,REJECT
+98,Taker Flow 3-Bar Persistence,587,9.86,-16.33,0.48,1.069,0.36,2.15,REJECT
+99,RVOL 5x Explosion Breakout,3723,22.89,-9.14,0.491,1.09,0.47,13.64,REJECT
+100,Top-Trader LS 24h Delta Mom,14158,-11.44,-26.9,0.475,0.953,-0.46,51.86,REJECT
+101,Top-Trader Short Squeeze Hunter,164,89.85,-23.93,0.463,1.415,1.09,0.6,REJECT
+102,Volume Climax Absorption Pin,824,191.48,-0.39,0.5,2.073,0.89,3.02,REJECT
+103,Low-Vol Breakout Fade Short,748,56.59,56.06,0.552,1.399,0.75,2.74,REJECT
+104,Heavy Sell Volume Trap Reclaim,130,126.08,-24.78,0.477,1.592,0.94,0.48,REJECT
+105,Taker Flow Reversal in Oversold,73,0.27,60.29,0.534,1.001,0.0,0.27,REJECT
+106,Taker Surge + ATR Expansion,296,64.56,44.35,0.534,1.493,1.47,1.08,REJECT
+107,Top-Trader + 4h SuperTrend Bull,10393,-68.19,-79.85,0.434,0.756,-1.78,38.07,REJECT
+108,Top-Trader + 4h SuperTrend Bear,311,-153.43,-46.93,0.463,0.54,-2.56,1.14,REJECT
+109,Volume Surge 50-EMA Breakout,1587,-7.18,-44.13,0.459,0.971,-0.16,5.81,REJECT
+110,Volume Weighted Momentum Thrust,8218,-4.44,-61.74,0.452,0.984,-0.1,30.1,REJECT
+111,BBW 7d Compression Breakout,3882,-29.57,-27.54,0.473,0.874,-0.7,14.22,REJECT
+112,ATR Ratio Compression Break,182,-48.75,-44.32,0.451,0.815,-0.71,0.67,REJECT
+113,HV24 Pinch into Expansion,953,-3.06,-32.44,0.481,0.989,-0.05,3.49,REJECT
+114,CHOP<38 Trend Momentum Cross,603,-127.22,-156.55,0.38,0.638,-2.07,2.21,REJECT
+115,CHOP>62 Range Boundary Fade,60,-28.31,-72.98,0.433,0.86,-0.31,0.22,REJECT
+116,ADX Compression Hook Breakout,2351,-35.17,-39.3,0.467,0.859,-0.99,8.61,REJECT
+117,TTM Squeeze Release + 4h ST,4990,-33.54,-44.01,0.462,0.859,-0.89,18.28,REJECT
+118,NATR 2.5x Spike Capitulation Snap,172,941.92,1187.16,0.779,7.818,1.03,0.63,REJECT
+119,4h Vol Compression + 1h Donchian,5693,15.08,-21.13,0.487,1.054,0.32,20.85,REJECT
+120,High-Vol Breakout + SL/TP (2:4),20337,-7.75,-270.0,0.362,0.953,-0.53,74.49,REJECT
+121,Low-Vol Drift Trend Follow,12362,-42.31,-54.8,0.455,0.857,-1.26,45.28,REJECT
+122,Donchian Break + Dynamic TP/SL,29621,0.46,-320.0,0.376,1.002,0.03,108.5,REJECT
+123,Solid Marubozu Vol Expansion,9535,25.89,-21.9,0.479,1.121,0.7,34.93,REJECT
+124,GK Vol Spike Exhaustion Rebound,179,-117.54,-150.52,0.307,0.465,-1.25,0.66,REJECT
+125,NR7 Range Expansion Breakout,11847,-5.29,-31.13,0.469,0.974,-0.25,43.4,REJECT
+126,Vol Pinch + Pre-Vol Building,1880,-40.93,-59.34,0.445,0.818,-1.09,6.89,REJECT
+127,Dual 4h/1h MTF Squeeze Break,2104,64.89,40.87,0.533,1.312,1.54,7.71,PASS_TRAIN
+128,ATR + Volume Surge Momentum,4136,-35.32,-76.57,0.448,0.888,-0.71,15.15,REJECT
+129,Vol-Adjusted Return Spike Follow,4440,7.33,-20.0,0.483,1.028,0.13,16.26,REJECT
+130,Regime-Filtered 20-EMA Cross,3336,-56.04,-62.54,0.446,0.794,-1.69,12.22,REJECT

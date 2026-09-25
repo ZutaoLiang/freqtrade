@@ -1,0 +1,41 @@
+round,name,n,mean_bp,med_bp,win,pf,day_t,per_day,status
+211,BTC 4h Bull Gated Alt Breakout,5501,-45.29,-49.48,0.448,0.784,-0.93,61.12,REJECT
+212,BTC Low-Vol Calm Alt Breakout,6637,-9.0,-7.12,0.491,0.952,-0.24,73.74,REJECT
+213,BTC 24h Surge Alt Momentum Follow,1222,6.06,-37.18,0.471,1.032,0.07,13.58,PROFITABLE
+214,BTC 6% Overextension Alt Fade,264,78.05,90.34,0.606,1.84,0.61,2.93,PROFITABLE
+215,ETH/BTC Altseason Breakout Gating,1641,-97.11,-160.98,0.374,0.633,-1.36,18.23,REJECT
+216,BTC Capitulation Spillover Snap,794,83.38,49.1,0.562,1.87,0.95,8.82,PROFITABLE
+217,Alt Relative Strength in BTC Chop,605,-79.69,-168.87,0.375,0.745,-0.81,6.72,REJECT
+218,Alt Relative Weakness Short,2499,-68.98,-85.07,0.409,0.663,-1.03,27.77,REJECT
+219,BTC FR Regime Transmission,1736,-159.94,-173.46,0.282,0.409,-1.93,19.29,REJECT
+220,Market Breadth Gated EMA Cross,7186,-10.47,1.22,0.501,0.943,-0.26,79.84,REJECT
+221,Alt Market Breadth Thrust Follow,1344,-270.58,-303.48,0.289,0.339,-1.81,14.93,REJECT
+222,BTC Taker Flow Spillover Follow,2072,41.73,24.49,0.535,1.424,0.98,23.02,PROFITABLE
+223,BTC+Alt Dual SuperTrend Break,4323,-57.26,-51.57,0.437,0.729,-1.16,48.03,REJECT
+224,BTC Macro 100d Filter MA Cross,9772,9.42,0.44,0.501,1.057,0.27,108.58,PROFITABLE
+225,Beta-Residual Breakout Long,2086,-67.86,-116.82,0.39,0.747,-1.33,23.18,REJECT
+226,BTC Dump Rebound Leader,950,66.02,-19.29,0.479,1.48,0.54,10.56,PROFITABLE
+227,High Alt Dispersion Breakout,1077,-77.71,-46.02,0.447,0.7,-0.74,11.97,REJECT
+228,Weekend Alt Momentum Breakout,2222,18.75,14.27,0.517,1.11,0.28,24.69,PROFITABLE
+229,BTC OI Inflow Alt Breakout,193,-341.5,-456.86,0.249,0.172,-1.26,2.14,REJECT
+230,BTC Bull + Alt Break + SL/TP,198,-197.78,-320.0,0.146,0.233,-1.6,2.2,REJECT
+231,Hybrid: Taker Surge+ATR+BTC Bull,220,-92.96,-76.15,0.373,0.502,-2.5,2.44,REJECT
+232,Hybrid: TT Long+Vol+4h Break,1030,-89.28,-133.86,0.376,0.658,-1.43,11.44,REJECT
+233,Hybrid: 1d Bull+FR Discount+Break,155,-115.43,-186.08,0.342,0.654,-1.6,1.72,REJECT
+234,Hybrid: OI Flush+TT Rebound,32,230.16,195.03,0.75,7.095,2.58,0.36,PASS_VALID
+235,Hybrid: FVG+4h ST+Low FR,991,-68.38,-111.67,0.398,0.713,-1.13,11.01,REJECT
+236,Hybrid: XS Leader 20-EMA Dip Reclaim,305,-179.02,-264.27,0.305,0.507,-2.01,3.39,REJECT
+237,Hybrid: Short Squeeze Triple Trigger,137,-101.48,-176.04,0.321,0.699,-1.56,1.52,REJECT
+238,Hybrid: Trend Dip + Dynamic SL/TP,62,-18.98,-270.0,0.339,0.881,-0.43,0.69,REJECT
+239,Hybrid: Vol + OI Dual Confirmation,717,-115.87,-230.74,0.346,0.661,-2.03,7.97,REJECT
+240,Hybrid: CMF Flow + 4h ST Cross,2642,-43.35,-7.32,0.489,0.762,-1.39,29.36,REJECT
+241,Hybrid: Keltner Break + ADX>25,8073,-23.2,-20.0,0.448,0.879,-0.72,89.7,REJECT
+242,Hybrid: Smart Money Long Divergence,509,-63.99,-59.84,0.415,0.682,-1.12,5.66,REJECT
+243,Hybrid: High-Beta Alt + BTC Protection,1317,-111.27,-179.96,0.38,0.619,-1.24,14.63,REJECT
+244,Hybrid: Donchian + ATR SL/TP (2:4),3852,-35.04,-220.0,0.312,0.768,-1.52,42.8,REJECT
+245,Hybrid: 3-of-4 Confluence Consensus,4400,-101.98,-159.73,0.34,0.593,-1.94,48.89,REJECT
+246,Hybrid: Multi-Factor Composite >=4.0,4082,-80.73,-118.51,0.382,0.648,-1.88,45.36,REJECT
+247,Hybrid: Multi-Factor + BTC Bull Gate,2723,-118.55,-172.23,0.342,0.537,-1.91,30.26,REJECT
+248,Hybrid: Regime-Switching Dual Arm,3169,-60.86,-64.57,0.419,0.715,-1.54,35.21,REJECT
+249,Hybrid: Conviction Breakout + SL/TP,70,10.74,-47.44,0.471,1.09,0.19,0.78,PROFITABLE
+250,Master MTF 1d/4h/1h Consensus,3835,-13.15,-5.99,0.495,0.926,-0.29,42.61,REJECT
