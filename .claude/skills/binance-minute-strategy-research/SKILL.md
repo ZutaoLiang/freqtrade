@@ -18,6 +18,7 @@ description: 在任意服务器上从零做 Binance USDT-M 永续分钟级策略
 | `scripts/validate_datadir.py` | 找出 freqtrade 不会报错的静默数据问题（资金费覆盖、join、缺口、dtype） |
 | `scripts/make_whitelist.py` | 只用 TRAIN 窗口按流动性排名选交易对，剔除并列出缺杠杆档位的交易对 |
 | `scripts/harness.py` | numba 快速预筛：与 freqtrade 同样的成交约定，按日聚类统计 |
+| `scripts/panel_engine.py` | 基于 Binance Vision 预编译面板的大规模 Numba 向量化筛选引擎（700+ 轮全宇宙高吞吐秒级回测，零前视因果对齐） |
 | `scripts/bt_runner.py` | freqtrade 串行分块回测 + 汇总（IS/OOS、月度、资金费检查、峰值内存） |
 | `templates/TemplateIndicatorStrategy.py` | 策略模板（多周期、收盘价止损、时间出场、指标库回落） |
 | `templates/backtest-config.example.json` | futures 回测配置模板 |
@@ -60,9 +61,12 @@ python3 $K/validate_datadir.py --datadir user_data/data/binance --csv /tmp/audit
 
 ## 3. 切分、宇宙与成本（每个项目开始时定一次，写进迭代日志）
 
-- **三段切分**（50 轮迭代会把单一 OOS 用成 IS）：TRAIN（~50%）用于构思与调参；VALID（~25%）每个
-  幸存候选读一次，用于在候选之间取舍；HOLDOUT（最后 ~25%，至少 3 个月）**只在宣布最终策略时读一次**。
-  例：2025-01~2025-09 / 2025-10~2026-02 / 2026-03~2026-08。
+- **样本切分与隔离期纪律（方案 C 标准口径）**：
+  - **TRAIN（构思与调参期，~9 个月）**：`2025-01-01` 至 `2025-10-01`（即 2025-01 ~ 2025-09）。
+  - **EXCLUDED（隔离期，跳过 10 月与 11 月）**：`2025-10-01` 至 `2025-11-30`。
+    - **跳过原因**：2025年10月10日爆发了加密历史最大爆仓（10/10 事件），Binance 平台因 USDe 脱锚及预言机定价故障导致资产划转与风控子系统降级、止损单失效与连锁穿仓，产生大量非市场化的长下影线与断崖跳跃异常数据；随后的官方赔付与预言机机制修补持续至 10 月下旬，11 月则处于极端的持续去杠杆余波中。为消除该不可复现的交易所技术异常对回测结果的严重污染与假性过拟合，研究纪律严格跳过 10 月与 11 月整整两个月。
+  - **VALID（样本外验证期，~3 个月）**：`2025-12-01` 至 `2026-03-01`。行情重回稳定常态，每个幸存候选读一次，用于在候选之间取舍。
+  - **HOLDOUT（最终盲测期）**：从 VALID 之后到本地数据的最新时间。**只在宣布最终策略时读一次**（保持严格未读密封）。
 - 宇宙：`make_whitelist.py --rank-start <TRAIN 起> --rank-end <TRAIN 止>`，只用 TRAIN 窗口的流动性排名
   （用全样本排名会把"后来变大的币"选进来）。它会剔除并列出 freqtrade 缺杠杆档位的交易对——最新上线的
   币往往就在其中，这是必须写进报告的幸存者偏差。
@@ -106,19 +110,31 @@ TradingView 公开脚本、论文与博客里的自定义指标、freqtrade 社�
 （否则 freqtrade 2026.x 不调用 `custom_exit`）、收盘价止损（1m 插针会扫掉最终盈利的单子）、时间出场、
 杠杆 1。
 
-### 5.3 先 harness 预筛，再上 freqtrade
+### 5.3 先 Numba / harness 快速预筛，再上 freqtrade 官方引擎复核
 
-```python
-import sys; sys.path.insert(0, ".claude/skills/binance-minute-strategy-research/scripts")
-import numpy as np, harness as H
-d = H.load("user_data/data/binance", "BTC", "1m")
-sig = np.where(<条件>)[0]
-tr = H.run(d, sig, side=+1, hold=60, sl=0.01, cost_bps=7.5)
-print(H.report({"BTC": tr}, oos_start="<VALID 起点>"))     # TRAIN 行才用于决策
-```
+分钟级与多周期全宇宙策略研究分为两个紧密配合的阶段：
 
-harness 与 freqtrade 同样的成交约定（下一根开盘成交、同 bar 止损优先、算术收益），但**不计资金费**。
-freqtrade 复核时每笔差异中位数应在几十 bp 以内；差很多先查实现，不要调参。
+1. **第一阶段：大规模高通量预筛选（Numba 面板架构，实现参考 `scripts/panel_engine.py`）**
+   - **痛点**：单进程 `freqtrade backtesting` 回测 700+ 策略需 300~400 小时，无法进行高通量探索与深度网格搜索。
+   - **方案**：将全量币种的多周期（1h/4h/1d/15m）数据预编译为连续内存映射 numpy 张量面板（`open, high, low, close, volume, taker_buy_volume, funding_rate, oi` 等，位于 `user_data/data/binance_public/panels/`）。
+   - **严格对齐 freqtrade 成交纪律**：
+     - **严格零前视**：高周期指标因果平移对齐（`map_htf_to_ltf` 取前一已收盘大周期 Bar）。
+     - **Next-bar open 成交**：当前 Bar 收盘信号触发，强制在下一 Bar 的 Open 撮合成交。
+     - **全额 Taker 成本**：单边 10 bps（双边 20 bps，主流 7.5 bps）。
+     - **一币一仓硬约束**：在已有持仓未出场前，同一币种绝不重复开仓。
+     - **统计规范**：自动输出日度收益均值、日度标准差、日度 $t$-statistic、年化夏普比率，以及单币/单日收益集中度。
+   - **单币/轻量探索**：可用 `scripts/harness.py` 快速测试单个交易对的信号逻辑：
+     ```python
+     import sys; sys.path.insert(0, ".claude/skills/binance-minute-strategy-research/scripts")
+     import numpy as np, harness as H
+     d = H.load("user_data/data/binance", "BTC", "1m")
+     sig = np.where(<条件>)[0]
+     tr = H.run(d, sig, side=+1, hold=60, sl=0.01, cost_bps=7.5)
+     print(H.report({"BTC": tr}, oos_start="<VALID 起点>"))     # TRAIN 行才用于决策
+     ```
+
+2. **第二阶段：freqtrade 官方引擎原生复核（必须满足 §4 条件 A）**
+   - 通过 Numba 高通量预筛锁定出顶级候选策略（如 R24 资金费率衰竭做空、R291 双重挤压突破）后，编写标准 `IStrategy` 文件（如 `user_data/strategies/FundingExhaustionShort5m.py`），生成配套回测配置，在官方 freqtrade 引擎上端到端执行回测对账、资金费确认与 `lookahead-analysis`。
 
 ### 5.4 小内存主机上的 freqtrade 回测
 
