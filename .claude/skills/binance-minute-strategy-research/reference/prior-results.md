@@ -271,3 +271,11 @@ binance-hist futures feather 无 `quote_volume`、funding 费率在 `open` 列�
 - 马丁格尔/加仓类策略按块回测会在块末强平，把尾部"提前实现"同时隐藏块内浮亏；报告里必须单列 force_exit。
 
  (docs(skill): update binance-minute-strategy-research with Option C split, dynamic HOLDOUT, and Numba panel engine)
+
+### E2. 方案 C 复核（排除 2025-10..11 后，r3/r4/r5 所有进入过 VALID 的候选）
+- 隔离期对多数"做多类"候选是重亏段（KST 日线隔离期 −1309bp/笔），剔除后 VALID 普遍改善，但除一例外仍无显著者：
+  f10 4h +143bp t1.41；KST 日线 +135bp t0.65；YoungListingFadeUp +144bp t0.97；NFI X6 VALID-C +4% 但 HOLDOUT −1.4%。
+- r3 35 族的 TRAIN 最佳格在 VALID-C：11 族净正、0 族 t≥2，收益主要来自空头腿（VALID-C 为下跌段）。
+- 唯一例外：**KST 日线 + BTC 30 日已实现波动 < 180 日中位数**，VALID-C n101、+1740bp、PF9.3、t3.1，参数 ±20% 全稳；
+  但 101 笔全在 2026-01、46 笔集中在 4 天（单一事件），且为读过 VALID 后派生的变体。§4 不过（B、E）；事件口径形式上通过，HOLDOUT 未读。
+
