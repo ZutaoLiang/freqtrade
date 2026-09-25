@@ -44,6 +44,8 @@
   * **网格稳健性（Zero-Failure）**：R286~R295 整个参数网格（Taker 比例 55%~75%，持有 18h~24h 共 10 组参数），**10 组在 TRAIN 与 VALID-C 全部净盈利（PF 1.19~3.63）**，无任何参数孤岛。
   * **手续费 1.5 倍压力测试**：VALID 压力测试后净利仍有 **+93.3 bp**，压力 PF = **1.83**。
 
+> ⚠️ **双挤压族复核（2026-09-25）**：`DualSqueezeBtcTrend1h` 在独立数据上 HOLDOUT 为负（PF 0.91–0.96）；R291 / R1002 依赖的 Taker 买入占比在 Vision 原始 1h 数据中 > 0.60 的小时仅 4.2%、> 0.66 仅 0.8%。数据口径核对清单见**第七节**。
+
 ---
 
 ### 2. 衍生品结构冠军：R24（多结算周期资金费率衰竭做空）
@@ -74,6 +76,8 @@
     * 累计纯利润 **+479.15 USDT**（单笔期望收益 **+1.08%**）。
     * 综合盈亏比 **PF = 1.58**，全周期 **Sharpe = 2.35**，Sortino = 3.05，最大回撤仅 **0.09%**。
     * 全程止损触发率仅 **4.0%**（18/445 笔），96% 交易平稳完成 8 小时完整周期，彻底消除了妖币爆仓隐患。
+
+> ⚠️ **待排查（2026-09-25 独立复核）**：在完全相同的 U162 上、补齐资金费后，本机 TRAIN 为 **1452 笔 −18 bp、PF 0.90**（本文 249 笔 +102 bp）。VALID-C / HOLDOUT 两边一致，唯独 TRAIN 笔数差约 6 倍，疑为 `r3b` 的 2025 年资金费缺失。排查步骤见**第七节**；排查前不要把 R24 的 TRAIN 结论当作已验证。
 
 ---
 
@@ -262,7 +266,78 @@ R24 使用 freqtrade 引擎（`FundingExhaustionShort5m`，真实资金费）。
 - **参数平台稳健性**：止损 6%~8%、止盈 12%~16% 变动下，各周期 PF 稳定在 1.65 ~ 3.08 之间，无参数孤岛。
 - **手续费 1.5 倍加压**：TRAIN PF 2.86，VALID-C PF 1.66，HOLDOUT PF 1.69，全部稳健存活。
 
+> ⚠️ **双挤压族复核（2026-09-25）**：`DualSqueezeBtcTrend1h` 在独立数据上 HOLDOUT 为负（PF 0.91–0.96）；R291 / R1002 依赖的 Taker 买入占比在 Vision 原始 1h 数据中 > 0.60 的小时仅 4.2%、> 0.66 仅 0.8%。数据口径核对清单见**第七节**。
+
 ### 4. 工业级落地
 - **策略代码**：[`user_data/strategies/MacroRelativeStrengthSqueeze1h.py`](file:///root/freqtrade/user_data/strategies/MacroRelativeStrengthSqueeze1h.py)
 - **实盘配置**：[`config-rs-squeeze-dryrun.json`](file:///root/freqtrade/config-rs-squeeze-dryrun.json)
 - **研发档案与总账本**：[`user_data/minute_research/r4_mtf/REPORT_300_ROUNDS.md`](file:///root/freqtrade/user_data/minute_research/r4_mtf/REPORT_300_ROUNDS.md)
+
+---
+
+## 七、独立复核与需要另一会话排查的数据问题（2026-09-25，本机会话 `/root/workspace/freqtrade`）
+
+复核数据全部在本机独立重建：Binance Vision 原始 1h K 线（含 `taker_buy_volume`）+ Vision 月度 `fundingRate` 原始结算记录，
+宇宙分别用本文的 **U162（`r3c/r24_config.json` 白名单，逐币相同）** 与本机 U160；R24 在结算后下一根 1h 开盘入场（T+0 诊断结果相同），
+DualSqueeze 用 freqtrade 引擎原样运行本仓库的策略代码。记录：`user_data/minute_research/r5_live/LOG.md`，脚本 `scripts/minute_research/r5/`。
+
+### 1. R24（`FundingExhaustionShort5m`）：TRAIN 笔数对不上，疑似 `r3b` 缺 2025 年资金费
+
+| 口径 | TRAIN | VALID-C | HOLDOUT | VALID+HOLDOUT |
+|---|---|---|---|---|
+| 本文（`r3b`，5m） | **249 笔**，+102 bp，PF 1.53 | 99 笔，+177 bp，PF 2.06 | 97 笔，+51 bp，PF 1.23 | 剔除 ARC t 1.35 |
+| 本机，同一 U162，资金费补全 | **1452 笔，−18 bp，PF 0.90** | 132 笔，+222 bp，PF 2.80（ARC 85%） | 86 笔，+83 bp，PF 1.71 | t 3.43；**剔除 ARC t 1.39** |
+
+- VALID-C 与 HOLDOUT 的笔数、方向两边一致，**只有 TRAIN 差约 6 倍**。R24 的信号完全由资金费结算链触发，
+  某币若缺 2025 年资金费就不会出任何信号；而本机多出来的这些 TRAIN 交易整体为负，于是缺数据的一方 TRAIN 显得为正。
+- 旁证：本机 TRAIN 按资金费结算间隔拆分，**4h 结算币 +62 bp（627 笔），8h 结算币 −93 bp（579 笔）**——
+  缺失若集中在某类结算间隔上，TRAIN 的符号就会跟着翻。
+- 仓库已知陷阱：`user_data/data/binance/futures/*-1h-funding_rate.feather` 很多币从 2026-01-01 才开始（见 skill 陷阱 1、repo 记忆）。
+
+**请另一会话在 `r3b` 所在机器上执行：**
+```bash
+# 1) 数据目录体检：任何 "funding starts ... but klines start ..." 的 ERROR 都说明该币 2025 年资金费缺失
+python3 .claude/skills/binance-minute-strategy-research/scripts/validate_datadir.py \
+    --datadir user_data/data/r3b --interval 5m --csv /tmp/r3b_audit.csv
+grep -c "funding starts" /tmp/r3b_audit.csv
+
+# 2) 逐币统计 2025 年结算条数与首条时间（2025 年前已上线的币应从 2025-01-01 起、8h 币约 820 条 / 4h 币约 1640 条）
+python3 - <<'PY'
+import glob, pandas as pd
+rows = []
+for f in glob.glob("user_data/data/r3b/futures/*-1h-funding_rate.feather"):
+    d = pd.read_feather(f, columns=["date", "open"]); d = d[(d.date >= "2025-01-01") & (d.date < "2025-10-01")]
+    rows.append((f.split("/")[-1].split("_USDT")[0], len(d), d.date.min()))
+t = pd.DataFrame(rows, columns=["pair", "n_2025_train", "first"]).sort_values("n_2025_train")
+print(t.head(40).to_string(index=False)); print("pairs with < 300 TRAIN settlements:", (t.n_2025_train < 300).sum(), "/", len(t))
+PY
+
+# 3) 补数据后重跑 R24 的 TRAIN（Vision 月度 fundingRate 原始结算）
+python3 .claude/skills/binance-minute-strategy-research/scripts/download_vision.py \
+    --symbols-file <U162 symbols, e.g. BTCUSDT per line> --kinds fundingRate --start 2024-11 --end 2026-08
+python3 .claude/skills/binance-minute-strategy-research/scripts/vision_to_freqtrade.py --raw user_data/data/binance-vision --datadir user_data/data/r3b
+freqtrade backtesting -c user_data/minute_research/r3c/r24_config.json --strategy FundingExhaustionShort5m \
+    --datadir user_data/data/r3b --timerange 20250101-20251001 --export trades
+```
+**判定**：若补全后 TRAIN 笔数接近 1400+ 且 PF < 1.1，则 R24 不满足 §4-C（TRAIN PF ≥ 1.1），本文第二、五节对 R24 的
+"TRAIN 与 VALID-C 均通过"应撤回；其样本外收益 83–91% 来自 ARC 单币，剔除后 t < 1.5。
+
+### 2. 双挤压族：`DualSqueezeBtcTrend1h`（已配 dry-run）HOLDOUT 为负；R291 / R1002 需核对 Taker 口径
+
+| 口径 | TRAIN | VALID-C | HOLDOUT | VALID+HOLDOUT t |
+|---|---|---|---|---|
+| U160，费率 0.10% | +43 bp，PF 1.16，t 1.17 | +84 bp，PF 1.38，t 0.80（单日占 98%） | **−20 bp，PF 0.91** | 0.31 |
+| U160，费率 0.06% | +54 bp，PF 1.20，t 1.45 | +93 bp，PF 1.43，t 0.88 | **−8 bp，PF 0.96** | 0.59 |
+| 本文 U162，费率 0.06% | +72 bp，PF 1.28，t 1.80 | +113 bp，PF 1.55，t 0.92（单日占 88%） | **−9 bp，PF 0.96** | 0.65 |
+
+- 该策略的资金费只进成本（全期约 −4 USDT），资金费缺失对它影响很小；结论不随宇宙改变：**HOLDOUT 为负，不建议投入 dry-run 之外的资金**。
+- **Taker 口径核对（R291 / R362 / R105 / R1002 共同依赖）**：在 Vision 原始 1h K 线里，`taker_buy_volume / volume > 0.60` 的小时仅占 **4.2%**，
+  `> 0.66` 仅 **0.8%**；本机按同一规则复现 R362 TRAIN 0 笔、R105 TRAIN 15 笔（本文 65 / 73 笔）。请确认面板里的 `taker_buy_volume`：
+  (a) 与 `volume` 同为**基础币数量**（不要把 `taker_buy_quote_volume` 与 base `volume` 相除）；(b) 缺失值没有被填成 0.5 或 1；
+  (c) 1h 是由 1m/5m 聚合时 taker 与 volume 在同一时间窗内求和。
+- R1002（`MacroRelativeStrengthSqueeze1h`）本机尚未独立复核；上线前建议按上述 (a)–(c) 核对 Taker 数据，并用 freqtrade 引擎在独立构建的数据上重跑。
+
+### 3. 其他
+- 本文与研发档案中的链接写成 `file:///root/freqtrade/...` 绝对路径，在其他机器（如 `/root/workspace/freqtrade`）上打不开，建议改为仓库相对路径。
+- 两个会话都在 `user_data/minute_research/` 下使用 `r3`、`r5` 这类通用目录名，已发生一次互相覆盖（本机日志已在 `r3_tpsl/`、`r5_live/` 重建）；新目录请带主题名。
+
