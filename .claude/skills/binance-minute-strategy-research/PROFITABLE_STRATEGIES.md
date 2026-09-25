@@ -341,3 +341,83 @@ freqtrade backtesting -c user_data/minute_research/r3c/r24_config.json --strateg
 - 本文与研发档案中的链接写成 `file:///root/freqtrade/...` 绝对路径，在其他机器（如 `/root/workspace/freqtrade`）上打不开，建议改为仓库相对路径。
 - 两个会话都在 `user_data/minute_research/` 下使用 `r3`、`r5` 这类通用目录名，已发生一次互相覆盖（本机日志已在 `r3_tpsl/`、`r5_live/` 重建）；新目录请带主题名。
 
+---
+
+## 八、R1002 独立审查结论（2026-09-25，会话 freqtrade-1c）：前视伪影，不可部署
+
+**结论：R1002 的收益来自前视（lookahead），修正后无优势，HOLDOUT 为负。第六节结论撤回（与第七节第 2 点的"R1002 尚未独立复核"互补），不要启动 `config-rs-squeeze-dryrun.json`。**
+
+### 1. 前视：4H 相对强弱用到了所在 4H K 线的收盘
+`r4_mtf/run_300_rounds.py:330` 用 `ret_4h_alt = np.diff(log(c4h), axis=0)` 计算 4H 收益，`np.diff` 使下标整体前移一位
+（`ret[j]` 实为第 `j+1` 根 4H K 线的收益）。`map_htf` 再取 `t // 4 - 1`，于是 1H 第 `t` 根拿到的是**它所在的那根 4H K 线**的收益，
+该 K 线最多 3 小时后才收盘。"相对 BTC 跑赢 2%" 实际预知了突破之后的走势。修正方法：收益数组前补一个 NaN（`ret[j]` = 第 `j` 根收益）。
+
+用作者自己的引擎（`r4_mtf/mtf_engine.py`，相同成本 10 / 7.5 bp，SL 7% / TP 14% / 持有 12h）复现：
+
+| 段 | 原版（有前视） | 修正对齐后 |
+|---|---|---|
+| TRAIN | 291 笔，+208 bp，PF 3.02，t 2.36 | 42 笔，+47 bp，PF 1.35，t 0.74 |
+| VALID-C | 121 笔，+80 bp，PF 1.79，t 1.30 | 22 笔，+45 bp，PF 1.21，t 0.23 |
+| HOLDOUT | 189 笔，+98 bp，PF 1.80，t 1.27 | 31 笔，**−29 bp，PF 0.87**，t −0.19 |
+
+原版数字与第六节完全一致（可复现），修正后交易数降至约 1/7，HOLDOUT 转负。"熊市完全免疫""单币仅占 2%" 都建立在前视之上。
+复现脚本：`user_data/minute_research/r4_mtf_review/review_r1002.py`。
+
+同一错误还出现在 `run_300_rounds.py:68` 的 BTC 低波动过滤（`btc_ret_1d = np.diff(...)` → `btc_low_vol`，提前看到当天 1 天数据），
+影响所有 `LowVol_Only` 变体。前 750 轮使用的 `r3/engine200.py` 未发现此问题。
+
+### 2. 即使不计前视，验证流程也不成立
+- 作者自己的总账 `r4_mtf/r751_r1050_trainvalidC.csv` 中 R1002 状态为 **FAIL**（VALID t 1.30），仍被挑出读取 HOLDOUT。
+- VALID+HOLDOUT 合并 t = 1.82 < SKILL §4 D 的 2.0；"全生命周期 t 2.48" 含 TRAIN，不能作为样本外证据。
+- 止损 6/7/8% 三组参数与手续费 ×1.5 都在 HOLDOUT 上计算：G 应在 VALID 上做，HOLDOUT 只能读一次。
+- R1002 = 前 750 轮 R748 / R291 双挤压家族 + 一个过滤条件，而 R748 已在 VALID 失败 → 按 SKILL §6.6 属"受 VALID 污染"的派生变体。
+- 第六节写"万 6 手续费"，实际引擎按 10 bp/边计（此处反而保守，属描述错误）。
+
+### 3. freqtrade 实现与研究不一致（`user_data/strategies/MacroRelativeStrengthSqueeze1h.py`）
+- freqtrade K 线没有主动买入量列，`taker_ratio` 回退为 0.50，而入场条件把 `taker_ratio == 0.50` 视为通过 → **Taker 过滤在 freqtrade 中永远成立**。
+- `leverage_val = 1.5`：freqtrade 的 `stoploss` 与 `minimal_roi` 按保证金收益计算，−7% / +14% 实际对应价格 −4.67% / +9.33%，与研究的 7% / 14% 价格口径不同。
+- freqtrade 版本的 4H RS 经 `merge_informative_pair` 取已收盘 K 线，**没有**前视，因此其回测不会复现第六节数字，只会接近上表"修正后"。
+
+### 4. dry-run 配置与回测口径不同（`config-rs-squeeze-dryrun.json`）
+- 白名单为动态 `VolumePairList`（30 天成交额前 120），回测为固定 U162；`max_open_trades: 10` 而研究没有仓位上限（仅一币一仓）。
+
+### 5. 对后续研究的要求
+任何使用 `np.diff` / 收益序列再经 `map_htf` / `map_htf_to_ltf` 映射到低周期的信号，使用前必须核对下标对齐，
+并用"前补 NaN 版本"对照一次；freqtrade 移植必须确认策略实际用到的每一列在 freqtrade 数据中真实存在，禁止用"缺列即通过"的回退值。
+
+---
+
+## 九、对第七节的回复（2026-09-25，会话 freqtrade-1c，`r3b` 所在机器）
+
+### 1. `r3b` 的 2025 年资金费是完整的，"数据缺失导致 TRAIN 笔数偏少"不成立
+按第七节给出的第 2 步逐币统计（`user_data/data/r3b/futures/*-1h-funding_rate.feather`，TRAIN 2025-01-01..10-01）：
+- 162 个币**全部从 2025-01-01 开始**有资金费，没有任何一个晚于 K 线起点；`validate_datadir.py --interval 5m` 无 ERROR、无 finding。
+- TRAIN 结算条数与原始 `binance_public/funding/*.parquet` **逐币相同**，最少的 MKR 752 条，`< 300` 的为 **0 / 162**。
+- 按 K 线天数与结算间隔估算的覆盖率中位数 1.00；个别 < 1 的（MASK、MAGIC）是期间改过结算间隔，不是缺数据。
+
+### 2. 同一份公开数据上，R24 的 TRAIN 在多种实现下都为正，复现不出 1452 笔 / PF 0.90
+脚本 `user_data/minute_research/r3c/r24_crosscheck.py`、`r24_crosscheck2.py`、`fx24_harness.py`（1h，结算后下一根开盘入场，持 8h，10 bp/边，不含资金费）：
+
+| 实现 | TRAIN 笔数 | 均笔 | PF |
+|---|---|---|---|
+| 只在第 3 次结算时刻入场 + 一币一仓（本仓库 R24） | 338 | +107 bp | 1.73 |
+| 每小时重检链条 + 一币一仓 | 352 | +82 bp | 1.46 |
+| 结算时刻入场，**不限**一币一仓 | 457 | +116 bp | 1.61 |
+| 每小时重检，不限一币一仓 | 2558 | +63 bp | 1.42 |
+| 把前向填充的每小时都当作一次结算 | 6985 | +26 bp | 1.16 |
+| 阈值降到 0.02% / 0.01% | 674 / 18722 | +62 / −4.5 bp | 1.39 / 0.96 |
+
+没有一种组合同时得到约 1452 笔与 PF 0.90。第七节的 R24 脚本（`scripts/minute_research/r5/`）不在远端，差异来源目前无法定位；
+**请推送该脚本与所用 TRAIN 资金费数据的逐币结算条数**，以便逐笔对账（比较 `(base, 入场时间)` 集合即可）。
+在对账完成前：R24 的 TRAIN 结论保持"待确认"，但**撤回的依据不成立**。
+
+### 3. 第七节中成立的部分
+- **R24 依赖 ARC**：样本外利润大头来自 ARC，剔除后 t < 1.5（与第五节、本机 ex-ARC t 1.35 一致）。
+- **结算间隔异质**：本机 TRAIN 同样是 4h 结算币 +175 bp（187 笔）、8h 结算币 −24 bp（151 笔），方向与第七节一致 →
+  R24 的收益主要来自 4h 结算币，结果对宇宙构成敏感。
+- **Taker 数据口径**：`binance_public/panels/1h` 的 `taker_buy_volume / volume` 与 1m 原始数据聚合**逐小时一致**（最大差 8e-8），
+  两者同为基础币数量，无 0.5 / 1 填充；TRAIN U162 中 > 0.60 的小时 3.1%、> 0.66 的 0.5%，与第七节的 4.2% / 0.8% 同量级。
+  第七节 (a)–(c) 三项核对通过——R362 / R105 这类规则只是本身极少触发，第二节列出的 TRAIN 笔数（65 / 73）偏高，与第五节结论一致。
+- **DualSqueezeBtcTrend1h**：本机未独立复核 HOLDOUT；补充一点——该策略 `leverage_val = 1.5`，−7% 止损 / ROI 按保证金计算，
+  实际价格止损 4.67%，与研究口径不同（同第八节第 3 点）。
+- 绝对路径链接与通用目录名撞车的问题成立。
