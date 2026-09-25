@@ -1,0 +1,77 @@
+{
+    "max_open_trades": 10,
+    "stake_currency": "USDT",
+    "stake_amount": "unlimited",
+    "tradable_balance_ratio": 0.99,
+    "dry_run": true,
+    "dry_run_wallet": 100,
+    "timeframe": "1h",
+    "stoploss": -0.07,
+    "trading_mode": "futures",
+    "margin_mode": "isolated",
+    "fee": 0.0006,
+    "dataformat_ohlcv": "feather",
+    "entry_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+    "exit_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+    "exchange": {
+        "name": "binance",
+        "key": "",
+        "secret": "",
+        "ccxt_config": {
+            "timeout": 30000
+        },
+        "pair_whitelist": [],
+        "pair_blacklist": [
+            ".*(UP|DOWN|BULL|BEAR)/.*",
+            "USDC/USDT:USDT",
+            "FDUSD/USDT:USDT",
+            "TUSD/USDT:USDT",
+            "EUR/USDT:USDT",
+            "DAI/USDT:USDT",
+            "AEUR/USDT:USDT",
+            "BUSD/USDT:USDT",
+            "USTC/USDT:USDT"
+        ]
+    },
+    "pairlists": [
+        {
+            "method": "VolumePairList",
+            "number_assets": 120,
+            "sort_key": "quoteVolume",
+            "lookback_days": 30,
+            "lookback_timeframe": "1d",
+            "min_value": 10000000,
+            "refresh_period": 86400
+        },
+        {
+            "method": "AgeFilter",
+            "min_days_listed": 30
+        },
+        {
+            "method": "PrecisionFilter"
+        },
+        {
+            "method": "PriceFilter",
+            "min_price": 0.000001,
+            "low_price_ratio": 0.005
+        },
+        {
+            "method": "SpreadFilter",
+            "max_spread_ratio": 0.003
+        }
+    ],
+    "strategy": "MacroRelativeStrengthSqueeze1h",
+    "internals": {
+        "process_throttle_secs": 5
+    },
+    "initial_state": "running",
+    "db_url": "sqlite:///user_data/tradesv3.rs_squeeze_dryrun.sqlite"
+}
